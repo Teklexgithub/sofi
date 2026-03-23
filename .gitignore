@@ -1,0 +1,44 @@
+# Docker
+.docker/
+*/__pycache__
+postgres_data/
+
+# --- Python / Django ---
+Senv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.db
+*.sqlite3
+
+# --- Environment Secrets ---
+.env
+.env.local
+.env.*
+.venv/
+env/
+venv/
+
+# --- Django Migrations ---
+# This ignores all migration files in any app...
+**/migrations/*.py
+# ...but makes sure we keep the __init__.py files so the folders stay as Python packages
+!**/migrations/__init__.py
+
+# --- Frontend (Node/React) ---
+node_modules/
+dist/
+build/
+.eslintcache
+.stylelintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
