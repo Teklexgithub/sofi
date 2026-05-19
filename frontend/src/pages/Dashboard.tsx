@@ -1,8 +1,8 @@
 import React from 'react';
 import { Row, Col, Typography } from 'antd';
 import { 
-  ShopOutlined, TeamOutlined, FileTextOutlined, 
-  LineChartOutlined, SettingOutlined, BuildOutlined 
+  ShopOutlined, FileTextOutlined, TeamOutlined,
+  LineChartOutlined, AppstoreOutlined, SettingOutlined 
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -14,17 +14,17 @@ const Dashboard: React.FC = () => {
   const { isDark } = useTheme();
   const { user } = useAuth(); // Access the current user object
 
-  // Define all possible apps
+  // Define all possible apps based on your updated list
   const allApps = [
     { name: 'Inventory', icon: <ShopOutlined />, color: '#008784', path: '/inventory/products' },
-    { name: 'Contacts', icon: <TeamOutlined />, color: '#E46651', path: '/contacts' },
     { name: 'Sales', icon: <FileTextOutlined />, color: '#875A7B', path: '/sales' },
+    { name: 'Employee', icon: <TeamOutlined />, color: '#E46651', path: '/employees' },
     { name: 'Reporting', icon: <LineChartOutlined />, color: '#21B799', path: '/reporting' },
-    { name: 'Manufacturing', icon: <BuildOutlined />, color: '#00A09D', path: '/manufacturing' },
+    { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#1f74ac', path: '/analytics' },
     { 
       name: 'Settings', 
       icon: <SettingOutlined />, 
-      color: '#4A5B6D', // Updated to match our Settings Blue
+      color: '#4A5B6D', // Matches your Settings Blue
       path: '/settings/users', // Landing on users list as default
       adminOnly: true // Flag for filtering
     },

@@ -3,14 +3,15 @@ import { Layout, Avatar, Dropdown, Badge, Space, Typography, Switch, Menu, Selec
 import type { MenuProps } from 'antd';
 import { 
   BellOutlined, UserOutlined, LogoutOutlined, 
-  LockOutlined, AppstoreOutlined, BulbOutlined,
-  EnvironmentOutlined 
+  AppstoreOutlined, EnvironmentOutlined, ShopOutlined,
+  FileTextOutlined, TeamOutlined, LineChartOutlined, 
+  SettingOutlined 
 } from '@ant-design/icons';
 import { useAuth, api } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 
-const { Header, Content } = Layout;
+const { Header, Content, Sider } = Layout;
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
@@ -35,6 +36,31 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     fetchBranches();
   }, []);
 
+  // Define your master apps list for the sidebar switcher
+  const allApps = [
+    { name: 'Inventory', icon: <ShopOutlined />, color: '#008784', path: '/inventory/products' },
+    { name: 'Sales', icon: <FileTextOutlined />, color: '#875A7B', path: '/sales' },
+    { name: 'Employee', icon: <TeamOutlined />, color: '#E46651', path: '/employees' },
+    { name: 'Reporting', icon: <LineChartOutlined />, color: '#21B799', path: '/reporting' },
+    { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#1f74ac', path: '/' },
+    { 
+      name: 'Settings', 
+      icon: <SettingOutlined />, 
+      color: '#4A5B6D', 
+      path: '/settings/users', 
+      adminOnly: true 
+    },
+  ];
+
+  // Filter apps based on user role
+  const visibleApps = allApps.filter(app => {
+    if (app.adminOnly) {
+      return user?.role === 'ADMIN';
+    }
+    return true;
+  });
+
+  const isHomeDashboard = location.pathname === '/';
   const isInventoryModule = location.pathname.startsWith('/inventory');
   const isSettingsModule = location.pathname.startsWith('/settings');
 
@@ -78,7 +104,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   ];
 
-  // User Dropdown Menu - FIXED TypeScript Error here
+  // User Dropdown Menu
   const userItems: MenuProps['items'] = [
     { key: 'profile', label: 'My Profile', icon: <UserOutlined /> },
     { 
@@ -115,19 +141,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return '#714B67'; // Your custom Sofia Purple
   };
 
-//   const getHeaderBackground = () => {
-//     // 1. If Dark Mode is on, use the dark grey
-//     if (isDark) return '#1f1f1f';
-    
-//     // 2. If we are on the Root Dashboard, use white
-//     if (location.pathname === '/') return '#ffffff';
-    
-//     // 3. For all other modules (Inventory, Settings), use Sofia Purple
-//     return '#714B67'; 
-//   };
-
   return (
     <Layout style={{ minHeight: '100vh' }}>
+      {/* GLOBAL TOP HEADER */}
       <Header style={{ 
         background: getHeaderBackground(), 
         display: 'flex', 
@@ -205,13 +221,111 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </Space>
       </Header>
       
-      <Content style={{ 
-        padding: '16px 20px', 
-        background: isDark ? '#141414' : '#f0f2f5',
-        minHeight: 'calc(100vh - 46px)',
-      }}>
-        {children}
-      </Content>
+      {/* MIDDLE CONTAINER HOUSING SIDEBAR AND CONTENT */}
+      <Layout style={{ flexDirection: 'row' }}>
+        
+        {/* ODOO-STYLE COMPACT SIDEBAR WITH TEXT LABELS */}
+        {!isHomeDashboard && (
+          <Sider
+            theme={isDark ? 'dark' : 'light'}
+            width={76}
+            collapsed={true}
+            collapsedWidth={76}
+            style={{
+              borderRight: isDark ? '1px solid #303030' : '1px solid #e8e8e8',
+              background: isDark ? '#141414' : '#fcfcfc',
+              paddingTop: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              zIndex: 10,
+              height: 'calc(100vh - 46px)',
+              position: 'sticky',
+              top: '46px'
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', alignItems: 'center' }}>
+              {visibleApps.map((app) => {
+                // Parse top-level module slug (e.g. 'inventory' from '/inventory/products')
+                const baseRoute = app.path.split('/')[1];
+                
+                // Active calculation handles dashboard highlighting explicitly on root path '/'
+                const isActive = baseRoute === '' 
+                  ? location.pathname === '/' 
+                  : location.pathname.startsWith(`/${baseRoute}`);
+
+                return (
+                  <div
+                    key={app.path}
+                    onClick={() => navigate(app.path)}
+                    style={{
+                      width: '64px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      padding: '6px 0',
+                      borderRadius: '8px'
+                    }}
+                    onMouseEnter={(e) => !isActive && (e.currentTarget.style.transform = 'scale(1.05)')}
+                    onMouseLeave={(e) => !isActive && (e.currentTarget.style.transform = 'scale(1)')}
+                  >
+                    {/* Icon Container Box */}
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        backgroundColor: isActive ? app.color : (isDark ? '#262626' : '#f0f0f0'),
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        fontSize: '20px',
+                        color: isActive ? '#fff' : app.color,
+                        boxShadow: isActive ? '0 4px 8px rgba(0,0,0,0.15)' : 'none',
+                        transition: 'background-color 0.2s'
+                      }}
+                    >
+                      {app.icon}
+                    </div>
+
+                    {/* App Text Name Label */}
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: isActive ? 600 : 500,
+                        marginTop: '4px',
+                        textAlign: 'center',
+                        width: '100%',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        color: isActive 
+                          ? (isDark ? '#fff' : '#000') 
+                          : (isDark ? '#a6a6a6' : '#595959')
+                      }}
+                    >
+                      {app.name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </Sider>
+        )}
+
+        {/* WORKSPACE APP VIEWS RENDERING TARGET */}
+        <Content style={{ 
+          padding: '16px 20px', 
+          background: isDark ? '#141414' : '#f0f2f5',
+          minHeight: 'calc(100vh - 46px)',
+          width: '100%',
+          overflowY: 'auto'
+        }}>
+          {children}
+        </Content>
+      </Layout>
 
       <style>{`
         .branch-select .ant-select-selection-item { color: white !important; font-weight: 500; }

@@ -5,6 +5,8 @@ class Branch(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
     location = models.CharField(max_length=255, blank=True)
+    phone_no = models.CharField(max_length=20, blank=True, null=True)
+    phone_no_second = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -13,6 +15,8 @@ class Vendor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     contact_person = models.CharField(max_length=100, blank=True)
+    phone_no = models.CharField(max_length=20, blank=True, null=True)
+    bank_account = models.CharField(max_length=50, blank=True, null=True)
     
     def __str__(self):
         return self.name

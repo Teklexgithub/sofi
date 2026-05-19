@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, message } from 'antd';
+import { Modal, Form, Input, message, Row, Col } from 'antd';
 import { inventoryService } from '../../services/inventoryService';
 
 interface CreateVendorProps {
   visible: boolean;
   onCancel: () => void;
   onSuccess: () => void;
-  initialValues?: any; // Add this to handle the edit data
+  initialValues?: any;
 }
 
 const CreateVendorModal: React.FC<CreateVendorProps> = ({ 
@@ -18,7 +18,6 @@ const CreateVendorModal: React.FC<CreateVendorProps> = ({
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
 
-  // Sync the form with initialValues whenever the modal opens or the record changes
   useEffect(() => {
     if (visible) {
       if (initialValues) {
@@ -33,11 +32,9 @@ const CreateVendorModal: React.FC<CreateVendorProps> = ({
     setSubmitting(true);
     try {
       if (initialValues?.id) {
-        // If there's an ID, we are UPDATING
         await inventoryService.updateVendor(initialValues.id, values);
         message.success('Vendor updated in Sofia ERP');
       } else {
-        // If there's no ID, we are CREATING
         await inventoryService.createVendor(values);
         message.success('Vendor added to Sofia ERP');
       }
@@ -51,7 +48,7 @@ const CreateVendorModal: React.FC<CreateVendorProps> = ({
 
   return (
     <Modal
-      title={initialValues?.id ? "Edit Vendor" : "Add New Vendor"} // Dynamic Title
+      title={initialValues?.id ? "Edit Vendor" : "Add New Vendor"}
       open={visible}
       onOk={() => form.submit()}
       onCancel={onCancel}
@@ -66,6 +63,18 @@ const CreateVendorModal: React.FC<CreateVendorProps> = ({
 
         <Form.Item name="contact_person" label="Contact Person">
           <Input placeholder="e.g. Ato Abebe" />
+        </Form.Item>
+
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item name="phone_no" label="Phone Number">
+              <Input placeholder="e.g. +251 911..." />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item name="bank_account" label="Bank Account Number">
+          <Input placeholder="e.g. CBE 1000123456789" />
         </Form.Item>
       </Form>
     </Modal>

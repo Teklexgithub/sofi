@@ -4,6 +4,8 @@ export interface Branch {
   id: string;
   name: string;
   location: string;
+  phone_no?: string;
+  phone_no_second?: string;
 }
 
 export interface UserAccount {
@@ -15,3 +17,5 @@ export interface UserAccount {
   first_name: string;
   last_name: string;
 }
+
+

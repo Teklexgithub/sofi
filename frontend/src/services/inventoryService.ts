@@ -33,12 +33,10 @@ export const inventoryService = {
   // Stock (Packs & Pieces)
   getStoreStock: (branchId?: string) => 
     inventoryApi.get(`store-stock/${branchId ? `?branch=${branchId}` : ''}`),
-  // NEW: Detail fetch for Store
   getStoreStockDetail: (id: string) => inventoryApi.get(`store-stock/${id}/`),
   
   getShopStock: (branchId?: string) => 
     inventoryApi.get(`shop-stock/${branchId ? `?branch=${branchId}` : ''}`),
-  // NEW: Detail fetch for Shop
   getShopStockDetail: (id: string) => inventoryApi.get(`shop-stock/${id}/`),
 
   // Manual creation/adjustment
@@ -48,7 +46,14 @@ export const inventoryService = {
   createStoreStock: (data: any) => inventoryApi.post('store-stock/', data),
   updateStoreStock: (id: string, data: any) => inventoryApi.patch(`store-stock/${id}/`, data),
 
-  // Operations
+  // Operations: Actions
   transferStock: (data: any) => inventoryApi.post('internal-transfers/', data),
   logSupply: (data: any) => inventoryApi.post('supply-logs/', data),
+
+  // OPERATIONS: History/Logs (NEW Methods for the UI)
+  getSupplyLogs: (branchId?: string) => 
+    inventoryApi.get(`supply-logs/${branchId ? `?branch=${branchId}` : ''}`),
+    
+  getInternalTransfers: (branchId?: string) => 
+    inventoryApi.get(`internal-transfers/${branchId ? `?branch=${branchId}` : ''}`),
 };

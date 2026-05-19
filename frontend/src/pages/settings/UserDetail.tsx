@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Descriptions, Space, Typography, Tag, Breadcrumb, Popconfirm, message } from 'antd';
-import { EditOutlined, DeleteOutlined, ShopOutlined, MailOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, ShopOutlined, MailOutlined, KeyOutlined, GlobalOutlined } from '@ant-design/icons';
 import { settingsService } from '../../services/settingsService';
 import { useTheme } from '../../contexts/ThemeContext';
-import type { UserAccount } from '../../types/settings';
+import { useAuth } from '../../contexts/AuthContext'; 
 import CreateUserModal from './CreateUserModal';
+import ResetPasswordModal from './ResetPasswordModal'; 
 
 const { Title, Text } = Typography;
 
@@ -13,10 +14,15 @@ const UserDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { user } = useAuth(); 
   
-  const [userData, setUserData] = useState<UserAccount | null>(null);
+  const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isResetModalVisible, setIsResetModalVisible] = useState(false);
+
+  // Strictly enforce Admin-only view for the reset button
+  const isGlobalAdmin = user?.role === 'ADMIN';
 
   const fetchUser = async () => {
     setLoading(true);
@@ -44,13 +50,13 @@ const UserDetail: React.FC = () => {
     }
   };
 
-  if (!userData && !loading) return <div>User not found</div>;
+  if (!userData && !loading) return <div style={{ padding: '20px' }}><Text type="danger">User not found</Text></div>;
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
       <Breadcrumb style={{ marginBottom: '16px' }}>
         <Breadcrumb.Item>
-          <span onClick={() => navigate('/settings/users')} style={{ cursor: 'pointer', color: '#714B67' }}>
+          <span onClick={() => navigate('/settings/users')} style={{ cursor: 'pointer', color: '#714B67', fontWeight: 500 }}>
             Users
           </span>
         </Breadcrumb.Item>
@@ -59,49 +65,86 @@ const UserDetail: React.FC = () => {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
         <Space direction="vertical" size={0}>
-          <Title level={2} style={{ margin: 0 }}>{userData?.first_name} {userData?.last_name}</Title>
-          <Text type="secondary"><MailOutlined /> {userData?.email}</Text>
+          <Title level={2} style={{ margin: 0 }}>{userData?.email}</Title>
+          <Space>
+             <Tag color={userData?.role === 'ADMIN' ? 'volcano' : 'blue'}>{userData?.role}</Tag>
+             {userData?.is_active ? <Tag color="green">Active</Tag> : <Tag color="red">Inactive</Tag>}
+          </Space>
         </Space>
         
         <Space>
-          {/* Smart Button: Link to the assigned branch */}
-          {userData?.branch && (
+          {/* Admin Override: Reset Password on-system */}
+          {isGlobalAdmin && (
             <Button 
-              icon={<ShopOutlined />} 
-              onClick={() => navigate(`/settings/branches/${userData.branch}`)}
+              icon={<KeyOutlined />} 
+              danger
+              onClick={() => setIsResetModalVisible(true)}
             >
-              View Branch
+              Reset Password
             </Button>
           )}
-          <Button icon={<EditOutlined />} type="primary" ghost onClick={() => setIsEditModalVisible(true)}>
-            Edit
+
+          <Button 
+            icon={<EditOutlined />} 
+            type="primary" 
+            ghost 
+            onClick={() => setIsEditModalVisible(true)} 
+            style={{ color: '#714B67', borderColor: '#714B67' }}
+          >
+            Edit Profile
           </Button>
-          <Popconfirm title="Delete this user?" onConfirm={handleDelete} okText="Yes" cancelText="No">
+          
+          <Popconfirm 
+            title="Deactivate this user?" 
+            onConfirm={handleDelete} 
+            okText="Yes" 
+            cancelText="No"
+            okButtonProps={{ danger: true }}
+          >
             <Button icon={<DeleteOutlined />} danger>Delete</Button>
           </Popconfirm>
         </Space>
       </div>
 
       <Card loading={loading} style={{ borderRadius: '8px', background: isDark ? '#1f1f1f' : '#fff' }}>
-        <Descriptions title="Account Details" bordered column={2}>
-          <Descriptions.Item label="Email">{userData?.email}</Descriptions.Item>
-          <Descriptions.Item label="Role">
-            <Tag color={userData?.role === 'ADMIN' ? 'volcano' : 'blue'}>{userData?.role}</Tag>
+        <Descriptions title="System Access Details" bordered column={2}>
+          <Descriptions.Item label="Email" span={2}>
+            <MailOutlined style={{ marginRight: 8 }} />
+            {userData?.email}
           </Descriptions.Item>
-          <Descriptions.Item label="Branch Assignment" span={2}>
-             {userData?.branch ? 'Assigned to Branch' : 'Global / No Branch'}
+          <Descriptions.Item label="System Role">{userData?.role}</Descriptions.Item>
+          <Descriptions.Item label="Branch Assignment">
+             {userData?.branch_name ? (
+               <Button type="link" style={{ padding: 0 }} onClick={() => navigate(`/settings/branches/${userData.branch}`)}>
+                 <ShopOutlined style={{ marginRight: 4 }} /> {userData.branch_name}
+               </Button>
+             ) : (
+               <Tag icon={<GlobalOutlined />}>Global Access</Tag>
+             )}
+          </Descriptions.Item>
+          <Descriptions.Item label="Joined Date">
+            {userData?.date_joined ? new Date(userData.date_joined).toLocaleDateString() : 'N/A'}
           </Descriptions.Item>
         </Descriptions>
       </Card>
 
-      <CreateUserModal 
-        visible={isEditModalVisible}
-        initialValues={userData}
-        onCancel={() => setIsEditModalVisible(false)}
-        onSuccess={() => {
-          setIsEditModalVisible(false);
-          fetchUser();
-        }}
+     <CreateUserModal 
+      key={userData?.id || 'new'} // <--- ADD THIS LINE
+      visible={isEditModalVisible}
+      initialValues={userData}
+      onCancel={() => setIsEditModalVisible(false)}
+      onSuccess={() => {
+        setIsEditModalVisible(false);
+        fetchUser();
+      }}
+    />
+
+      {/* The Actual "On-System" Reset Component */}
+      <ResetPasswordModal 
+        visible={isResetModalVisible}
+        userId={id!}
+        userEmail={userData?.email}
+        onCancel={() => setIsResetModalVisible(false)}
       />
     </div>
   );

@@ -15,9 +15,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         return token
 
+
 class UserSerializer(serializers.ModelSerializer):
+    branch_name = serializers.CharField(source='branch.name', read_only=True) # MUST be read_only
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'role', 'branch']
-        read_only_fields = ['id']
-
+        fields = ['id', 'email', 'role', 'branch', 'branch_name', 'is_active', 'date_joined']

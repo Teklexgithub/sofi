@@ -10,6 +10,8 @@ api.interceptors.request.use(config => {
 });
 
 export const settingsService = {
+  resetUserPassword: (userId: string, password: string) => 
+    api.post(`/users/accounts/${userId}/change-password/`, { password }),
   // Users (using your 'accounts' route)
   getUsers: () => api.get('users/accounts/'),
   getUserDetail: (id: string) => api.get(`users/accounts/${id}/`),

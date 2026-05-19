@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Space, Tag, Typography, Card, message } from 'antd';
-import { PlusOutlined, ReloadOutlined, UserOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, UserOutlined, GlobalOutlined, ShopOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { settingsService } from '../../services/settingsService';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -34,13 +34,13 @@ const UserList: React.FC = () => {
     { 
       title: 'User', 
       key: 'user',
-      render: (record: UserAccount) => (
+      render: (record: any) => (
         <Space>
           <UserOutlined style={{ color: '#714B67' }} />
           <Button 
             type="link" 
             onClick={() => navigate(`/settings/users/${record.id}`)} 
-            style={{ padding: 0, fontWeight: 'bold' }}
+            style={{ padding: 0, fontWeight: 'bold', color: isDark ? '#fff' : '#714B67' }}
           >
             {record.email}
           </Button>
@@ -53,29 +53,55 @@ const UserList: React.FC = () => {
       key: 'role',
       render: (role: string) => {
         let color = role === 'ADMIN' ? 'volcano' : role === 'MANAGER' ? 'blue' : 'green';
-        return <Tag color={color}>{role}</Tag>;
+        return <Tag color={color} style={{ fontWeight: '500' }}>{role}</Tag>;
       }
     },
     { 
-      title: 'Branch', 
-      dataIndex: 'branch_name', // Ensure your serializer provides this or map it
-      key: 'branch' 
+      title: 'Branch Assignment', 
+      dataIndex: 'branch_name', 
+      key: 'branch',
+      render: (name: string, record: any) => {
+        if (record.role === 'ADMIN' && !name) {
+          return (
+            <Space style={{ color: '#8c8c8c' }}>
+              <GlobalOutlined />
+              <span>Global Access</span>
+            </Space>
+          );
+        }
+        return (
+          <Space>
+            <ShopOutlined style={{ color: name ? '#1890ff' : '#d9d9d9' }} />
+            <Text>{name || 'Not Assigned'}</Text>
+          </Space>
+        );
+      }
     },
     {
       title: 'Action',
       key: 'action',
+      align: 'right' as const,
       render: (_: any, record: UserAccount) => (
-        <Button type="link" onClick={() => navigate(`/settings/users/${record.id}`)}>View Profile</Button>
+        <Button 
+            type="default" 
+            size="small"
+            onClick={() => navigate(`/settings/users/${record.id}`)}
+        >
+            View Profile
+        </Button>
       ),
     },
   ];
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <Title level={3} style={{ margin: 0 }}>System Users</Title>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <Space direction="vertical" size={0}>
+          <Title level={3} style={{ margin: 0 }}>System Users</Title>
+          <Text type="secondary">Manage employee accounts and branch permissions</Text>
+        </Space>
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={fetchUsers} />
+          <Button icon={<ReloadOutlined />} onClick={fetchUsers} title="Refresh Table" />
           <Button 
             type="primary" 
             icon={<PlusOutlined />} 
@@ -91,13 +117,15 @@ const UserList: React.FC = () => {
         borderRadius: '8px', 
         background: isDark ? '#1f1f1f' : '#fff',
         border: isDark ? '1px solid #333' : '1px solid #f0f0f0',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
       }}>
         <Table 
           columns={columns} 
           dataSource={users} 
           loading={loading} 
-          rowKey="id" 
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
         />
       </Card>
 

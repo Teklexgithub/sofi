@@ -3,11 +3,11 @@ from .models import Branch, Vendor, Product, StoreStock, ShopStock, SupplyLog, I
 
 @admin.register(Branch)
 class BranchAdmin(admin.ModelAdmin):
-    list_display = ('name', 'location')
+    list_display = ('name', 'location', 'phone_no', 'phone_no_second')
 
 @admin.register(Vendor)
 class VendorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'contact_person')
+    list_display = ('name', 'contact_person', 'phone_no', 'bank_account')
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):

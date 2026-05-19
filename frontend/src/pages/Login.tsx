@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, ConfigProvider, theme, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { login } from '../services/authService'; // Ensure this path is correct
+import { useTheme } from '../contexts/ThemeContext'; // Import your shared theme hook
 
 const { Title, Text } = Typography;
 
 const Login: React.FC = () => {
-  const [isDark, setIsDark] = useState(true);
+  const { isDark, toggleTheme } = useTheme(); // Consume global theme context instead of local useState
   const [loading, setLoading] = useState(false); // Add loading state for the button
 
   const onFinish = async (values: any) => {
@@ -61,7 +62,7 @@ const Login: React.FC = () => {
         }}>
 
           {/* LEFT SIDE: DESIGNER LAMP */}
-          <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setIsDark(!isDark)}>
+          <div style={{ position: 'relative', cursor: 'pointer' }} onClick={toggleTheme}>
             <div style={{
               width: '180px',
               height: '110px',
@@ -122,7 +123,7 @@ const Login: React.FC = () => {
             <Form 
               layout="vertical" 
               size="large"
-              onFinish={onFinish} // Connect the submit handler
+              onFinish={onFinish} 
             >
               <Form.Item 
                 label={<Text style={{fontSize: '12px', opacity: 0.7}}>Email</Text>} 
@@ -150,9 +151,9 @@ const Login: React.FC = () => {
 
               <Button 
                 type="primary" 
-                block 
-                htmlType="submit" // Trigger onFinish
-                loading={loading} // Show loading spinner
+ block 
+                htmlType="submit" 
+                loading={loading} 
                 style={{ 
                   height: '50px', 
                   borderRadius: '15px', 

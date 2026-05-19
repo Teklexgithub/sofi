@@ -6,24 +6,25 @@ import ProductDetail from './pages/inventory/ProductDetail';
 import Vendors from './pages/inventory/Vendors';
 import VendorDetail from './pages/inventory/VendorDetail';
 import StockDetail from './pages/inventory/StockDetail';
-
 import StoreStock from './pages/inventory/StoreStock';
 import ShopStock from './pages/inventory/ShopStock';
 
-// Import your future Settings components here
+// IMPORT NEW OPERATIONS PAGES
+import InternalTransfers from './pages/inventory/InternalTransfers';
+//import SupplyLogs from './pages/inventory/SupplyLogs'; // Assuming you named it this
+
+// Settings components
 import UserList from './pages/settings/UserList';
 import UserDetail from './pages/settings/UserDetail';
 import Branches from './pages/settings/Branches';
 import BranchDetail from './pages/settings/BranchDetail';
-
-
 
 import MainLayout from './layouts/MainLayout';
 import { useAuth } from './contexts/AuthContext';
 import { Spin } from 'antd';
 
 function App() {
-  const { isAuthenticated, loading, user } = useAuth(); // Added 'user' to access role
+  const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -44,18 +45,24 @@ function App() {
             element={
               <MainLayout>
                 <Routes>
+                  {/* Global Dashboard */}
                   <Route path="/" element={<Dashboard />} />
                   
-                  {/* Inventory App Routes */}
+                  {/* Master Data */}
                   <Route path="/inventory/products" element={<ProductList />} />
                   <Route path="/inventory/products/:id" element={<ProductDetail />} />
                   <Route path="/inventory/vendors" element={<Vendors />} />
                   <Route path="/inventory/vendors/:id" element={<VendorDetail />} />
 
+                  {/* Stock Levels */}
                   <Route path="/inventory/store" element={<StoreStock />} />
                   <Route path="/inventory/shop" element={<ShopStock />} />
                   <Route path="/inventory/store/:id" element={<StockDetail type="store" />} />
                   <Route path="/inventory/shop/:id" element={<StockDetail type="shop" />} />
+
+                  {/* Operations - THESE WERE MISSING */}
+                  <Route path="/inventory/transfers" element={<InternalTransfers />} />
+                  {/*<Route path="/inventory/supply-logs" element={<SupplyLogs />} />*/}
 
                   {/* Settings App - Secure Admin-Only Route */}
                   <Route 
@@ -69,11 +76,12 @@ function App() {
                           <Route path="branches/:id" element={<BranchDetail />} />
                         </Routes>
                       ) : (
-                        <Navigate to="/" replace /> // Boot non-admins back to dashboard
+                        <Navigate to="/" replace />
                       )
                     } 
                   />
                   
+                  {/* Fallback to Dashboard */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </MainLayout>

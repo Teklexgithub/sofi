@@ -6,6 +6,8 @@ export interface Vendor {
   id: string; // UUID
   name: string;
   contact_person?: string;
+  phone_no?: string;
+  bank_account?: string;
 }
 
 export interface Product {

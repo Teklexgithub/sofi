@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Typography, Card, Tag, Space, Button, Input, message } from 'antd';
-import { ReloadOutlined, ShopOutlined, SearchOutlined, PlusOutlined } from '@ant-design/icons';
+import { 
+  ReloadOutlined, 
+  SearchOutlined, 
+  ShopOutlined, 
+  ArrowUpOutlined 
+} from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { inventoryService } from '../../services/inventoryService';
 import { useTheme } from '../../contexts/ThemeContext';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
-/** * Interface for ShopStock items matching the Serializer fields
+/**
+ * Interface matching your ShopStock Model
  */
 interface ShopStockItem {
   id: string;
@@ -23,21 +29,21 @@ const ShopStock: React.FC = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
-  const fetchShopStock = async () => {
+  const fetchStock = async () => {
     setLoading(true);
     try {
-      // Calls the updated service using inventoryApi
-      const res = await inventoryService.getShopStock(); 
+      // Fetches data from the /shop-stock/ endpoint
+      const res = await inventoryService.getShopStock();
       setData(res.data);
     } catch (e) {
-      message.error("Failed to load shop stock");
+      message.error("Failed to sync shop inventory levels");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchShopStock();
+    fetchStock();
   }, []);
 
   const columns = [
@@ -48,8 +54,7 @@ const ShopStock: React.FC = () => {
       render: (text: string, record: ShopStockItem) => (
         <Button 
           type="link" 
-          // Redirects to the detail page using the record ID
-          onClick={() => navigate(`/inventory/shop/${record.id}`)} 
+          onClick={() => navigate(`/inventory/shop/${record.id}`)}
           style={{ padding: 0, fontWeight: 'bold', color: '#714B67' }}
         >
           {text}
@@ -57,54 +62,75 @@ const ShopStock: React.FC = () => {
       )
     },
     {
-      title: 'Quantity (Pieces)',
-      dataIndex: 'quantity_in_pieces',
-      key: 'qty',
-      render: (qty: number) => (
-        <Tag color={qty < 20 ? 'red' : 'blue'} style={{ fontSize: '14px', fontWeight: 'bold' }}>
-          {qty} Pieces
-        </Tag>
-      )
+    title: 'Branch',
+    dataIndex: 'branch_name', // Ensure your ShopStockSerializer includes branch_name
+    key: 'branch',
+    render: (name: string) => <Tag color="blue">{name}</Tag>
     },
     {
-      title: 'Status',
+      title: 'Current Pieces',
+      dataIndex: 'quantity_in_pieces',
+      key: 'qty',
+      render: (qty: number) => {
+        // Visual indicator for low stock at retail level
+        let color = 'green';
+        if (qty <= 5) color = 'red';
+        else if (qty <= 15) color = 'orange';
+        
+        return (
+          <Tag color={color} style={{ fontSize: '14px', fontWeight: 'bold' }}>
+            {qty} Pieces
+          </Tag>
+        );
+      }
+    },
+    {
+      title: 'Replenishment Status',
       key: 'status',
       render: (_: any, record: ShopStockItem) => (
-        record.quantity_in_pieces > 0 ? 
-          <Tag color="success">In Stock</Tag> : 
-          <Tag color="error">Out of Stock</Tag>
+        record.quantity_in_pieces <= 15 ? (
+          <Tag icon={<ArrowUpOutlined />} color="warning">
+            NEEDS REFILL
+          </Tag>
+        ) : (
+          <Tag color="success">STOCKED</Tag>
+        )
       )
-    }
+    },
   ];
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <Space size="middle">
-          <Title level={3} style={{ margin: 0 }}>
-            <ShopOutlined /> Shop Stock (Pieces)
-          </Title>
-        </Space>
-        
+      {/* Header Section */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '16px' 
+      }}>
+        <Title level={3} style={{ margin: 0 }}>
+          <ShopOutlined /> Shop Stock (Pieces)
+        </Title>
         <Space>
           <Input 
-            placeholder="Search pieces..." 
+            placeholder="Search shop items..." 
             prefix={<SearchOutlined />} 
             onChange={e => setSearchText(e.target.value)}
             style={{ width: 250 }}
           />
-          <Button icon={<ReloadOutlined />} onClick={fetchShopStock} />
+          <Button icon={<ReloadOutlined />} onClick={fetchStock} />
+          {/* Internal Transfer Shortcut */}
           <Button 
             type="primary" 
-            icon={<PlusOutlined />}
             style={{ background: '#714B67', border: 'none' }}
-            onClick={() => message.info("Opening manual adjustment...")}
+            onClick={() => navigate('/inventory/transfers')}
           >
-            Adjust Pieces
+            Refill from Store
           </Button>
         </Space>
       </div>
 
+      {/* Table Section */}
       <Card styles={{ body: { padding: '0' } }} style={{ 
         borderRadius: '8px', 
         background: isDark ? '#1f1f1f' : '#fff',
@@ -121,6 +147,11 @@ const ShopStock: React.FC = () => {
           pagination={{ pageSize: 10 }}
         />
       </Card>
+
+      <p style={{ marginTop: '16px', color: '#888', fontSize: '12px' }}>
+        * Shop Stock shows individual units available for customer sales. 
+        Levels are replenished from the Store (Bulk) using <b>Internal Transfers</b>.
+      </p>
     </div>
   );
 };
