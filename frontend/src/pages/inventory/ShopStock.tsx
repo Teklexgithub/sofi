@@ -1,157 +1,183 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Typography, Card, Tag, Space, Button, Input, message } from 'antd';
+import { Table, Typography, Card, Tag, Space, Button, message } from 'antd';
 import { 
-  ReloadOutlined, 
-  SearchOutlined, 
-  ShopOutlined, 
-  ArrowUpOutlined 
+  CalendarOutlined, 
+  EnvironmentOutlined,
+  EyeOutlined,
+  ShopOutlined, // Fixed missing import
+  ThunderboltOutlined,
+  DatabaseOutlined,
+  EditOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import { inventoryService } from '../../services/inventoryService';
-import { useTheme } from '../../contexts/ThemeContext';
+import dayjs from 'dayjs';
+import { useNavigate } from 'react-router-dom';
 
-const { Title } = Typography;
 
-/**
- * Interface matching your ShopStock Model
- */
-interface ShopStockItem {
-  id: string;
-  product_name: string;
-  quantity_in_pieces: number;
-  branch: string;
-}
+const { Title, Text } = Typography;
 
 const ShopStock: React.FC = () => {
-  const [data, setData] = useState<ShopStockItem[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchText, setSearchText] = useState('');
-  const { isDark } = useTheme();
   const navigate = useNavigate();
 
   const fetchStock = async () => {
     setLoading(true);
     try {
-      // Fetches data from the /shop-stock/ endpoint
       const res = await inventoryService.getShopStock();
       setData(res.data);
     } catch (e) {
-      message.error("Failed to sync shop inventory levels");
+      message.error("Failed to load inventory groups");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchStock();
+  useEffect(() => { 
+    fetchStock(); 
   }, []);
 
-  const columns = [
-    {
-      title: 'Product',
-      dataIndex: 'product_name',
-      key: 'product',
-      render: (text: string, record: ShopStockItem) => (
-        <Button 
-          type="link" 
-          onClick={() => navigate(`/inventory/shop/${record.id}`)}
-          style={{ padding: 0, fontWeight: 'bold', color: '#714B67' }}
-        >
-          {text}
-        </Button>
-      )
-    },
-    {
-    title: 'Branch',
-    dataIndex: 'branch_name', // Ensure your ShopStockSerializer includes branch_name
-    key: 'branch',
-    render: (name: string) => <Tag color="blue">{name}</Tag>
-    },
-    {
-      title: 'Current Pieces',
-      dataIndex: 'quantity_in_pieces',
-      key: 'qty',
-      render: (qty: number) => {
-        // Visual indicator for low stock at retail level
-        let color = 'green';
-        if (qty <= 5) color = 'red';
-        else if (qty <= 15) color = 'orange';
-        
-        return (
-          <Tag color={color} style={{ fontSize: '14px', fontWeight: 'bold' }}>
-            {qty} Pieces
+  // --- NESTED TABLE: Shows products delivered for a specific Branch/Date combo ---
+  const expandedRowRender = (record: any) => {
+    const subColumns = [
+      { 
+        title: 'Product Name', 
+        dataIndex: 'product_name', 
+        key: 'name',
+        render: (text: string) => <Text strong>{text}</Text>
+      },
+      { 
+        title: 'Source', 
+        dataIndex: 'destination', 
+        key: 'source',
+        render: (dest: string) => (
+          <Tag 
+            icon={dest === 'SHOP' ? <ThunderboltOutlined /> : <DatabaseOutlined />} 
+            color={dest === 'SHOP' ? 'cyan' : 'blue'}
+          >
+            {dest === 'SHOP' ? 'Direct Delivery' : 'Store Refill'}
           </Tag>
-        );
-      }
-    },
-    {
-      title: 'Replenishment Status',
-      key: 'status',
-      render: (_: any, record: ShopStockItem) => (
-        record.quantity_in_pieces <= 15 ? (
-          <Tag icon={<ArrowUpOutlined />} color="warning">
-            NEEDS REFILL
-          </Tag>
-        ) : (
-          <Tag color="success">STOCKED</Tag>
+        ) 
+      },
+      { 
+        title: 'Current Quantity', 
+        dataIndex: 'quantity_in_pieces', 
+        key: 'qty',
+        render: (q: number) => <Tag color={q > 0 ? 'green' : 'red'}>{q} Pieces</Tag> 
+      },
+
+      {
+        title: 'Action',
+        key: 'adjust',
+        render: (record: any) => (
+          <Button 
+            type="link" 
+            icon={<EditOutlined />} 
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/inventory/stock/shop/${record.id}`);
+            }}
+          >
+            View & Adjust
+          </Button>
         )
+      }
+    ];
+
+    // Filter the flat data to find items matching this row's Branch and Date
+    const branchItems = data.filter(item => 
+      item.branch_name === record.branch_name && 
+      dayjs(item.last_updated).format('YYYY-MM-DD') === record.date
+    );
+
+    return (
+      <Table 
+        columns={subColumns} 
+        dataSource={branchItems} 
+        pagination={false} 
+        size="small" 
+        rowKey="id"
+        style={{ margin: '10px 0', border: '1px solid #f0f0f0', borderRadius: '8px' }}
+      />
+    );
+  };
+
+  // --- MAIN TABLE COLUMNS: The "Date + Branch" Summary ---
+  const mainColumns = [
+    {
+      title: 'Arrival Date',
+      dataIndex: 'date',
+      key: 'date',
+      render: (date: string) => (
+        <Space><CalendarOutlined style={{ color: '#714B67' }} /> <Text strong>{date}</Text></Space>
       )
     },
+    {
+      title: 'Branch Name',
+      dataIndex: 'branch_name',
+      key: 'branch',
+      render: (name: string) => (
+        <Tag icon={<EnvironmentOutlined />} color="purple" style={{ padding: '2px 10px' }}>{name}</Tag>
+      )
+    },
+    {
+      title: 'Product Count',
+      dataIndex: 'item_count',
+      key: 'count',
+      render: (count: number) => <Text type="secondary">{count} Products in this batch</Text>
+    },
+    {
+      title: 'Details',
+      key: 'action',
+      render: () => <Button type="link" icon={<EyeOutlined />} style={{ color: '#714B67' }}>Expand to View</Button>
+    }
   ];
 
+  // Logic to transform flat product data into Grouped "Date + Branch" rows
+  const groupedData = Object.values(data.reduce((acc: any, item: any) => {
+    // We group by day only (ignoring time) and branch
+    const dateStr = dayjs(item.last_updated).format('YYYY-MM-DD');
+    const groupKey = `${dateStr}-${item.branch_name}`;
+    
+    if (!acc[groupKey]) {
+      acc[groupKey] = {
+        key: groupKey,
+        date: dateStr,
+        branch_name: item.branch_name,
+        item_count: 0
+      };
+    }
+    acc[groupKey].item_count += 1;
+    return acc;
+  }, {}));
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Header Section */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '16px' 
-      }}>
-        <Title level={3} style={{ margin: 0 }}>
-          <ShopOutlined /> Shop Stock (Pieces)
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px' }}>
+      <div style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ marginBottom: 4 }}>
+          <ShopOutlined style={{ color: '#714B67' }} /> Daily Shop Inventory
         </Title>
-        <Space>
-          <Input 
-            placeholder="Search shop items..." 
-            prefix={<SearchOutlined />} 
-            onChange={e => setSearchText(e.target.value)}
-            style={{ width: 250 }}
-          />
-          <Button icon={<ReloadOutlined />} onClick={fetchStock} />
-          {/* Internal Transfer Shortcut */}
-          <Button 
-            type="primary" 
-            style={{ background: '#714B67', border: 'none' }}
-            onClick={() => navigate('/inventory/transfers')}
-          >
-            Refill from Store
-          </Button>
-        </Space>
+        <Text type="secondary">
+          Everything currently in the shop floor, organized by arrival date and location.
+        </Text>
       </div>
 
-      {/* Table Section */}
-      <Card styles={{ body: { padding: '0' } }} style={{ 
-        borderRadius: '8px', 
-        background: isDark ? '#1f1f1f' : '#fff',
-        border: isDark ? '1px solid #333' : '1px solid #f0f0f0',
-        overflow: 'hidden'
-      }}>
-        <Table 
-          dataSource={data.filter(item => 
-            item.product_name.toLowerCase().includes(searchText.toLowerCase())
-          )} 
-          columns={columns} 
-          loading={loading} 
-          rowKey="id" 
+      <Card 
+        styles={{ body: { padding: 0 } }} 
+        style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+      >
+        <Table
+          columns={mainColumns}
+          expandable={{
+            expandedRowRender,
+            expandRowByClick: true, // Easier for novices: just click the row!
+          }}
+          dataSource={groupedData}
+          loading={loading}
+          rowKey="key"
           pagination={{ pageSize: 10 }}
         />
       </Card>
-
-      <p style={{ marginTop: '16px', color: '#888', fontSize: '12px' }}>
-        * Shop Stock shows individual units available for customer sales. 
-        Levels are replenished from the Store (Bulk) using <b>Internal Transfers</b>.
-      </p>
     </div>
   );
 };

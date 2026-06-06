@@ -29,20 +29,24 @@ class Product(models.Model):
         ('NUTS', 'Nuts'),
         ('CIGARETTE', 'Cigarette'),
     ]
+    
+    DESTINATION_CHOICES = [
+        ('STORE', 'Store (Warehouse)'),
+        ('SHOP', 'Shop (Sales Floor/Direct)'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True)
-    
-    # Standard packaging defined by Admin
+    vendor = models.ForeignKey('Vendor', on_delete=models.SET_NULL, null=True)
+
+    destination = models.CharField(max_length=10, choices=DESTINATION_CHOICES, default='STORE') 
     pieces_per_pack = models.IntegerField(default=1)
-    
-    # Prices per single piece
     buying_price_per_piece = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price_per_piece = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.name} ({self.get_category_display()})"
+        return f"{self.name} - {self.get_destination_display()}"
 
 class StoreStock(models.Model):
     """The 'Back Room' - Tracks unopened packs/crates"""
@@ -64,8 +68,10 @@ class ShopStock(models.Model):
     class Meta:
         unique_together = ('branch', 'product')
 
+
+
 class SupplyLog(models.Model):
-    """External Delivery: Vendor -> StoreStock"""
+    """External Delivery: Vendor -> StoreStock or ShopStock"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -73,14 +79,34 @@ class SupplyLog(models.Model):
     manager_notes = models.TextField(blank=True)
     date_received = models.DateTimeField()
     is_paid_to_vendor = models.BooleanField(default=False)
-
+    
     def save(self, *args, **kwargs):
-        # When new product arrives, it increases the StoreStock (Packs)
-        store_obj, _ = StoreStock.objects.get_or_create(branch=self.branch, product=self.product)
-        store_obj.quantity_in_packs += self.packs_received
-        store_obj.save()
-        super().save(*args, **kwargs)
+        # Check if this is a new delivery record
+        is_new = self._state.adding
+        
+        if is_new:
+            # PATH 1: Direct to Shop (Khat, Nuts, etc.)
+            if self.product.destination == 'SHOP':
+                shop_obj, _ = ShopStock.objects.get_or_create(
+                    branch=self.branch, 
+                    product=self.product
+                )
+                # FIX: Using 'quantity_in_pieces' to match your model
+                added_pieces = self.packs_received * self.product.pieces_per_pack
+                shop_obj.quantity_in_pieces += int(added_pieces)
+                shop_obj.save()
+                
+            # PATH 2: To Store (Water, Soda, Cigarettes)
+            else:
+                store_obj, _ = StoreStock.objects.get_or_create(
+                    branch=self.branch, 
+                    product=self.product
+                )
+                # Store tracks in packs
+                store_obj.quantity_in_packs += self.packs_received
+                store_obj.save()
 
+        super().save(*args, **kwargs)
 
 class InternalTransfer(models.Model):
     """Records the refill process: Store -> Shop"""

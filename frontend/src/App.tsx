@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+
+// INVENTORY APP
 import ProductList from './pages/inventory/ProductList'; 
 import ProductDetail from './pages/inventory/ProductDetail'; 
 import Vendors from './pages/inventory/Vendors';
@@ -8,12 +10,16 @@ import VendorDetail from './pages/inventory/VendorDetail';
 import StockDetail from './pages/inventory/StockDetail';
 import StoreStock from './pages/inventory/StoreStock';
 import ShopStock from './pages/inventory/ShopStock';
-
-// IMPORT NEW OPERATIONS PAGES
 import InternalTransfers from './pages/inventory/InternalTransfers';
-//import SupplyLogs from './pages/inventory/SupplyLogs'; // Assuming you named it this
+import SupplyLogs from './pages/inventory/SupplyLogs';
 
-// Settings components
+// SALES APP - NEW IMPORTS
+import DailySessionWorksheet from './pages/sales/DailySessionWorksheet';
+import DigitalAccountSetup from './pages/sales/DigitalAccountSetup';
+import DigitalAccountAdjustments from './pages/sales/DigitalAccountAdjustments';
+// (Future Settlement page import will go here)
+
+// SETTINGS APP
 import UserList from './pages/settings/UserList';
 import UserDetail from './pages/settings/UserDetail';
 import Branches from './pages/settings/Branches';
@@ -48,23 +54,31 @@ function App() {
                   {/* Global Dashboard */}
                   <Route path="/" element={<Dashboard />} />
                   
-                  {/* Master Data */}
+                  {/* INVENTORY APP */}
                   <Route path="/inventory/products" element={<ProductList />} />
                   <Route path="/inventory/products/:id" element={<ProductDetail />} />
                   <Route path="/inventory/vendors" element={<Vendors />} />
                   <Route path="/inventory/vendors/:id" element={<VendorDetail />} />
-
-                  {/* Stock Levels */}
                   <Route path="/inventory/store" element={<StoreStock />} />
                   <Route path="/inventory/shop" element={<ShopStock />} />
                   <Route path="/inventory/store/:id" element={<StockDetail type="store" />} />
                   <Route path="/inventory/shop/:id" element={<StockDetail type="shop" />} />
 
-                  {/* Operations - THESE WERE MISSING */}
-                  <Route path="/inventory/transfers" element={<InternalTransfers />} />
-                  {/*<Route path="/inventory/supply-logs" element={<SupplyLogs />} />*/}
+                  {/* FIXED ROUTES: Matches the navigate paths from the tables */}
+                  <Route path="/inventory/stock/store/:id" element={<StockDetail type="store" />} />
+                  <Route path="/inventory/stock/shop/:id" element={<StockDetail type="shop" />} />
 
-                  {/* Settings App - Secure Admin-Only Route */}
+                  <Route path="/inventory/transfers" element={<InternalTransfers />} />
+                  <Route path="/inventory/supply-logs" element={<SupplyLogs />} />
+
+                  {/* SALES APP - NEW ROUTES */}
+                  <Route path="/sales" element={<Navigate to="/sales/daily-session" replace />} />
+                  <Route path="/sales/daily-session" element={<DailySessionWorksheet />} />
+                  <Route path="/sales/digital-accounts-setup" element={<DigitalAccountSetup />} />
+                  <Route path="/sales/digital-adjustments" element={<DigitalAccountAdjustments />} />
+                  {/* <Route path="/sales/settlements" element={<SupplierSettlements />} /> */}
+
+                  {/* SETTINGS APP - Secure Admin-Only Route */}
                   <Route 
                     path="/settings/*" 
                     element={

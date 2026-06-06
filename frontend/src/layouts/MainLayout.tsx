@@ -5,7 +5,8 @@ import {
   BellOutlined, UserOutlined, LogoutOutlined, 
   AppstoreOutlined, EnvironmentOutlined, ShopOutlined,
   FileTextOutlined, TeamOutlined, LineChartOutlined, 
-  SettingOutlined 
+  SettingOutlined, DollarOutlined, HistoryOutlined,
+  WalletOutlined, BankOutlined 
 } from '@ant-design/icons';
 import { useAuth, api } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -26,7 +27,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const res = await api.get('settings/branches/');
+        const res = await api.get('inventory/branches/');
         setBranches(res.data);
         if (res.data.length > 0) setSelectedBranch(res.data[0].id);
       } catch (e) { 
@@ -39,7 +40,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Define your master apps list for the sidebar switcher
   const allApps = [
     { name: 'Inventory', icon: <ShopOutlined />, color: '#008784', path: '/inventory/products' },
-    { name: 'Sales', icon: <FileTextOutlined />, color: '#875A7B', path: '/sales' },
+    { name: 'Sales', icon: <FileTextOutlined />, color: '#875A7B', path: '/sales/daily-session' },
     { name: 'Employee', icon: <TeamOutlined />, color: '#E46651', path: '/employees' },
     { name: 'Reporting', icon: <LineChartOutlined />, color: '#21B799', path: '/reporting' },
     { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#1f74ac', path: '/' },
@@ -62,6 +63,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const isHomeDashboard = location.pathname === '/';
   const isInventoryModule = location.pathname.startsWith('/inventory');
+  const isSalesModule = location.pathname.startsWith('/sales'); // ADDED THIS
   const isSettingsModule = location.pathname.startsWith('/settings');
 
   // Navigation Items for Inventory
@@ -92,6 +94,44 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     },
   ];
 
+  // NEW: Navigation Items for Sales (Matches Inventory Format Exactly)
+  const salesItems: MenuProps['items'] = [
+  {
+    key: 'daily_sessions_nav',
+    label: 'Daily Sessions',
+    children: [
+      { key: '/sales/daily-session', label: 'Daily Worksheet', icon: <DollarOutlined />, onClick: () => navigate('/sales/daily-session') },
+      { key: '/sales/history', label: 'Sales History', icon: <HistoryOutlined />, onClick: () => navigate('/sales/history') },
+    ]
+  },
+  {
+    key: 'settlements_nav',
+    label: 'Settlements',
+    children: [
+      { key: '/sales/settlements', label: 'Vendor Statements', icon: <WalletOutlined />, onClick: () => navigate('/sales/settlements') },
+      { key: '/sales/payment-history', label: 'Payment History', icon: <HistoryOutlined />, onClick: () => navigate('/sales/payment-history') },
+    ]
+  },
+  // --- CONDITIONAL ADMIN-ONLY DIGITAL MANAGEMENT SYSTEM SUBMENU ---
+  ...(user?.role === 'ADMIN' ? [{
+    key: 'digital_management_nav',
+    label: 'Digital Accounts',
+    icon: <BankOutlined />, // Moved the main folder icon here for a professional look
+    children: [
+      { 
+        key: '/sales/digital-accounts-setup', 
+        label: 'Bank Accounts', 
+        onClick: () => navigate('/sales/digital-accounts-setup') 
+      },
+      { 
+        key: '/sales/digital-adjustments', 
+        label: 'Journal Adjustments', 
+        onClick: () => navigate('/sales/digital-adjustments') // Added missing redirect listener!
+      },
+    ]
+  }] : [])
+  
+];
   // Navigation Items for Settings
   const settingsItems: MenuProps['items'] = [
     {
@@ -141,6 +181,14 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return '#714B67'; // Your custom Sofia Purple
   };
 
+  // Dynamic Title Helper
+  const getHeaderTitle = () => {
+    if (isInventoryModule) return 'Inventory';
+    if (isSalesModule) return 'Sales';
+    if (isSettingsModule) return 'Settings';
+    return 'Sofia ERP';
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {/* GLOBAL TOP HEADER */}
@@ -159,7 +207,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <AppstoreOutlined style={{ color: '#fff', fontSize: '20px' }} />
           </Link>
           <Typography.Text style={{ color: '#fff', fontWeight: 'bold', fontSize: '15px' }}>
-            {isSettingsModule ? 'Settings' : (isInventoryModule ? 'Inventory' : 'Sofia ERP')}
+            {getHeaderTitle()}
           </Typography.Text>
         </Space>
 
@@ -170,6 +218,15 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               mode="horizontal" 
               theme="dark" 
               items={inventoryItems} 
+              selectedKeys={[location.pathname]}
+              style={{ background: 'transparent', border: 'none', lineHeight: '46px' }} 
+            />
+          )}
+          {isSalesModule && (
+            <Menu 
+              mode="horizontal" 
+              theme="dark" 
+              items={salesItems} 
               selectedKeys={[location.pathname]}
               style={{ background: 'transparent', border: 'none', lineHeight: '46px' }} 
             />
@@ -187,7 +244,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         {/* RIGHT: Branch Switcher & User */}
         <Space size="middle">
-          {(isInventoryModule || isSettingsModule) && (
+          {(isInventoryModule || isSettingsModule || isSalesModule) && (
             <Select
               size="small"
               value={selectedBranch}
@@ -197,6 +254,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               variant="borderless"
               dropdownStyle={{ zIndex: 1100 }}
               className="branch-select"
+              disabled={user?.role !== 'ADMIN'}
             >
               {branches.map(b => (
                 <Select.Option key={b.id} value={b.id}>
@@ -246,10 +304,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', alignItems: 'center' }}>
               {visibleApps.map((app) => {
-                // Parse top-level module slug (e.g. 'inventory' from '/inventory/products')
                 const baseRoute = app.path.split('/')[1];
-                
-                // Active calculation handles dashboard highlighting explicitly on root path '/'
                 const isActive = baseRoute === '' 
                   ? location.pathname === '/' 
                   : location.pathname.startsWith(`/${baseRoute}`);
@@ -271,7 +326,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     onMouseEnter={(e) => !isActive && (e.currentTarget.style.transform = 'scale(1.05)')}
                     onMouseLeave={(e) => !isActive && (e.currentTarget.style.transform = 'scale(1)')}
                   >
-                    {/* Icon Container Box */}
                     <div
                       style={{
                         width: '42px',
@@ -290,7 +344,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       {app.icon}
                     </div>
 
-                    {/* App Text Name Label */}
                     <span
                       style={{
                         fontSize: '11px',
@@ -315,7 +368,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </Sider>
         )}
 
-        {/* WORKSPACE APP VIEWS RENDERING TARGET */}
         <Content style={{ 
           padding: '16px 20px', 
           background: isDark ? '#141414' : '#f0f2f5',

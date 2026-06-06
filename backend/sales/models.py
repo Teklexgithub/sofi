@@ -1,72 +1,106 @@
-from django.db import models
-from django.utils import timezone
-from inventory.models import Branch, Product, ShopStock, InternalTransfer
 import uuid
+from django.db import models
+from django.db.models import Sum
+from inventory.models import Branch, Product
 
+# --- 1. DIGITAL ACCOUNT MANAGEMENT ---
+class DigitalAccount(models.Model):
+    """ Admin defines these: Telebirr, CBE Main, Dashen, etc. """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='accounts')
+    name = models.CharField(max_length=100) # e.g., "Telebirr - 0911..."
+    initial_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    
+    def __str__(self):
+        return f"{self.name} ({self.branch.name})"
+
+# --- 2. CUSTOMER DEBT MANAGEMENT ---
+class CustomerCredit(models.Model):
+    """ Tracks the total debt of a specific customer """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
+    customer_name = models.CharField(max_length=255)
+    total_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.customer_name} - Balance: {self.total_balance}"
+
+# --- 3. THE DAILY SESSION (PARENT) ---
 class DailySession(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
+    trading_date = models.DateField()
+    
+    # Cash Handover
+    cash_handed_to_admin = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cash_retained_for_change = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    
+    # Auto-Calculated Totals for Admin Reports
+    total_sales = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_expenses = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_new_credit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_credit_recovered = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('branch', 'trading_date')
+
+# --- 4. THE SUB-MODELS (MULTI-INSERTION) ---
+
+class SessionDigitalBalance(models.Model):
+    """ Multiple insertion for Telebirr, CBE, etc. """
+    session = models.ForeignKey(DailySession, related_name='digital_balances', on_delete=models.CASCADE)
+    account = models.ForeignKey(DigitalAccount, on_delete=models.CASCADE)
+    closing_balance = models.DecimalField(max_digits=15, decimal_places=2)
+    # revenue_delta = (Today's Balance - Yesterday's Balance)
+    revenue_delta = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+class SessionProduct(models.Model):
+    session = models.ForeignKey(DailySession, related_name='products', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    
-    # Flexible Date: Manager chooses the 'trading day'
-    trading_date = models.DateField(help_text="The date this sales report belongs to")
-    created_at = models.DateTimeField(auto_now_add=True) # Actual time of entry
-    
-    # Auto-calculated from previous day + transfers
-    opening_balance = models.IntegerField(editable=False)
-    
-    # Manual Input: What is left on the shelf now?
-    closing_balance = models.IntegerField()
-    
-    # Results
-    quantity_sold = models.IntegerField(editable=False)
-    total_revenue = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
-    profit = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+    opening = models.IntegerField()
+    closing = models.IntegerField()
+    sold = models.IntegerField()
+    price_at_sale = models.DecimalField(max_digits=10, decimal_places=2)
 
-    def save(self, *args, **kwargs):
-        # 1. PULL YESTERDAY'S CLOSING
-        yesterday = self.trading_date - timezone.timedelta(days=1)
-        prev_session = DailySession.objects.filter(
-            branch=self.branch, 
-            product=self.product, 
-            trading_date=yesterday
-        ).first()
-        
-        yesterday_closing = prev_session.closing_balance if prev_session else 0
+class SessionExpense(models.Model):
+    session = models.ForeignKey(DailySession, related_name='expenses', on_delete=models.CASCADE)
+    reason = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
 
-        # 2. PULL REFILLS (Internal Transfers) for 'today'
-        refills = InternalTransfer.objects.filter(
-            branch=self.branch,
-            product=self.product,
-            timestamp__date=self.trading_date
-        ).aggregate(total=models.Sum('pieces_created'))['total'] or 0
+class SessionCreditEntry(models.Model):
+    """ When a customer TAKES goods on credit today """
+    session = models.ForeignKey(DailySession, related_name='credits_issued', on_delete=models.CASCADE)
+    customer = models.ForeignKey(CustomerCredit, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
 
-        # 3. SET OPENING BALANCE
-        self.opening_balance = yesterday_closing + refills
-        
-        # 4. DO THE MATH
-        self.quantity_sold = self.opening_balance - self.closing_balance
-        self.total_revenue = self.quantity_sold * self.product.selling_price_per_piece
-        self.profit = self.quantity_sold * (self.product.selling_price_per_piece - self.product.buying_price_per_piece)
-        
-        # 5. SYNC SHOP STOCK
-        # This ensures the 'live' view matches the end-of-day count
-        shop_stock, _ = ShopStock.objects.get_or_create(branch=self.branch, product=self.product)
-        shop_stock.quantity_in_pieces = self.closing_balance
-        shop_stock.save()
+class SessionCreditPayment(models.Model):
+    """ When a customer PAYS their debt today """
+    session = models.ForeignKey(DailySession, related_name='credit_payments', on_delete=models.CASCADE)
+    customer = models.ForeignKey(CustomerCredit, on_delete=models.CASCADE)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
 
-        super().save(*args, **kwargs)
+class ManualBankDeposit(models.Model):
+    """ Multiple insertion for physical bank slips """
+    session = models.ForeignKey(DailySession, related_name='manual_deposits', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    bank_name = models.CharField(max_length=100)
+    account_name = models.CharField(max_length=150)
 
 
-class SupplierSettlement(models.Model):
-    """Tracks the 5-day payments to Khat/Nuts producers"""
+
+class DigitalAccountAdjustment(models.Model):
+    """
+    Tracks mid-day corporate adjustments made by Admin (Vendor payouts, cash injections)
+    to prevent breaking sequential branch manager reconciliation loops.
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    vendor = models.ForeignKey('inventory.Vendor', on_delete=models.CASCADE)
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    amount_paid = models.DecimalField(max_digits=12, decimal_places=2)
-    payment_date = models.DateTimeField(auto_now_add=True)
+    account = models.ForeignKey(DigitalAccount, on_delete=models.CASCADE, related_name='adjustments')
+    amount = models.DecimalField(max_digits=12, decimal_places=2) # e.g., -5000.00 for payout, +2000.00 for cash deposit
+    reason = models.CharField(max_length=255) # e.g., "Paid wholesale vendor for Sprite stock"
+    logged_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Payment to {self.vendor.name} for {self.start_date} to {self.end_date}"
+        return f"{self.account.name} | Shift: {self.amount} ({self.reason})"

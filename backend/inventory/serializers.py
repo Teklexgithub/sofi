@@ -21,23 +21,32 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
 class StoreStockSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     branch_name = serializers.CharField(source='branch.name', read_only=True)
+    category_display = serializers.CharField(source='product.get_category_display', read_only=True)
 
     class Meta:
         model = StoreStock
-        fields = ['id', 'product', 'product_name', 'branch', 'branch_name', 'quantity_in_packs']
+        fields = ['id', 'product', 'product_name', 'category_display', 'branch', 'branch_name', 'quantity_in_packs']
 
 
 
 class SupplyLogSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    
+    # We include these to show the names in the frontend tables later
+    product_name = serializers.ReadOnlyField(source='product.name')
+    vendor_name = serializers.ReadOnlyField(source='product.vendor.name')
+
     class Meta:
         model = SupplyLog
         fields = '__all__'
 
+class BulkSupplyLogSerializer(serializers.Serializer):
+    """Special serializer to handle a list of deliveries at once"""
+    branch = serializers.PrimaryKeyRelatedField(queryset=Branch.objects.all())
+    date_received = serializers.DateTimeField()
+    items = SupplyLogSerializer(many=True) # This is the list of 10 items
 
 
 class ShopStockSerializer(serializers.ModelSerializer):
