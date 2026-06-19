@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Table, InputNumber, Button, Card, Typography, DatePicker, 
-  Select, Space, message, Divider, Tabs, Input, Row, Col, Empty, Alert, Badge 
+  Select, Space, message, Divider, Tabs, Input, Row, Col, Empty, Alert, Badge,
+  Modal, Form 
 } from 'antd';
 import { 
   CalculatorOutlined, CheckCircleOutlined, ReloadOutlined, 
   WalletOutlined, ShoppingOutlined, UserAddOutlined, 
   PlusOutlined, DeleteOutlined, BankOutlined, DollarOutlined,
   EnvironmentOutlined, SafetyCertificateOutlined,
-  AuditOutlined, MobileOutlined, UserOutlined, ContactsOutlined, SearchOutlined
+  AuditOutlined, MobileOutlined, UserOutlined, ContactsOutlined, SearchOutlined,
+  RiseOutlined, EditOutlined 
 } from '@ant-design/icons';
+import axios from 'axios'; // <-- FIXED: Added missing import cleanly
 import { salesService } from '../../services/salesService';
 import { inventoryService } from '../../services/inventoryService'; 
 import { useAuth } from '../../contexts/AuthContext';
 import dayjs from 'dayjs';
+import { useSearchParams } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
@@ -34,6 +38,9 @@ const DailySessionWorksheet: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [activeSubView, setActiveSubView] = useState<'worksheet' | 'debts' | 'credits'>('worksheet');
+  const [searchParams] = useSearchParams();
+  // Look at the top of DailySessionWorksheet, adjust activeSubView declaration:
+  // const [activeSubView, setActiveSubView] = useState<'worksheet' | 'debts' | 'credits' | 'history'>('worksheet');
   
   // --- MASTER DROPDOWN POOL STATES ---
   const [branches, setBranches] = useState<any[]>([]);
@@ -46,12 +53,21 @@ const DailySessionWorksheet: React.FC = () => {
   // Inline Creation Temp States
   const [newCustomerName, setNewCustomerName] = useState('');
   const [creatingCustomer, setCreatingCustomer] = useState(false);
+
+  // --- ADMIN DEBT ADJUSTMENT LEDGER MODAL STATES ---
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedDebtorRecord, setSelectedDebtorRecord] = useState<any | null>(null);
+  const [adjustedBalanceValue, setAdjustedBalanceValue] = useState<number>(0);
+  const [updatingBalance, setUpdatingBalance] = useState(false);
   
   // --- CORE RUNTIME STATE ---
   const [selectedBranch, setSelectedBranch] = useState<string | undefined>(user?.branch || undefined);
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [worksheetData, setWorksheetData] = useState<any[]>([]);
   
+  // --- CHRONOLOGICAL FLOAT SEEDING STATE ---
+  const [openingCashFloat, setOpeningCashFloat] = useState<number>(0);
+
   // --- FORM DATA ARRAYS ---
   const [expenses, setExpenses] = useState<{reason: string, amount: number}[]>([]);
   const [creditsIssued, setCreditsIssued] = useState<{customer_id: string, amount: number}[]>([]);
@@ -64,6 +80,22 @@ const DailySessionWorksheet: React.FC = () => {
   const [cashForChange, setCashForChange] = useState<number>(0);
 
   const isAdmin = user?.role === 'ADMIN';
+
+  useEffect(() => {
+    const urlBranch = searchParams.get('branch');
+    const urlDate = searchParams.get('date');
+
+    if (urlBranch) setSelectedBranch(urlBranch);
+    if (urlDate) setSelectedDate(dayjs(urlDate));
+    
+    // If both exist in the URL parameters, automatically trigger the worksheet loader
+    if (urlBranch && urlDate) {
+      // Small timeout ensures the states are committed before firing the compilation engine
+      setTimeout(() => {
+        loadWorksheet();
+      }, 300);
+    }
+  }, [searchParams]);
 
   // --- 1. CORE DATA INITIALIZATION ---
   useEffect(() => {
@@ -78,13 +110,23 @@ const DailySessionWorksheet: React.FC = () => {
   }, [isAdmin]);
 
   // Safe Context Populator with Runtime Crash Defenses
+  const forceRefreshCustomerRegistry = () => {
+    if (!selectedBranch) return;
+    salesService.getCustomerCredits(selectedBranch, '', false)
+      .then(res => {
+        if (res && res.data) {
+          setAvailableCustomers(Array.isArray(res.data) ? res.data : []);
+        }
+      })
+      .catch(() => console.warn("Customer database register is unpopulated."));
+  };
+
   useEffect(() => {
     if (!selectedBranch) return;
 
     setAvailableAccounts([]);
     setAvailableCustomers([]);
 
-    // Fetch account wrappers safely
     salesService.getDigitalAccounts(selectedBranch)
       .then(res => {
         if (res && res.data) {
@@ -93,15 +135,7 @@ const DailySessionWorksheet: React.FC = () => {
       })
       .catch(() => console.warn("Digital profiles are empty for this branch."));
 
-    // Fetch initial customer registry pool safely
-    salesService.getCustomerCredits(selectedBranch, '', false)
-      .then(res => {
-        if (res && res.data) {
-          setAvailableCustomers(Array.isArray(res.data) ? res.data : []);
-        }
-      })
-      .catch(() => console.warn("Customer database register is unpopulated."));
-
+    forceRefreshCustomerRegistry();
   }, [selectedBranch]);
 
   // Safer Search API hook to avoid breaking layout state engines
@@ -142,17 +176,50 @@ const DailySessionWorksheet: React.FC = () => {
     }
   };
 
-  // --- 3. WORKSHEET STAGING CONTROLLERS ---
+  // --- 3. ADMINISTRATIVE DEBT OVERRIDE WORKER ROUTINE ---
+  const openDirectBalanceAdjustment = (record: any) => {
+    setSelectedDebtorRecord(record);
+    setAdjustedBalanceValue(Number(record.total_balance));
+    setIsEditModalOpen(true);
+  };
+
+  const handleExecuteBalanceAdjustment = async () => {
+    if (!selectedDebtorRecord) return;
+    setUpdatingBalance(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.patch(`http://localhost:8000/api/sales/customer-credits/${selectedDebtorRecord.id}/`, 
+        { total_balance: adjustedBalanceValue },
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+      );
+      
+      message.success(`Historical debt record for ${selectedDebtorRecord.customer_name} updated to ${adjustedBalanceValue} ETB.`);
+      setIsEditModalOpen(false);
+      forceRefreshCustomerRegistry(); 
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.detail || "Authorization Failure: Balance modification rejected.";
+      message.error(errorMsg);
+    } finally {
+      setUpdatingBalance(false);
+    }
+  };
+
+  // --- 4. WORKSHEET STAGING CONTROLLERS ---
   const loadWorksheet = async () => {
     if (!selectedBranch) return message.warning("Please select an active branch location.");
     setLoading(true);
     try {
       const res = await salesService.prepareWorksheet(selectedBranch, selectedDate.format('YYYY-MM-DD'));
+      
       if (res && res.data) {
-        setWorksheetData(res.data.map((item: any) => ({ ...item, closing_balance: null })));
+        const productList = Array.isArray(res.data.products) ? res.data.products : [];
+        const dynamicFloat = typeof res.data.opening_cash_float === 'number' ? res.data.opening_cash_float : 0;
+        
+        setWorksheetData(productList.map((item: any) => ({ ...item, closing_balance: null })));
+        setOpeningCashFloat(dynamicFloat);
         message.success("Worksheet compiled! Proceed through steps.");
       } else {
-        throw new Error("Empty response array.");
+        throw new Error("Empty response object structure.");
       }
     } catch (e) {
       message.error("Sync Exception: Verify that inventory values exist for this target node.");
@@ -172,49 +239,35 @@ const DailySessionWorksheet: React.FC = () => {
   };
 
   const calculateNetDrawerCashLive = (): number => {
-    // 1. Base Revenue (+)
     const grossSalesRevenue = calculateTotalSalesLive();
+    const startingDrawerLiquidity = openingCashFloat;
 
-    // 2. Tab 2 Expenses (-)
     const aggregatedExpensesOut = expenses.reduce((sum, item) => sum + (item.amount || 0), 0);
-
-    // 3. Tab 3 New Unpaid Debts Given Out (-)
     const aggregatedNewDebtsGiven = creditsIssued.reduce((sum, item) => sum + (item.amount || 0), 0);
-
-    // 4. Tab 4 Credit Recovery Repayments Brought In (+)
     const aggregatedCreditRecovered = creditPayments.reduce((sum, item) => sum + (item.amount || 0), 0);
 
-    // 5. Tab 5 Digital Channels REVENUE DELTA Shift Loop (-)
     const aggregatedDigitalHandoversDelta = digitalBalances.reduce((sum, item) => {
-      // Find the historical master baseline values
       const matchedAccountMaster = availableAccounts.find(acc => acc.id === item.account_id);
-      const yesterdayBaseBalance = matchedAccountMaster 
-        ? (matchedAccountMaster.last_closing_balance ?? matchedAccountMaster.initial_balance ?? 0)
-        : 0;
-      
-      // Calculate ONLY the delta shift (Today Balance - Yesterday Balance)
-      const liveDeltaShift = item.balance ? (item.balance - yesterdayBaseBalance) : 0;
-      
-      // Accumulate the net shift difference
+      const virtualYesterdayBaseBalance = matchedAccountMaster ? (matchedAccountMaster.last_closing_balance ?? 0) : 0;
+      const liveDeltaShift = item.balance ? (item.balance - virtualYesterdayBaseBalance) : 0;
       return sum + liveDeltaShift;
     }, 0);
 
     const aggregatedManualSlips = manualDeposits.reduce((sum, item) => sum + (item.amount || 0), 0);
-
-    // 6. Tab 5 Physical Cash Handed Over or Left Behind in Drawer (-)
     const physicalCashOut = cashToAdmin + cashForChange;
 
-    // 7. Complete Mathematical Balance Reduction Execution
     return (
-      grossSalesRevenue 
+      startingDrawerLiquidity
+      + grossSalesRevenue 
       - aggregatedExpensesOut 
       - aggregatedNewDebtsGiven 
       + aggregatedCreditRecovered 
-      - aggregatedDigitalHandoversDelta // <-- FIXED: Subtracting only the 1,000.00 delta shift now!
+      - aggregatedDigitalHandoversDelta 
       - aggregatedManualSlips
       - physicalCashOut
     );
   };
+
   const addExpense = () => setExpenses([{ reason: '', amount: 0 }, ...expenses]);
   const addCreditIssued = () => setCreditsIssued([{ customer_id: '', amount: 0 }, ...creditsIssued]);
   const addCreditPayment = () => setCreditPayments([{ customer_id: '', amount: 0 }, ...creditPayments]);
@@ -233,7 +286,7 @@ const DailySessionWorksheet: React.FC = () => {
     );
   };
 
-  // --- 4. DATA TRANSMISSION ---
+  // --- 5. DATA TRANSMISSION ---
   const submitAll = async () => {
     if (worksheetData.length === 0) return message.error("Action Aborted: No active session active.");
     if (worksheetData.some(item => item.closing_balance === null)) {
@@ -268,6 +321,32 @@ const DailySessionWorksheet: React.FC = () => {
   const netCashValue = calculateNetDrawerCashLive();
   const isNetNegative = netCashValue < 0;
 
+  // --- FIXED: Explicitly typed as any[] to resolve signature assignment layout errors ---
+  const baseDebtLedgerColumns: any[] = [
+    { title: 'Customer Name Account', dataIndex: 'customer_name', key: 'name', render: (t: string) => <Text strong>{t}</Text> },
+    { title: 'Outstanding Debt Profile (ETB)', dataIndex: 'total_balance', key: 'balance', render: (v: number) => <Text type={v > 0 ? "danger" : "success"} code>{Number(v).toFixed(2)} ETB</Text> },
+    { title: 'Last Audit Update Timestamp', dataIndex: 'last_updated', key: 'updated', render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm') }
+  ];
+
+  if (isAdmin) {
+    baseDebtLedgerColumns.push({
+      title: 'Administrative Options',
+      key: 'actions_panel_override',
+      align: 'center',
+      render: (_: any, record: any) => (
+        <Button 
+          type="primary"
+          ghost
+          icon={<EditOutlined />} 
+          onClick={() => openDirectBalanceAdjustment(record)}
+          size="middle"
+        >
+          Adjust Balance
+        </Button>
+      )
+    });
+  }
+
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       {/* ADVANCE SUB-NAVIGATION MENUS BOX */}
@@ -288,14 +367,14 @@ const DailySessionWorksheet: React.FC = () => {
         >
           Advance: Debts Ledger
         </Button>
-        <Button 
+        {/* <Button 
           type={activeSubView === 'credits' ? 'primary' : 'default'}
           onClick={() => setActiveSubView('credits')}
           icon={<ContactsOutlined />}
           style={activeSubView === 'credits' ? { background: '#714B67', borderColor: '#714B67' } : {}}
         >
           Advance: Credits Balance
-        </Button>
+        </Button> */}
       </div>
 
       {/* VIEW RENDER CONDITIONS BLOCK */}
@@ -303,7 +382,6 @@ const DailySessionWorksheet: React.FC = () => {
         <Card title="Advance Monitor: Historic Customer Debt Ledger">
           <Alert message="Displays active debtor tracking matrices matching outstanding operational balances across this physical retail hub cluster." type="info" showIcon style={{marginBottom: 20}} />
           
-          {/* SEARCH COMPONENT FILTER FIELD FOR ADVANCE LEDGER TAB */}
           <div style={{ marginBottom: '20px', maxWidth: '400px' }}>
             <Input
               prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
@@ -318,12 +396,45 @@ const DailySessionWorksheet: React.FC = () => {
           <Table 
             dataSource={getFilteredDebtLedgerData()} 
             rowKey="id"
-            columns={[
-              { title: 'Customer Name Account', dataIndex: 'customer_name', key: 'name', render: (t) => <Text strong>{t}</Text> },
-              { title: 'Outstanding Debt Profile (ETB)', dataIndex: 'total_balance', key: 'balance', render: (v) => <Text type={v > 0 ? "danger" : "success"} code>{Number(v).toFixed(2)} ETB</Text> },
-              { title: 'Last Audit Update Timestamp', dataIndex: 'last_updated', key: 'updated', render: (d) => dayjs(d).format('YYYY-MM-DD HH:mm') }
-            ]}
+            columns={baseDebtLedgerColumns} 
           />
+
+          <Modal
+            title={<span><EditOutlined style={{ marginRight: 8, color: '#714B67' }} /> Manual Historical Debt Adjustment</span>}
+            open={isEditModalOpen}
+            onOk={handleExecuteBalanceAdjustment}
+            confirmLoading={updatingBalance}
+            onCancel={() => setIsEditModalOpen(false)}
+            okText="Override Historical Balance"
+            okButtonProps={{ style: { background: '#714B67', borderColor: '#714B67' } }}
+            destroyOnClose
+          >
+            {selectedDebtorRecord && (
+              <div style={{ padding: '10px 0' }}>
+                <Alert 
+                  message="Critical Financial Override Action"
+                  description="This operation modifies historical debt balances directly. Ensure corporate validation paperwork matches this ad-hoc field adjustment."
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 20 }}
+                />
+                <Form layout="vertical">
+                  <Form.Item label="Customer Account Target:">
+                    <Input value={selectedDebtorRecord.customer_name} disabled size="large" />
+                  </Form.Item>
+                  <Form.Item label="New Total Outstanding Balance (ETB):" required>
+                    <InputNumber
+                      style={{ width: '100%' }}
+                      size="large"
+                      min={0}
+                      value={adjustedBalanceValue}
+                      onChange={(v) => setAdjustedBalanceValue(v === null ? 0 : Number(v))}
+                    />
+                  </Form.Item>
+                </Form>
+              </div>
+            )}
+          </Modal>
         </Card>
       )}
 
@@ -336,7 +447,6 @@ const DailySessionWorksheet: React.FC = () => {
 
       {activeSubView === 'worksheet' && (
         <Card bordered={false} style={{ borderRadius: '15px', boxShadow: '0 12px 40px rgba(0,0,0,0.1)' }}>
-          {/* MASTER METRICS HEADER CONTROLLER PANEL */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '10px' }}>
             <Title level={2} style={{ color: '#714B67', margin: 0 }}><AuditOutlined /> Daily Branch Settlement</Title>
             
@@ -372,7 +482,6 @@ const DailySessionWorksheet: React.FC = () => {
           </div>
           <Divider />
           
-          {/* CONTROL STAGING BOX HEADER */}
           <div style={{ background: '#fcfcfc', border: '1px solid #f0f0f0', padding: '25px', borderRadius: '12px', marginBottom: 35 }}>
               <Row gutter={24} align="bottom">
                   <Col span={9}>
@@ -385,7 +494,7 @@ const DailySessionWorksheet: React.FC = () => {
                             placeholder="Select Target Location"
                             onChange={(val) => setSelectedBranch(val)}
                           >
-                            {Array.isArray(branches) && branches.map(b => (
+                            {branches.map(b => (
                               <Select.Option key={b.id} value={b.id}>{b.name}</Select.Option>
                             ))}
                           </Select>
@@ -409,7 +518,6 @@ const DailySessionWorksheet: React.FC = () => {
           </div>
 
           <Tabs defaultActiveKey="1" type="card" size="large">
-            {/* TAB 1: STOCK BALANCING */}
             <Tabs.TabPane tab={<span><ShoppingOutlined /> 1. Stock Count</span>} key="1">
               <div style={scrollBoxStyle}>
                   <Table 
@@ -461,7 +569,6 @@ const DailySessionWorksheet: React.FC = () => {
               </div>
             </Tabs.TabPane>
 
-            {/* TAB 2: OPERATIONAL EXPENSES */}
             <Tabs.TabPane tab={<span><WalletOutlined /> 2. Expenses</span>} key="2">
               <Button icon={<PlusOutlined />} onClick={addExpense} block size="large" style={{ marginBottom: 15 }}>Add Expense Line</Button>
               <div style={scrollBoxStyle}>
@@ -479,7 +586,6 @@ const DailySessionWorksheet: React.FC = () => {
               </div>
             </Tabs.TabPane>
 
-            {/* TAB 3: NEW DEBTOR REGISTRATION */}
             <Tabs.TabPane tab={<span><UserAddOutlined /> 3. New Debts</span>} key="3">
               <Button icon={<PlusOutlined />} onClick={addCreditIssued} block size="large" style={{ marginBottom: 15 }}>Register Debt Invoice</Button>
               <div style={scrollBoxStyle}>
@@ -521,7 +627,7 @@ const DailySessionWorksheet: React.FC = () => {
                                     </div>
                                   )}
                               >
-                                  {Array.isArray(availableCustomers) && availableCustomers.map(c => (
+                                  {availableCustomers.map(c => (
                                     <Select.Option key={c.id} value={c.id}>{c.customer_name} (Bal: {Number(c.total_balance).toFixed(0)} ETB)</Select.Option>
                                   ))}
                               </Select>
@@ -535,7 +641,6 @@ const DailySessionWorksheet: React.FC = () => {
               </div>
             </Tabs.TabPane>
 
-            {/* TAB 4: CREDIT RECOVERY REPAYMENTS */}
             <Tabs.TabPane tab={<span><DollarOutlined /> 4. Credit Recovery</span>} key="4">
               <Button icon={<PlusOutlined />} onClick={addCreditPayment} block size="large" style={{ marginBottom: 15, borderColor: '#52c41a', color: '#52c41a' }}>Record Debt Payment</Button>
               <div style={scrollBoxStyle}>
@@ -554,7 +659,7 @@ const DailySessionWorksheet: React.FC = () => {
                                       const n = [...creditPayments]; n[idx].customer_id = val; setCreditPayments(n);
                                   }}
                               >
-                                  {Array.isArray(availableCustomers) && availableCustomers.map(c => (
+                                  {availableCustomers.map(c => (
                                     <Select.Option key={c.id} value={c.id}>{c.customer_name} (Owes: {Number(c.total_balance).toFixed(0)} ETB)</Select.Option>
                                   ))}
                               </Select>
@@ -568,89 +673,102 @@ const DailySessionWorksheet: React.FC = () => {
               </div>
             </Tabs.TabPane>
 
-            {/* TAB 5: FINANCIAL OVERALL HANDOVER MANAGEMENT */}
             <Tabs.TabPane tab={<span><BankOutlined /> 5. Final Handover</span>} key="5">
               <div style={scrollBoxStyle}>
                   <Row gutter={[20, 20]}>
-                      {/* MULTIPLE WALLET HANDLES INLINE BOX */}
-                      {/* MULTIPLE WALLET HANDLES INLINE BOX */}
                     <Col span={24}>
                         <Card title={<Space><MobileOutlined /> Digital (Bank/Telebirr) Balances Statement</Space>} headStyle={{ background: '#f0f5ff' }}>
                             <Button icon={<PlusOutlined />} onClick={addDigital} style={{ marginBottom: 15 }} block>Add Verified Account Balance Entry</Button>
                             {digitalBalances.map((d, idx) => {
-                                // Find the master profile to retrieve the base target historical balance reference safely
                                 const matchedAccountMaster = availableAccounts.find(acc => acc.id === d.account_id);
-                                
-                                // Fallback strategy: check for previous session closing balance, otherwise use the initialization seed
-                                const yesterdayBaseBalance = matchedAccountMaster 
-                                  ? (matchedAccountMaster.last_closing_balance ?? matchedAccountMaster.initial_balance ?? 0)
-                                  : 0;
-
-                                // Compute live delta tracking value
+                                const yesterdayBaseBalance = matchedAccountMaster ? (matchedAccountMaster.last_closing_balance ?? 0) : 0;
+                                const adjustmentNotes = matchedAccountMaster ? (matchedAccountMaster.adjustment_reasons || 'None') : 'None';
                                 const liveWalletShiftDelta = d.balance ? (d.balance - yesterdayBaseBalance) : 0;
 
                                 return (
-                                    <Row key={idx} gutter={12} style={{ marginBottom: 12 }} align="middle">
-                                        <Col span={9}>
-                                            <Select 
-                                                placeholder="Select Target App Wallet" 
-                                                style={{ width: '100%' }} 
-                                                size="large" 
-                                                value={d.account_id || undefined}
-                                                onChange={(val) => { 
-                                                    const n = [...digitalBalances]; 
-                                                    n[idx].account_id = val; 
-                                                    setDigitalBalances(n); 
-                                                }}
-                                            >
-                                                {Array.isArray(availableAccounts) && availableAccounts.map(acc => (
-                                                  <Select.Option key={acc.id} value={acc.id}>{acc.name}</Select.Option>
-                                                ))}
-                                            </Select>
-                                        </Col>
-                                        <Col span={8}>
-                                            <InputNumber 
-                                              placeholder="Current Ending App Balance" 
-                                              size="large" 
-                                              style={{ width: '100%' }} 
-                                              value={d.balance || undefined} 
-                                              onChange={v => { 
-                                                  const n = [...digitalBalances]; 
-                                                  n[idx].balance = v === null ? 0 : Number(v); 
-                                                  setDigitalBalances(n); 
-                                              }}
-                                            />
-                                        </Col>
-                                        
-                                        {/* --- LIVE REVENUE SHIFT VISUAL FIELD --- */}
-                                        <Col span={5} style={{ textAlign: 'center' }}>
-                                            {d.account_id && d.balance ? (
-                                              <Space direction="vertical" size={0}>
-                                                <Text type="secondary" style={{ fontSize: '11px' }}>Yesterday Base: {yesterdayBaseBalance} ETB</Text>
-                                                <Text strong style={{ 
-                                                  color: liveWalletShiftDelta >= 0 ? '#52c41a' : '#f5222d',
-                                                  fontSize: '14px' 
-                                                }}>
-                                                  {liveWalletShiftDelta >= 0 ? '+' : ''}{liveWalletShiftDelta.toFixed(2)} ETB
-                                                </Text>
-                                              </Space>
-                                            ) : (
-                                              <Text type="secondary" italic style={{ fontSize: '12px' }}>Awaiting input</Text>
-                                            )}
-                                        </Col>
-                                        
-                                        <Col span={2}>
-                                            <Button danger icon={<DeleteOutlined />} size="large" onClick={() => setDigitalBalances(digitalBalances.filter((_, i) => i !== idx))}/>
-                                        </Col>
-                                    </Row>
+                                    <div key={idx} style={{ marginBottom: 15, paddingBottom: 15, borderBottom: '1px dashed #f0f0f0' }}>
+                                        <Row gutter={12} align="middle">
+                                            <Col span={9}>
+                                                <Select 
+                                                    placeholder="Select Target App Wallet" 
+                                                    style={{ width: '100%' }} 
+                                                    size="large" 
+                                                    value={d.account_id || undefined}
+                                                    onChange={(val) => { 
+                                                        const n = [...digitalBalances]; 
+                                                        n[idx].account_id = val; 
+                                                        setDigitalBalances(n); 
+                                                    }}
+                                                >
+                                                    {availableAccounts.map(acc => (
+                                                      <Select.Option key={acc.id} value={acc.id}>{acc.name}</Select.Option>
+                                                    ))}
+                                                </Select>
+                                            </Col>
+                                            <Col span={8}>
+                                                <InputNumber 
+                                                  placeholder="Current Ending App Balance" 
+                                                  size="large" 
+                                                  style={{ width: '100%' }} 
+                                                  value={d.balance || undefined} 
+                                                  onChange={v => { 
+                                                      const n = [...digitalBalances]; 
+                                                      n[idx].balance = v === null ? 0 : Number(v); 
+                                                      setDigitalBalances(n); 
+                                                  }}
+                                                />
+                                            </Col>
+                                            
+                                            <Col span={5} style={{ textAlign: 'center' }}>
+                                                {d.account_id && d.balance ? (
+                                                  <Space direction="vertical" size={0}>
+                                                    <Text type="secondary" style={{ fontSize: '11px' }}>Expected Base: {yesterdayBaseBalance.toLocaleString()} ETB</Text>
+                                                    <Text strong style={{ 
+                                                      color: liveWalletShiftDelta >= 0 ? '#52c41a' : '#f5222d',
+                                                      fontSize: '14px' 
+                                                    }}>
+                                                      {liveWalletShiftDelta >= 0 ? '+' : ''}{liveWalletShiftDelta.toLocaleString(undefined, {minimumFractionDigits: 2})} ETB
+                                                    </Text>
+                                                  </Space>
+                                                ) : (
+                                                  <Text type="secondary" italic style={{ fontSize: '12px' }}>Awaiting input</Text>
+                                                )}
+                                            </Col>
+                                            
+                                            <Col span={2}>
+                                                <Button danger icon={<DeleteOutlined />} size="large" onClick={() => setDigitalBalances(digitalBalances.filter((_, i) => i !== idx))}/></Col>
+                                        </Row>
+
+                                        {d.account_id && adjustmentNotes !== "None" && (
+                                          <div style={{ marginTop: '8px', background: '#fffbe6', padding: '6px 14px', borderRadius: '6px', border: '1px solid #ffe58f' }}>
+                                            <Text type="warning" style={{ fontSize: '11px' }}>
+                                              <CalculatorOutlined style={{ marginRight: 4 }} />
+                                              <b>Admin Adjustments Logged Since Last Session Close:</b> {adjustmentNotes}
+                                            </Text>
+                                          </div>
+                                        )}
+                                    </div>
                                 );
                             })}
                         </Card>
                     </Col>
 
-                      {/* PHYSICAL CASH REGISTERS DRAWER BLOCK WITH LIVE RECONCILIATION LISTENERS */}
                       <Col span={24}>
                           <Card title={<Space><WalletOutlined /> Liquid Physical Cash Registers Drawer</Space>} headStyle={{ background: '#f6ffed' }}>
+                              {openingCashFloat > 0 && (
+                                <div style={{ marginBottom: '15px' }}>
+                                  <Alert 
+                                    message={
+                                      <Text strong style={{ color: '#389e0d' }}>
+                                        <RiseOutlined /> Roll-Forward Active: A.M. Cash Float Baseline Loaded
+                                      </Text>
+                                    }
+                                    description={`The register drawer opened today with a verified baseline change float of ${openingCashFloat.toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB forwarded from the last settlement closure row.`}
+                                    type="success"
+                                    showIcon
+                                  />
+                               </div>
+                              )}
                               <Row gutter={20}>
                                   <Col span={12}>
                                       <Text strong>Total Clean Handover Cash for Admin/Courier:</Text>
@@ -674,7 +792,6 @@ const DailySessionWorksheet: React.FC = () => {
                           </Card>
                       </Col>
 
-                      {/* SLIP DEPOSIT REGISTERS */}
                       <Col span={24}>
                           <Card title={<Space><PlusOutlined /> Manual Physical Bank Deposits (Slips / Receipts)</Space>} headStyle={{ background: '#fff7e6' }}>
                               <Button icon={<PlusOutlined />} onClick={addDeposit} style={{ marginBottom: 15 }} block>Attach Manual Bank Deposit Slip Statement</Button>

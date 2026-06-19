@@ -4,7 +4,8 @@ import type { MenuProps } from 'antd';
 import { 
   BellOutlined, UserOutlined, LogoutOutlined, 
   AppstoreOutlined, EnvironmentOutlined, ShopOutlined,
-  FileTextOutlined, TeamOutlined, LineChartOutlined, 
+  FileTextOutlined, TeamOutlined, 
+  // LineChartOutlined, 
   SettingOutlined, DollarOutlined, HistoryOutlined,
   WalletOutlined, BankOutlined 
 } from '@ant-design/icons';
@@ -42,7 +43,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { name: 'Inventory', icon: <ShopOutlined />, color: '#008784', path: '/inventory/products' },
     { name: 'Sales', icon: <FileTextOutlined />, color: '#875A7B', path: '/sales/daily-session' },
     { name: 'Employee', icon: <TeamOutlined />, color: '#E46651', path: '/employees' },
-    { name: 'Reporting', icon: <LineChartOutlined />, color: '#21B799', path: '/reporting' },
+    // { name: 'Reporting', icon: <LineChartOutlined />, color: '#21B799', path: '/reporting' },
     { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#1f74ac', path: '/' },
     { 
       name: 'Settings', 
@@ -105,12 +106,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     ]
   },
   {
-    key: 'settlements_nav',
-    label: 'Settlements',
-    children: [
-      { key: '/sales/settlements', label: 'Vendor Statements', icon: <WalletOutlined />, onClick: () => navigate('/sales/settlements') },
-      { key: '/sales/payment-history', label: 'Payment History', icon: <HistoryOutlined />, onClick: () => navigate('/sales/payment-history') },
-    ]
+      key: '/sales/settlements',
+      label: 'Vendor Settlements',
+      icon: <WalletOutlined />,
+      onClick: () => navigate('/sales/settlements', { state: { targetTab: '1' } })
   },
   // --- CONDITIONAL ADMIN-ONLY DIGITAL MANAGEMENT SYSTEM SUBMENU ---
   ...(user?.role === 'ADMIN' ? [{
@@ -128,8 +127,15 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         label: 'Journal Adjustments', 
         onClick: () => navigate('/sales/digital-adjustments') // Added missing redirect listener!
       },
+
+      { 
+        key: '/sales/shortages-ledger', 
+        label: 'Shortages Ledger', 
+        onClick: () => navigate('/sales/shortages-ledger') 
+      }
     ]
-  }] : [])
+  }] : []),
+  
   
 ];
   // Navigation Items for Settings

@@ -15,8 +15,11 @@ import SupplyLogs from './pages/inventory/SupplyLogs';
 
 // SALES APP - NEW IMPORTS
 import DailySessionWorksheet from './pages/sales/DailySessionWorksheet';
+import SalesHistoryLog from './pages/sales/SalesHistoryLog';
 import DigitalAccountSetup from './pages/sales/DigitalAccountSetup';
 import DigitalAccountAdjustments from './pages/sales/DigitalAccountAdjustments';
+import ManagerShortagesDashboard from './pages/sales/ManagerShortagesDashboard';
+import { VendorSettlements } from './pages/sales/VendorSettlements';
 // (Future Settlement page import will go here)
 
 // SETTINGS APP
@@ -74,9 +77,12 @@ function App() {
                   {/* SALES APP - NEW ROUTES */}
                   <Route path="/sales" element={<Navigate to="/sales/daily-session" replace />} />
                   <Route path="/sales/daily-session" element={<DailySessionWorksheet />} />
+                  <Route path="/sales/history" element={<SalesHistoryLog />} />
                   <Route path="/sales/digital-accounts-setup" element={<DigitalAccountSetup />} />
                   <Route path="/sales/digital-adjustments" element={<DigitalAccountAdjustments />} />
+                  <Route path="/sales/shortages-ledger" element={<ManagerShortagesDashboard />} />
                   {/* <Route path="/sales/settlements" element={<SupplierSettlements />} /> */}
+                  <Route path="/sales/settlements" element={<VendorSettlements />} />
 
                   {/* SETTINGS APP - Secure Admin-Only Route */}
                   <Route 

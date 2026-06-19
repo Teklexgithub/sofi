@@ -2,7 +2,8 @@ import React from 'react';
 import { Row, Col, Typography } from 'antd';
 import { 
   ShopOutlined, FileTextOutlined, TeamOutlined,
-  LineChartOutlined, AppstoreOutlined, SettingOutlined 
+  // LineChartOutlined, 
+  AppstoreOutlined, SettingOutlined 
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -19,7 +20,7 @@ const Dashboard: React.FC = () => {
     { name: 'Inventory', icon: <ShopOutlined />, color: '#008784', path: '/inventory/products' },
     { name: 'Sales', icon: <FileTextOutlined />, color: '#875A7B', path: '/sales' },
     { name: 'Employee', icon: <TeamOutlined />, color: '#E46651', path: '/employees' },
-    { name: 'Reporting', icon: <LineChartOutlined />, color: '#21B799', path: '/reporting' },
+    // { name: 'Reporting', icon: <LineChartOutlined />, color: '#21B799', path: '/reporting' },
     { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#1f74ac', path: '/analytics' },
     { 
       name: 'Settings', 

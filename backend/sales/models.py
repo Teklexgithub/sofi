@@ -2,6 +2,11 @@ import uuid
 from django.db import models
 from django.db.models import Sum
 from inventory.models import Branch, Product
+from users.models import User
+
+from django.core.exceptions import ValidationError
+from django.db.models import Sum
+from decimal import Decimal
 
 # --- 1. DIGITAL ACCOUNT MANAGEMENT ---
 class DigitalAccount(models.Model):
@@ -104,3 +109,98 @@ class DigitalAccountAdjustment(models.Model):
 
     def __str__(self):
         return f"{self.account.name} | Shift: {self.amount} ({self.reason})"
+
+
+# --- 5. LIABILITY SHORTAGE LEDGER ---
+class ManagerShortageLedger(models.Model):
+    """
+    Holds specific employees financially accountable for cash register shortages.
+    Initially logs against a branch, allowing Admins to assign a user later.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    session = models.OneToOneField(DailySession, on_delete=models.CASCADE, related_name='shortage_record')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='shortages') # Added branch link directly
+    manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='accumulated_shortages') # Made Nullable!
+    shortage_amount = models.DecimalField(max_digits=12, decimal_places=2) 
+    is_settled_from_salary = models.BooleanField(default=False)
+    payroll_cycle_date = models.DateField(null=True, blank=True)
+    logged_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        target = self.manager.username if self.manager else "UNASSIGNED"
+        return f"{self.branch.name} | Shortage: {self.shortage_amount} ETB -> Responsible: {target}"
+
+
+
+
+
+# VENDOR PAYMENT SETTLEMENT PART
+
+
+
+
+class VendorCreditProfile(models.Model):
+    """
+    Tracks the rolling, live advance prepayment balance for a vendor.
+    If an admin pays extra, this balance increases.
+    When next week's delivery is processed, this balance decreases.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    vendor = models.OneToOneField('inventory.Vendor', on_delete=models.CASCADE, related_name='credit_profile')
+    current_advance_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.vendor.name} | Active Advance: {self.current_advance_balance} ETB"
+
+
+class VendorSettlement(models.Model):
+    """
+    Master ledger tracking a statement period or delivery batch.
+    """
+    STATUS_CHOICES = [
+        ('UNPAID', 'Unpaid'),
+        ('PARTIAL', 'Partially Paid'),
+        ('FULL', 'Fully Paid'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    vendor = models.ForeignKey('inventory.Vendor', on_delete=models.CASCADE, related_name='settlements')
+    total_batch_cost = models.DecimalField(max_digits=12, decimal_places=2) 
+    amount_paid_total = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
+    remaining_debt = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    payment_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UNPAID')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Settlement {self.id.hex[:6]} | {self.vendor.name} - Debt: {self.remaining_debt} ETB"
+
+
+class VendorPaymentInstallment(models.Model):
+    """
+    Tracks each individual cash handover event.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    settlement = models.ForeignKey(VendorSettlement, on_delete=models.CASCADE, related_name='installments')
+    amount_handed_over = models.DecimalField(max_digits=12, decimal_places=2)
+    advance_amount_created = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    advance_used_from_past = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    paid_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+
+class VendorSettlementLine(models.Model):
+    """
+    Links the parent settlement session directly to individual inventory deliveries,
+    allowing the system to map out day-by-day itemized logs in details view windows.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    settlement = models.ForeignKey(VendorSettlement, on_delete=models.CASCADE, related_name='lines')
+    supply_log = models.ForeignKey('inventory.SupplyLog', on_delete=models.CASCADE, related_name='settlement_lines')
+
+    def __str__(self):
+        return f"Line: Log {self.supply_log.id.hex[:6]} linked to Settlement {self.settlement.id.hex[:6]}"

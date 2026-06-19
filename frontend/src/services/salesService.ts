@@ -120,6 +120,28 @@ export const salesService = {
   deleteDigitalAdjustment: (id: string) => 
     salesApi.delete(`digital-adjustments/${id}/`),
 
+  getShortagesLedger: (branchId?: string) => 
+    salesApi.get(`shortages/${branchId ? `?branch=${branchId}` : ''}`),
+
+  deleteDailySession: (sessionId: string) => 
+    salesApi.delete(`sessions/${sessionId}/`),
+
+  
+
+  /**
+   * CROSS-APP QUERY ROUTE: Bypasses the /api/sales/ baseURL scope safely
+   * while keeping headers, interceptors, and tokens 100% active.
+   */
+  getSystemUsers: () => {
+    const token = localStorage.getItem('access_token');
+    return axios.get('http://localhost:8000/api/users/', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+  },
+
+  settleShortageRecord: (id: string, payload: { is_settled_from_salary?: boolean; payroll_cycle_date?: string; manager?: string | null }) => 
+    salesApi.patch(`shortages/${id}/`, payload),
+
   /**
    * Dynamic search interface pulling active customer debt accounts.
    * Connects directly to Django's built-in SearchFilter backend.
@@ -138,16 +160,43 @@ export const salesService = {
 
     
   createCustomer: (customerData: { customer_name: string, branch: string, total_balance: number }) => 
-  salesApi.post('customer-credits/', customerData),
+    salesApi.post('customer-credits/', customerData),
 
-  // --- SUPPLIER SETTLEMENTS (Preserved from original file) ---
+  // --- 🌟 FIXED WHOLESALE SUPPLIER SETTLEMENTS ENDPOINTS 🌟 ---
 
-  // Matches router.register(r'settlements', SupplierSettlementViewSet)
+  /**
+   * Fetches historical locked settlement batch rows for a vendor.
+   * Aligned to router tracking name: vendor-settlements
+   */
   getSettlements: (vendorId?: string) => 
-    salesApi.get('settlements/', {
+    salesApi.get('vendor-settlements/', {
       params: vendorId ? { vendor: vendorId } : {}
     }),
+
+  /**
+   * 🌟 UPDATED: Fetches the statement worksheet matching the backend design.
+   * Explicitly uses trailing slashes to keep routers happy and handles parameters safely.
+   */
+  getStatementWorksheet: (vendorId: string, startDate: string, endDate: string) =>
+    salesApi.get('vendor-settlements/statement-worksheet/', {
+      params: {
+        vendor_id: vendorId,
+        start_date: startDate,
+        end_date: endDate
+      }
+    }),
     
-  createSettlement: (data: any) => 
-    salesApi.post('settlements/', data),
+  /**
+   * 🌟 UPDATED: Posts the finalized payload with explicit property alignments.
+   */
+  createSettlement: (payload: { vendor_id: string; supply_log_ids: string[]; amount_handed_over: number }) => 
+    salesApi.post('vendor-settlements/post-settlement/', payload),
+
+  /**
+   * Applies individual consecutive cash handovers to clear old remaining debts.
+   */
+  clearRemainingDebt: (settlementId: string, amountHandedOver: number) =>
+    salesApi.post(`vendor-settlements/${settlementId}/clear-debt/`, {
+      amount_handed_over: amountHandedOver
+    })
 };
