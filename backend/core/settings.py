@@ -21,6 +21,10 @@ from dotenv import load_dotenv
 AUTH_USER_MODEL = 'users.User'
 
 
+
+
+
+
 # Define the ROOT_DIR (one level up from backend) where .env lives
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,6 +62,8 @@ INSTALLED_APPS = [
     'users',
     'inventory',
     'sales',
+    'employee',
+    'dashboard',
 ]
 
 
@@ -164,3 +170,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# The absolute filesystem path to the directory that will hold user-uploaded media.
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# URL that handles the media served from MEDIA_ROOT. 
+# Your frontend will load pictures using: http://localhost:8000/media/employees/...
+MEDIA_URL = '/media/'

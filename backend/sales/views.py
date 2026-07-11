@@ -332,9 +332,11 @@ class DailySessionViewSet(viewsets.ModelViewSet):
                 ManagerShortageLedger.objects.create(
                     session=session,
                     branch_id=branch_id,
-                    manager=None,
+                    employee=None,
                     shortage_amount=Decimal(str(computed_variance))
                 )
+
+            
 
             return Response({"status": "Reconciliation Successful", "session_id": session.id}, status=status.HTTP_201_CREATED)
 
@@ -400,13 +402,20 @@ class ManagerShortageViewSet(viewsets.ModelViewSet):
     queryset = ManagerShortageLedger.objects.all().order_by('-logged_at')
     serializer_class = ManagerShortageSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['manager__username', 'session__branch__name']
+    
+    # 🌟 FIXED: Updated lookup search string properties paths matching the profile database model schema 
+    search_fields = ['employee__full_name', 'session__branch__name']
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        # Security Guard: Enforcement restriction checking parameters ladder
         if self.request.user.role != 'ADMIN':
-            queryset = queryset.filter(manager=self.request.user)
+            # 🌟 FIXED: Safe lookup matching the authenticated user profile details parameters string if accessing remotely
+            queryset = queryset.filter(employee__phone_number=self.request.user.phone)
+            
         return queryset
+
 
 
 

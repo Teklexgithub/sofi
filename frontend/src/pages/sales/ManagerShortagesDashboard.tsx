@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Table, Tag, Checkbox, Select, Space, 
-  Typography, Divider, Alert, Input, message 
+  Typography, Divider, Alert, Input, message, Modal 
 } from 'antd';
 import { 
   SafetyCertificateOutlined, SearchOutlined, AuditOutlined, 
-  CalendarOutlined, AlertOutlined
+  CalendarOutlined, AlertOutlined, QuestionCircleOutlined
 } from '@ant-design/icons';
 import { salesService } from '../../services/salesService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -17,8 +17,12 @@ const ManagerShortagesDashboard: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [ledgerData, setLedgerData] = useState<any[]>([]);
-  const [systemUsers, setSystemUsers] = useState<any[]>([]); // Pool of all assignable employees
+  const [employees, setEmployees] = useState<any[]>([]); 
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Confirmation Modal Runtime Tracking States
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingAssignment, setPendingAssignment] = useState<{ shortageId: string, employeeId: string | null, employeeName: string } | null>(null);
 
   if (user?.role !== 'ADMIN') {
     return (
@@ -34,8 +38,8 @@ const ManagerShortagesDashboard: React.FC = () => {
       const res = await salesService.getShortagesLedger();
       setLedgerData(Array.isArray(res.data) ? res.data : (res.data.results || []));
 
-      const usersRes = await salesService.getSystemUsers(); 
-      setSystemUsers(Array.isArray(usersRes.data) ? usersRes.data : (usersRes.data.results || []));
+      const employeesRes = await salesService.getEmployeeProfiles(); 
+      setEmployees(Array.isArray(employeesRes.data) ? employeesRes.data : (employeesRes.data.results || []));
     } catch (e) {
       message.error("Sync Failure: Operational liability registers could not be loaded.");
     } finally {
@@ -45,19 +49,35 @@ const ManagerShortagesDashboard: React.FC = () => {
 
   useEffect(() => { loadDashboardData(); }, []);
 
-  const assignResponsibleEmployee = async (shortageId: string, employeeId: string | null) => {
+  const handleSelectChangeRequest = (shortageId: string, employeeId: string | null) => {
+    if (!employeeId) {
+      executeAssignmentUpdate(shortageId, null);
+      return;
+    }
+    const targetStaff = employees.find(e => e.id === employeeId);
+    setPendingAssignment({
+      shortageId,
+      employeeId,
+      employeeName: targetStaff ? targetStaff.full_name : 'Selected Staff Member'
+    });
+    setIsModalOpen(true);
+  };
+
+  const executeAssignmentUpdate = async (shortageId: string, employeeId: string | null) => {
     try {
-      // Fixed: Type signature now safely permits direct manager updates
-      await salesService.settleShortageRecord(shortageId, { manager: employeeId });
-      message.success("Accountable employee assigned to liability line entry.");
+      await salesService.settleShortageRecord(shortageId, { employee: employeeId });
+      message.success("Accountable employee assigned to liability line entry successfully.");
       loadDashboardData();
     } catch (err) {
       message.error("Assignment update failed.");
+    } finally {
+      setIsModalOpen(false);
+      setPendingAssignment(null);
     }
   };
 
   const toggleSalarySettlementStatus = async (record: any, checked: boolean) => {
-    if (!record.manager) {
+    if (!record.employee) {
       return message.error("Action Blocked: Assign a responsible employee before applying payroll salary deductions.");
     }
     try {
@@ -78,7 +98,7 @@ const ManagerShortagesDashboard: React.FC = () => {
     const q = searchQuery.toLowerCase();
     return ledgerData.filter(item => 
       item.branch_name?.toLowerCase().includes(q) ||
-      item.manager_username?.toLowerCase().includes(q)
+      item.employee_name?.toLowerCase().includes(q)
     );
   };
 
@@ -137,7 +157,7 @@ const ManagerShortagesDashboard: React.FC = () => {
             },
             {
               title: 'Accountable Staff Assignment',
-              key: 'manager_assignment',
+              key: 'employee_assignment',
               width: 280,
               render: (_, rec) => (
                 <Select
@@ -145,13 +165,15 @@ const ManagerShortagesDashboard: React.FC = () => {
                   placeholder="Assign liability to employee..."
                   style={{ width: '100%' }}
                   size="middle"
-                  value={rec.manager || undefined}
-                  onChange={(val) => assignResponsibleEmployee(rec.id, val)}
+                  value={rec.employee || undefined} 
+                  onChange={(val) => handleSelectChangeRequest(rec.id, val)}
                   optionFilterProp="children"
+                  // 🌟 LOCKED: Disables the selection box completely once a payroll run timestamp is present
+                  disabled={rec.payroll_cycle_date !== null}
                 >
-                  {systemUsers.map(u => (
-                    <Select.Option key={u.id} value={u.id}>
-                      {u.username} ({u.role || 'Staff'})
+                  {employees.map(emp => (
+                    <Select.Option key={emp.id} value={emp.id}>
+                      {emp.full_name} ({emp.job_role_display || 'Staff'})
                     </Select.Option>
                   ))}
                 </Select>
@@ -164,8 +186,8 @@ const ManagerShortagesDashboard: React.FC = () => {
               width: 160,
               align: 'center',
               render: (settled, rec) => {
-                if (!rec.manager) return <Tag color="warning" icon={<AlertOutlined />}>AWAITING ASSIGNMENT</Tag>;
-                return settled ? (
+                if (!rec.employee) return <Tag color="warning" icon={<AlertOutlined />}>AWAITING ASSIGNMENT</Tag>;
+                return rec.payroll_cycle_date !== null ? (
                   <Tag color="success">SALARY DEDUCTED</Tag>
                 ) : (
                   <Tag color="error">UNSETTLED ACCOUNT</Tag>
@@ -180,8 +202,9 @@ const ManagerShortagesDashboard: React.FC = () => {
               render: (_, rec) => (
                 <Space size="middle">
                   <Checkbox 
-                    disabled={!rec.manager} 
-                    checked={rec.is_settled_from_salary}
+                    // 🌟 LOCKED: Prevents unchecking or editing once a payroll calculation run clears the row
+                    disabled={!rec.employee || rec.payroll_cycle_date !== null} 
+                    checked={rec.payroll_cycle_date !== null || rec.is_settled_from_salary}
                     onChange={(e) => toggleSalarySettlementStatus(rec, e.target.checked)}
                   >
                     Deduct from Salary
@@ -197,13 +220,21 @@ const ManagerShortagesDashboard: React.FC = () => {
           ]}
         />
       </Card>
+
+      <Modal
+        title={<span><QuestionCircleOutlined style={{ color: '#faad14', marginRight: 8 }} /> Confirm Accountability Assignment</span>}
+        open={isModalOpen}
+        onOk={() => pendingAssignment && executeAssignmentUpdate(pendingAssignment.shortageId, pendingAssignment.employeeId)}
+        onCancel={() => { setIsModalOpen(false); setPendingAssignment(null); }}
+        okText="Confirm & Link"
+        cancelText="Cancel"
+        okButtonProps={{ style: { backgroundColor: '#714B67', borderColor: '#714B67' } }}
+      >
+        <p>Are you sure you want to delegate financial liability for this cash shortage register entry to <b>{pendingAssignment?.employeeName}</b>?</p>
+        <p style={{ color: '#888', fontSize: '12px' }}>Once linked, you can toggle payroll deduction parameters to resolve this balance from their next monthly payslip file run.</p>
+      </Modal>
     </div>
   );
 };
 
 export default ManagerShortagesDashboard;
-
-
-
-
-// /sales/daily-session

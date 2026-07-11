@@ -68,18 +68,18 @@ class ManagerShortageLedgerAdmin(admin.ModelAdmin):
     list_display = [
         'trading_date_display', 
         'branch', 
-        'manager_display', 
+        'employee_display', 
         'shortage_amount', 
         'is_settled_from_salary', 
         'payroll_cycle_date'
     ]
     list_filter = ['is_settled_from_salary', 'branch', 'payroll_cycle_date', 'logged_at']
-    search_fields = ['branch__name', 'manager__username', 'shortage_amount']
+    search_fields = ['branch__name', 'employee__username', 'shortage_amount']
     readonly_fields = ['logged_at']
     
     # Optimize query execution by pre-fetching related data models
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('session', 'branch', 'manager')
+        return super().get_queryset(request).select_related('session', 'branch', 'employee')
 
     # Read-only column displays pulled from related instances
     def trading_date_display(self, obj):
@@ -87,10 +87,10 @@ class ManagerShortageLedgerAdmin(admin.ModelAdmin):
     trading_date_display.short_description = 'Trading Date'
     trading_date_display.admin_order_field = 'session__trading_date'
 
-    def manager_display(self, obj):
-        return obj.manager.username if obj.manager else "❌ UNASSIGNED"
-    manager_display.short_description = 'Responsible Staff'
-    manager_display.admin_order_field = 'manager__username'
+    def employee_display(self, obj):
+        return obj.employee.full_name if obj.employee else "❌ UNASSIGNED"
+    employee_display.short_description = 'Responsible Staff'
+    employee_display.admin_order_field = 'employee__username'
 
 
 

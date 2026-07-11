@@ -120,14 +120,18 @@ class ManagerShortageLedger(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     session = models.OneToOneField(DailySession, on_delete=models.CASCADE, related_name='shortage_record')
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='shortages') # Added branch link directly
-    manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='accumulated_shortages') # Made Nullable!
+    # manager = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='accumulated_shortages') # Made Nullable!
+    employee = models.ForeignKey('employee.EmployeeProfile', on_delete=models.SET_NULL, null=True, blank=True, related_name='accumulated_shortages')
     shortage_amount = models.DecimalField(max_digits=12, decimal_places=2) 
     is_settled_from_salary = models.BooleanField(default=False)
     payroll_cycle_date = models.DateField(null=True, blank=True)
     logged_at = models.DateTimeField(auto_now_add=True)
 
+
+
     def __str__(self):
-        target = self.manager.username if self.manager else "UNASSIGNED"
+        # 🌟 FIXED: Changed 'self.manager.username' to 'self.employee.full_name'
+        target = self.employee.full_name if self.employee else "UNASSIGNED"
         return f"{self.branch.name} | Shortage: {self.shortage_amount} ETB -> Responsible: {target}"
 
 

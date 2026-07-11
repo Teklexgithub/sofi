@@ -22,6 +22,12 @@ import ManagerShortagesDashboard from './pages/sales/ManagerShortagesDashboard';
 import { VendorSettlements } from './pages/sales/VendorSettlements';
 // (Future Settlement page import will go here)
 
+// 🌟 EMPLOYEE APP - NEW IMPORT
+import { EmployeeHub } from './pages/employee/EmployeeHub';
+
+// 🌟 DASHBOARD APP - NEW IMPORT
+import { DashboardHub } from './pages/dashboard/DashboardHub';
+
 // SETTINGS APP
 import UserList from './pages/settings/UserList';
 import UserDetail from './pages/settings/UserDetail';
@@ -83,6 +89,14 @@ function App() {
                   <Route path="/sales/shortages-ledger" element={<ManagerShortagesDashboard />} />
                   {/* <Route path="/sales/settlements" element={<SupplierSettlements />} /> */}
                   <Route path="/sales/settlements" element={<VendorSettlements />} />
+
+                  {/* EMPLOYEE APP - NEW ROUTE */}
+                  <Route path="/employees" element={<EmployeeHub />} />
+
+                  {/* DASHBOARD APP - NEW ROUTE */}
+                  <Route path="/analytics" element={<DashboardHub />} />
+
+                  
 
                   {/* SETTINGS APP - Secure Admin-Only Route */}
                   <Route 

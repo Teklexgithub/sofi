@@ -7,11 +7,12 @@ import {
   FileTextOutlined, TeamOutlined, 
   // LineChartOutlined, 
   SettingOutlined, DollarOutlined, HistoryOutlined,
-  WalletOutlined, BankOutlined 
+  WalletOutlined, BankOutlined, FormOutlined 
 } from '@ant-design/icons';
 import { useAuth, api } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+
 
 const { Header, Content, Sider } = Layout;
 
@@ -43,8 +44,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { name: 'Inventory', icon: <ShopOutlined />, color: '#008784', path: '/inventory/products' },
     { name: 'Sales', icon: <FileTextOutlined />, color: '#875A7B', path: '/sales/daily-session' },
     { name: 'Employee', icon: <TeamOutlined />, color: '#E46651', path: '/employees' },
-    // { name: 'Reporting', icon: <LineChartOutlined />, color: '#21B799', path: '/reporting' },
-    { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#1f74ac', path: '/' },
+    // { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#1f74ac', path: '/' },
+    { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#714B67', path: '/analytics' },
     { 
       name: 'Settings', 
       icon: <SettingOutlined />, 
@@ -64,8 +65,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const isHomeDashboard = location.pathname === '/';
   const isInventoryModule = location.pathname.startsWith('/inventory');
-  const isSalesModule = location.pathname.startsWith('/sales'); // ADDED THIS
+  const isSalesModule = location.pathname.startsWith('/sales'); 
+  const isEmployeeModule = location.pathname.startsWith('/employees'); 
   const isSettingsModule = location.pathname.startsWith('/settings');
+  const isAnalyticsModule = location.pathname.startsWith('/analytics');
 
   // Navigation Items for Inventory
   const inventoryItems: MenuProps['items'] = [
@@ -97,47 +100,74 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // NEW: Navigation Items for Sales (Matches Inventory Format Exactly)
   const salesItems: MenuProps['items'] = [
-  {
-    key: 'daily_sessions_nav',
-    label: 'Daily Sessions',
-    children: [
-      { key: '/sales/daily-session', label: 'Daily Worksheet', icon: <DollarOutlined />, onClick: () => navigate('/sales/daily-session') },
-      { key: '/sales/history', label: 'Sales History', icon: <HistoryOutlined />, onClick: () => navigate('/sales/history') },
-    ]
-  },
-  {
-      key: '/sales/settlements',
-      label: 'Vendor Settlements',
-      icon: <WalletOutlined />,
-      onClick: () => navigate('/sales/settlements', { state: { targetTab: '1' } })
-  },
-  // --- CONDITIONAL ADMIN-ONLY DIGITAL MANAGEMENT SYSTEM SUBMENU ---
-  ...(user?.role === 'ADMIN' ? [{
-    key: 'digital_management_nav',
-    label: 'Digital Accounts',
-    icon: <BankOutlined />, // Moved the main folder icon here for a professional look
-    children: [
-      { 
-        key: '/sales/digital-accounts-setup', 
-        label: 'Bank Accounts', 
-        onClick: () => navigate('/sales/digital-accounts-setup') 
-      },
-      { 
-        key: '/sales/digital-adjustments', 
-        label: 'Journal Adjustments', 
-        onClick: () => navigate('/sales/digital-adjustments') // Added missing redirect listener!
-      },
+    {
+      key: 'daily_sessions_nav',
+      label: 'Daily Sessions',
+      children: [
+        { key: '/sales/daily-session', label: 'Daily Worksheet', icon: <DollarOutlined />, onClick: () => navigate('/sales/daily-session') },
+        { key: '/sales/history', label: 'Sales History', icon: <HistoryOutlined />, onClick: () => navigate('/sales/history') },
+      ]
+    },
+    {
+        key: '/sales/settlements',
+        label: 'Vendor Settlements',
+        icon: <WalletOutlined />,
+        onClick: () => navigate('/sales/settlements', { state: { targetTab: '1' } })
+    },
+    // --- CONDITIONAL ADMIN-ONLY DIGITAL MANAGEMENT SYSTEM SUBMENU ---
+    ...(user?.role === 'ADMIN' ? [{
+      key: 'digital_management_nav',
+      label: 'Digital Accounts',
+      icon: <BankOutlined />, // Moved the main folder icon here for a professional look
+      children: [
+        { 
+          key: '/sales/digital-accounts-setup', 
+          label: 'Bank Accounts', 
+          onClick: () => navigate('/sales/digital-accounts-setup') 
+        },
+        { 
+          key: '/sales/digital-adjustments', 
+          label: 'Journal Adjustments', 
+          onClick: () => navigate('/sales/digital-adjustments') // Added missing redirect listener!
+        },
 
-      { 
-        key: '/sales/shortages-ledger', 
-        label: 'Shortages Ledger', 
-        onClick: () => navigate('/sales/shortages-ledger') 
-      }
-    ]
-  }] : []),
-  
-  
-];
+        { 
+          key: '/sales/shortages-ledger', 
+          label: 'Shortages Ledger', 
+          onClick: () => navigate('/sales/shortages-ledger') 
+        }
+      ]
+    }] : []),
+  ];
+
+  // 🌟 ADDED: Navigation Items for Employee App (Horizontal sub-menu layout configuration matching structural standard format)
+  const employeeItems: MenuProps['items'] = [
+    {
+      key: '/employees',
+      label: 'Employees',
+      icon: <TeamOutlined />,
+      onClick: () => navigate('/employees')
+    },
+    {
+      key: 'advances_fines_nav',
+      label: 'Advances & Fines',
+      icon: <WalletOutlined />,
+      children: [
+        { key: '/employees?tab=advance_reg', label: 'Issue Advance/Fine', icon: <FormOutlined />, onClick: () => navigate('/employees?tab=advance_reg') },
+        { key: '/employees?tab=advance_history', label: 'Ledger History Log', icon: <HistoryOutlined />, onClick: () => navigate('/employees?tab=advance_history') },
+      ]
+    },
+    {
+      key: 'payslips_nav',
+      label: 'Payslips Run',
+      icon: <DollarOutlined />,
+      children: [
+        { key: '/employees?tab=payslip_run', label: 'Execute Payout Run', icon: <FormOutlined />, onClick: () => navigate('/employees?tab=payslip_run') },
+        { key: '/employees?tab=payslip_history', label: 'Payslip History Log', icon: <HistoryOutlined />, onClick: () => navigate('/employees?tab=payslip_history') },
+      ]
+    }
+  ];
+
   // Navigation Items for Settings
   const settingsItems: MenuProps['items'] = [
     {
@@ -191,7 +221,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const getHeaderTitle = () => {
     if (isInventoryModule) return 'Inventory';
     if (isSalesModule) return 'Sales';
+    if (isEmployeeModule) return 'Employee'; 
     if (isSettingsModule) return 'Settings';
+    if (isAnalyticsModule) return 'Analytics Dashboard';
     return 'Sofia ERP';
   };
 
@@ -237,6 +269,16 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               style={{ background: 'transparent', border: 'none', lineHeight: '46px' }} 
             />
           )}
+          {/* 🌟 ADDED: Horizontal Employee Navbar Mount */}
+          {isEmployeeModule && (
+            <Menu 
+              mode="horizontal" 
+              theme="dark" 
+              items={employeeItems} 
+              selectedKeys={[location.pathname + location.search]}
+              style={{ background: 'transparent', border: 'none', lineHeight: '46px' }} 
+            />
+          )}
           {isSettingsModule && (
             <Menu 
               mode="horizontal" 
@@ -250,7 +292,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         {/* RIGHT: Branch Switcher & User */}
         <Space size="middle">
-          {(isInventoryModule || isSettingsModule || isSalesModule) && (
+          {/* 🌟 FIXED: Added isEmployeeModule condition check to include branch select options */}
+          {(isInventoryModule || isSettingsModule || isSalesModule || isEmployeeModule || isAnalyticsModule) && (
             <Select
               size="small"
               value={selectedBranch}

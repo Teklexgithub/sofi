@@ -167,18 +167,22 @@ class DigitalAccountAdjustmentSerializer(serializers.ModelSerializer):
 class ManagerShortageSerializer(serializers.ModelSerializer):
     branch_name = serializers.ReadOnlyField(source='branch.name')
     trading_date = serializers.ReadOnlyField(source='session.trading_date')
-    manager_username = serializers.ReadOnlyField(source='manager.username')
+    
+    # 🌟 FIXED: Points to the new employee foreign key and grabs their full name
+    employee_name = serializers.ReadOnlyField(source='employee.full_name')
 
     class Meta:
         model = ManagerShortageLedger
         fields = [
             'id', 'session', 'branch_name', 'trading_date', 
-            'manager', 'manager_username', 'shortage_amount', 
+            'employee', 'employee_name', 'shortage_amount', 
             'is_settled_from_salary', 'payroll_cycle_date', 'logged_at'
         ]
 
-
     
+
+
+
 
 
 

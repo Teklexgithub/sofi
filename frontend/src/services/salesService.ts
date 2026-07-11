@@ -126,7 +126,6 @@ export const salesService = {
   deleteDailySession: (sessionId: string) => 
     salesApi.delete(`sessions/${sessionId}/`),
 
-  
 
   /**
    * CROSS-APP QUERY ROUTE: Bypasses the /api/sales/ baseURL scope safely
@@ -139,8 +138,30 @@ export const salesService = {
     });
   },
 
-  settleShortageRecord: (id: string, payload: { is_settled_from_salary?: boolean; payroll_cycle_date?: string; manager?: string | null }) => 
-    salesApi.patch(`shortages/${id}/`, payload),
+  /**
+   * 🌟 CROSS-APP EMPLOYEE LOG PROFILE QUERY ROUTE:
+   * Safely bypasses the sales base URL restriction to collect operational records from the new app.
+   */
+  getEmployeeProfiles: () => {
+    const token = localStorage.getItem('access_token');
+    return axios.get('http://localhost:8000/api/employee/profiles/', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+  },
+
+  /**
+   * 🌟 REPAIRED PAYLOAD TYPE DEFINITION:
+   * Expanded payload properties parameters verification to easily support our model's new 'employee' key reference identifier.
+   */
+  settleShortageRecord: (
+    id: string, 
+    payload: { 
+      is_settled_from_salary?: boolean; 
+      payroll_cycle_date?: string; 
+      manager?: string | null; 
+      employee?: string | null; // 🌟 Added property match reference target
+    }
+  ) => salesApi.patch(`shortages/${id}/`, payload),
 
   /**
    * Dynamic search interface pulling active customer debt accounts.
@@ -165,7 +186,7 @@ export const salesService = {
   // --- 🌟 FIXED WHOLESALE SUPPLIER SETTLEMENTS ENDPOINTS 🌟 ---
 
   /**
-   * Fetches historical locked settlement batch rows for a vendor.
+   * Cultivates historical locked settlement batch rows for a vendor.
    * Aligned to router tracking name: vendor-settlements
    */
   getSettlements: (vendorId?: string) => 
