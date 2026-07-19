@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Card, Typography, Tag, Space, message } from 'antd';
-import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
+import { Table, Button, Card, Typography, Tag, Space, message, Input } from 'antd'; // Added Input to imports
+import { PlusOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons'; // Added SearchOutlined
 import { inventoryService } from '../../services/inventoryService';
-import { useAuth } from '../../contexts/AuthContext'; // Added Auth context
+import { useAuth } from '../../contexts/AuthContext'; 
 import LogSupplyModal from './LogSupplyModal';
 import dayjs from 'dayjs';
 
 const { Title } = Typography;
 
 const SupplyLogs: React.FC = () => {
-  const { user } = useAuth(); // Access logged-in user details
+  const { user } = useAuth(); 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState(''); // Added state to track search query
 
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      // The backend get_queryset we updated earlier will 
-      // automatically filter these logs for Managers.
       const res = await inventoryService.getSupplyLogs();
       setLogs(res.data);
     } catch (e) {
@@ -30,6 +29,16 @@ const SupplyLogs: React.FC = () => {
 
   useEffect(() => { fetchLogs(); }, []);
 
+  // Filter logs locally based on search text matching Product Name or Vendor Name
+  const filteredLogs = logs.filter((log: any) => {
+    const searchLower = searchText.toLowerCase();
+    return (
+      (log.product_name && log.product_name.toLowerCase().includes(searchLower)) ||
+      (log.vendor_name && log.vendor_name.toLowerCase().includes(searchLower)) ||
+      (log.branch_name && log.branch_name.toLowerCase().includes(searchLower))
+    );
+  });
+
   const columns = [
     {
       title: 'Date Received',
@@ -38,7 +47,7 @@ const SupplyLogs: React.FC = () => {
     },
     {
       title: 'Branch',
-      dataIndex: 'branch_name', // Ensure your serializer provides this
+      dataIndex: 'branch_name', 
       render: (name: string) => <Tag color="blue">{name || 'N/A'}</Tag>
     },
     {
@@ -68,10 +77,21 @@ const SupplyLogs: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-        <Space>
-          <HistoryOutlined style={{ fontSize: '24px', color: '#714B67' }} />
-          <Title level={3} style={{ margin: 0 }}>Vendor Deliveries</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <Space size="large" style={{ flex: 1 }}>
+          <Space>
+            <HistoryOutlined style={{ fontSize: '24px', color: '#714B67' }} />
+            <Title level={3} style={{ margin: 0 }}>Vendor Deliveries</Title>
+          </Space>
+          {/* 🌟 ADDED: Smooth Search Bar Filter */}
+          <Input
+            placeholder="Search by product, vendor, or branch..."
+            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            style={{ width: '320px', borderRadius: '6px' }}
+          />
         </Space>
         <Button 
           type="primary" 
@@ -85,7 +105,7 @@ const SupplyLogs: React.FC = () => {
 
       <Card styles={{ body: { padding: 0 } }}>
         <Table 
-          dataSource={logs} 
+          dataSource={filteredLogs} // Updated from logs to filteredLogs
           columns={columns} 
           rowKey="id" 
           loading={loading}
@@ -93,10 +113,6 @@ const SupplyLogs: React.FC = () => {
         />
       </Card>
 
-      {/* Passing the Branch Lock:
-          If Admin: branchId is empty (Modal allows selection)
-          If Manager: branchId is user.branch (Modal is locked)
-      */}
       <LogSupplyModal 
         visible={modalVisible}
         branchId={user?.role === 'ADMIN' ? "" : (user?.branch || "")}

@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Typography, Card, Button, message, Tag } from 'antd';
-import { PlusOutlined, HistoryOutlined } from '@ant-design/icons';
+import { Table, Typography, Card, Button, message, Tag, Input, Space } from 'antd'; // Added Input and Space to imports
+import { PlusOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons'; // Added SearchOutlined
 import { inventoryService } from '../../services/inventoryService';
-import { useAuth } from '../../contexts/AuthContext'; // Added Auth to check role
+import { useAuth } from '../../contexts/AuthContext'; 
 import InternalTransferModal from './InternalTransferModal';
 
 const { Title } = Typography;
 
 const InternalTransfers: React.FC = () => {
-  const { user } = useAuth(); // Get logged in user info
+  const { user } = useAuth(); 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState(''); // Added state to track search query
 
   const fetchTransfers = async () => {
     setLoading(true);
     try {
-      // The backend get_queryset now automatically filters by user branch
       const res = await inventoryService.getInternalTransfers();
       setData(res.data);
     } catch (e) {
@@ -27,6 +27,15 @@ const InternalTransfers: React.FC = () => {
   };
 
   useEffect(() => { fetchTransfers(); }, []);
+
+  // Filter logs locally based on search text matching Product Name or Branch Name
+  const filteredData = data.filter((item: any) => {
+    const searchLower = searchText.toLowerCase();
+    return (
+      (item.product_name && item.product_name.toLowerCase().includes(searchLower)) ||
+      (item.branch_name && item.branch_name.toLowerCase().includes(searchLower))
+    );
+  });
 
   const columns = [
     { title: 'Date', dataIndex: 'timestamp', key: 'date', render: (d: string) => new Date(d).toLocaleString() },
@@ -39,7 +48,18 @@ const InternalTransfers: React.FC = () => {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <Title level={3} style={{ margin: 0 }}><HistoryOutlined /> Store to Shop Refills</Title>
+        <Space size="large" style={{ flex: 1 }}>
+          <Title level={3} style={{ margin: 0 }}><HistoryOutlined /> Store to Shop Refills</Title>
+          {/* 🌟 ADDED: Smooth Search Bar Filter */}
+          <Input
+            placeholder="Search by product or branch..."
+            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            style={{ width: '320px', borderRadius: '6px' }}
+          />
+        </Space>
         <Button 
           type="primary" 
           icon={<PlusOutlined />} 
@@ -51,17 +71,16 @@ const InternalTransfers: React.FC = () => {
       </div>
 
       <Card styles={{ body: { padding: 0 } }}>
-        <Table dataSource={data} columns={columns} loading={loading} rowKey="id" />
+        <Table 
+          dataSource={filteredData} // Updated from data to filteredData
+          columns={columns} 
+          loading={loading} 
+          rowKey="id" 
+        />
       </Card>
 
-      {/* PASSING USER BRANCH ID: 
-          If manager, we pass their branchId. 
-          If admin, we pass empty string so they can choose.
-      */}
     <InternalTransferModal 
       visible={isModalVisible} 
-      // If branch is already a string ID, use it directly. 
-      // If it's an object, use .id. Based on your error, it's a string.
       branchId={user?.role === 'ADMIN' ? "" : (user?.branch || "")} 
       onCancel={() => setIsModalVisible(false)} 
       onSuccess={() => { setIsModalVisible(false); fetchTransfers(); }} 

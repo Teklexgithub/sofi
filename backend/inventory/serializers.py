@@ -37,6 +37,7 @@ class SupplyLogSerializer(serializers.ModelSerializer):
     # We include these to show the names in the frontend tables later
     product_name = serializers.ReadOnlyField(source='product.name')
     vendor_name = serializers.ReadOnlyField(source='product.vendor.name')
+    branch_name = serializers.CharField(source='branch.name', read_only=True) # ADD THIS
 
     class Meta:
         model = SupplyLog
@@ -45,6 +46,7 @@ class SupplyLogSerializer(serializers.ModelSerializer):
 class BulkSupplyLogSerializer(serializers.Serializer):
     """Special serializer to handle a list of deliveries at once"""
     branch = serializers.PrimaryKeyRelatedField(queryset=Branch.objects.all())
+    branch_name = serializers.CharField(source='branch.name', read_only=True) # ADD THIS
     date_received = serializers.DateTimeField()
     items = SupplyLogSerializer(many=True) # This is the list of 10 items
 
