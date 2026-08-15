@@ -24,8 +24,6 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -75,11 +73,39 @@ body {
   min-height: 100vh;
 }
 
-/* Remove all default Vite margins/paddings */
+/* Remove all default Vite margins/paddings. The page itself is the one
+   scrolling element - individual sections should never need their own
+   nested scrollbar (modals are the one legitimate exception). */
 html, #root {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  overflow: hidden; /* Prevents scrollbars during the lamp animation */
+  min-height: 100%;
+}
+
+/* One consistent, understated scrollbar for the whole app - a translucent
+   "smoked white" thumb rather than the harsh solid-black default. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 120, 0.45) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(120, 120, 120, 0.45);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(120, 120, 120, 0.65);
 }

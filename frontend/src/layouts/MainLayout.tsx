@@ -1,67 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Layout, Avatar, Dropdown, Badge, Space, Typography, Switch, Menu, Select } from 'antd';
 import type { MenuProps } from 'antd';
-import { 
-  BellOutlined, UserOutlined, LogoutOutlined, 
-  AppstoreOutlined, EnvironmentOutlined, ShopOutlined,
-  FileTextOutlined, TeamOutlined, 
-  // LineChartOutlined, 
-  SettingOutlined, DollarOutlined, HistoryOutlined,
-  WalletOutlined, BankOutlined, FormOutlined 
+import {
+  BellOutlined, UserOutlined, LogoutOutlined,
+  AppstoreOutlined, EnvironmentOutlined,
+  TeamOutlined,
+  DollarOutlined, HistoryOutlined,
+  WalletOutlined, BankOutlined, FormOutlined
 } from '@ant-design/icons';
-import { useAuth, api } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useBranch } from '../contexts/BranchContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useVisibleApps } from '../config/navApps';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 
 
 const { Header, Content, Sider } = Layout;
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // State for Branch Switcher
-  const [branches, setBranches] = useState<any[]>([]);
-  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const res = await api.get('inventory/branches/');
-        setBranches(res.data);
-        if (res.data.length > 0) setSelectedBranch(res.data[0].id);
-      } catch (e) { 
-        console.error("Failed to load branches"); 
-      }
-    };
-    fetchBranches();
-  }, []);
-
-  // Define your master apps list for the sidebar switcher
-  const allApps = [
-    { name: 'Inventory', icon: <ShopOutlined />, color: '#008784', path: '/inventory/products' },
-    { name: 'Sales', icon: <FileTextOutlined />, color: '#875A7B', path: '/sales/daily-session' },
-    { name: 'Employee', icon: <TeamOutlined />, color: '#E46651', path: '/employees' },
-    // { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#1f74ac', path: '/' },
-    { name: 'Dashboard', icon: <AppstoreOutlined />, color: '#714B67', path: '/analytics' },
-    { 
-      name: 'Settings', 
-      icon: <SettingOutlined />, 
-      color: '#4A5B6D', 
-      path: '/settings/users', 
-      adminOnly: true 
-    },
-  ];
-
-  // Filter apps based on user role
-  const visibleApps = allApps.filter(app => {
-    if (app.adminOnly) {
-      return user?.role === 'ADMIN';
-    }
-    return true;
-  });
+  const { assignedBranches, selectedBranch, setSelectedBranch } = useBranch();
+  const visibleApps = useVisibleApps();
 
   const isHomeDashboard = location.pathname === '/';
   const isInventoryModule = location.pathname.startsWith('/inventory');
@@ -80,16 +43,17 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { key: '/inventory/shop', label: 'Shop Stock (Pieces)', onClick: () => navigate('/inventory/shop') },
       ]
     },
-    { 
-      key: 'products_nav', 
+    // --- CONDITIONAL ADMIN-ONLY MASTER DATA SUBMENU ---
+    ...(isAdmin ? [{
+      key: 'products_nav',
       label: 'Master Data',
       children: [
         { key: '/inventory/products', label: 'Products', onClick: () => navigate('/inventory/products') },
         { key: '/inventory/vendors', label: 'Vendors', onClick: () => navigate('/inventory/vendors') },
       ]
-    },
-    { 
-      key: 'operations', 
+    }] : []),
+    {
+      key: 'operations',
       label: 'Operations',
       children: [
         { key: '/inventory/supply-logs', label: 'Vendor Deliveries', onClick: () => navigate('/inventory/supply-logs') },
@@ -108,36 +72,37 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { key: '/sales/history', label: 'Sales History', icon: <HistoryOutlined />, onClick: () => navigate('/sales/history') },
       ]
     },
-    {
+    // --- CONDITIONAL ADMIN-ONLY VENDOR PAYMENTS & DIGITAL MANAGEMENT SUBMENUS ---
+    ...(isAdmin ? [
+      {
         key: '/sales/settlements',
         label: 'Vendor Settlements',
         icon: <WalletOutlined />,
         onClick: () => navigate('/sales/settlements', { state: { targetTab: '1' } })
-    },
-    // --- CONDITIONAL ADMIN-ONLY DIGITAL MANAGEMENT SYSTEM SUBMENU ---
-    ...(user?.role === 'ADMIN' ? [{
-      key: 'digital_management_nav',
-      label: 'Digital Accounts',
-      icon: <BankOutlined />, // Moved the main folder icon here for a professional look
-      children: [
-        { 
-          key: '/sales/digital-accounts-setup', 
-          label: 'Bank Accounts', 
-          onClick: () => navigate('/sales/digital-accounts-setup') 
-        },
-        { 
-          key: '/sales/digital-adjustments', 
-          label: 'Journal Adjustments', 
-          onClick: () => navigate('/sales/digital-adjustments') // Added missing redirect listener!
-        },
-
-        { 
-          key: '/sales/shortages-ledger', 
-          label: 'Shortages Ledger', 
-          onClick: () => navigate('/sales/shortages-ledger') 
-        }
-      ]
-    }] : []),
+      },
+      {
+        key: 'digital_management_nav',
+        label: 'Digital Accounts',
+        icon: <BankOutlined />, // Moved the main folder icon here for a professional look
+        children: [
+          {
+            key: '/sales/digital-accounts-setup',
+            label: 'Bank Accounts',
+            onClick: () => navigate('/sales/digital-accounts-setup')
+          },
+          {
+            key: '/sales/digital-adjustments',
+            label: 'Journal Adjustments',
+            onClick: () => navigate('/sales/digital-adjustments') // Added missing redirect listener!
+          },
+          {
+            key: '/sales/shortages-ledger',
+            label: 'Shortages Ledger',
+            onClick: () => navigate('/sales/shortages-ledger')
+          }
+        ]
+      }
+    ] : []),
   ];
 
   // 🌟 ADDED: Navigation Items for Employee App (Horizontal sub-menu layout configuration matching structural standard format)
@@ -182,7 +147,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // User Dropdown Menu
   const userItems: MenuProps['items'] = [
-    { key: 'profile', label: 'My Profile', icon: <UserOutlined /> },
+    { key: 'profile', label: 'Sofia Organic', icon: <UserOutlined /> },
     { 
       key: 'theme-toggle', 
       label: (
@@ -303,9 +268,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               variant="borderless"
               dropdownStyle={{ zIndex: 1100 }}
               className="branch-select"
-              disabled={user?.role !== 'ADMIN'}
+              disabled={assignedBranches.length <= 1}
             >
-              {branches.map(b => (
+              {assignedBranches.map(b => (
                 <Select.Option key={b.id} value={b.id}>
                   <span style={{ color: isDark ? '#fff' : '#000' }}>{b.name}</span>
                 </Select.Option>
@@ -313,9 +278,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </Select>
           )}
 
-          <Badge count={3} size="small" offset={[2, 2]}>
+          {/* <Badge count={3} size="small" offset={[2, 2]}>
             <BellOutlined style={{ color: '#fff', fontSize: '18px', cursor: 'pointer' }} />
-          </Badge>
+          </Badge> */}
           
           <Dropdown menu={{ items: userItems }} placement="bottomRight" trigger={['click']}>
             <Space style={{ cursor: 'pointer' }}>
@@ -417,12 +382,11 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </Sider>
         )}
 
-        <Content style={{ 
-          padding: '16px 20px', 
+        <Content style={{
+          padding: '16px 20px',
           background: isDark ? '#141414' : '#f0f2f5',
           minHeight: 'calc(100vh - 46px)',
-          width: '100%',
-          overflowY: 'auto'
+          width: '100%'
         }}>
           {children}
         </Content>

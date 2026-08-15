@@ -6,17 +6,24 @@ export const api = axios.create({
   baseURL: 'http://localhost:8000/api/',
 });
 
-interface User {
+export interface BranchDetail {
+  id: string;
+  name: string;
+}
+
+export interface User {
   id: string;
   email: string;
-  role: string;
+  role: 'ADMIN' | 'BRANCH_ADMIN';
   username: string;
-  branch: string | null;
+  branches: string[];
+  branch_details: BranchDetail[];
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   loading: boolean;
   login: (access: string, refresh?: string) => void;
   logout: () => void;
@@ -79,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isAdmin: user?.role === 'ADMIN', loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

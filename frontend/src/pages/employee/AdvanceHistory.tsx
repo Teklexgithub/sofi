@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Input, Tag, Typography, Divider, message } from 'antd';
-import { SearchOutlined, HistoryOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Input, Tag, Typography, Divider, message, Button } from 'antd';
+import { SearchOutlined, HistoryOutlined, CheckCircleOutlined, ExclamationCircleOutlined, PrinterOutlined } from '@ant-design/icons';
+import { useReactToPrint } from 'react-to-print';
 import { employeeService } from '../../services/employeeService';
+import AdvanceVoucher from '../../components/print/AdvanceVoucher';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -10,6 +12,15 @@ export const AdvanceHistory: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [ledgerEntries, setLedgerEntries] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [printEntry, setPrintEntry] = useState<any | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: 'Advance Voucher' });
+
+  const handlePrintRow = (record: any) => {
+    setPrintEntry(record);
+    setTimeout(() => handlePrint(), 0);
+  };
 
   const loadLedgerEntries = async () => {
     setLoading(true);
@@ -53,6 +64,14 @@ export const AdvanceHistory: React.FC = () => {
       )
     },
     { title: 'Recorded Date', dataIndex: 'created_at', key: 'created_at', render: (date: string) => dayjs(date).format('MMMM DD, YYYY | hh:mm A') },
+    {
+      title: 'Print',
+      key: 'print_action',
+      align: 'center' as const,
+      render: (_: any, record: any) => (
+        <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRow(record)}>Print</Button>
+      )
+    },
   ];
 
   return (
@@ -71,12 +90,13 @@ export const AdvanceHistory: React.FC = () => {
       </div>
       <Divider style={{ margin: '12px 0 24px 0' }} />
 
-      <Table 
-        columns={columns} 
+      <Table
+        columns={columns}
         dataSource={filteredEntries}
         rowKey="id"
         loading={loading}
         bordered
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: record => (
             <div style={{ padding: '8px 24px', background: '#fafafa', borderRadius: '4px' }}>
@@ -87,6 +107,12 @@ export const AdvanceHistory: React.FC = () => {
         }}
         pagination={{ pageSize: 15 }}
       />
+
+      {printEntry && (
+        <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+          <AdvanceVoucher ref={printRef} entry={printEntry} />
+        </div>
+      )}
     </div>
   );
 };

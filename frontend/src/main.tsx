@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
+import { BranchProvider } from './contexts/BranchContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'; // Import our new context
 import { ConfigProvider, theme } from 'antd';
 import './index.css';
@@ -28,9 +29,11 @@ const AntdThemeWrapper = () => {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AuthProvider>
-      <ThemeProvider>
-        <AntdThemeWrapper />
-      </ThemeProvider>
+      <BranchProvider>
+        <ThemeProvider>
+          <AntdThemeWrapper />
+        </ThemeProvider>
+      </BranchProvider>
     </AuthProvider>
   </React.StrictMode>
 );

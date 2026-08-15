@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Card, Button, Form, Select, Typography, Space, Divider, Descriptions, Input, message, Statistic, Row, Col } from 'antd';
-import { UserOutlined, DollarOutlined, SaveOutlined, InfoCircleOutlined, CalculatorOutlined } from '@ant-design/icons';
+import React, { useState, useRef } from 'react';
+import { Card, Button, Form, Select, Typography, Space, Divider, Descriptions, Input, message, Statistic, Row, Col, Modal } from 'antd';
+import { UserOutlined, DollarOutlined, SaveOutlined, InfoCircleOutlined, CalculatorOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useReactToPrint } from 'react-to-print';
 import { employeeService } from '../../services/employeeService';
+import PayslipDocument from '../../components/print/PayslipDocument';
 
 const { Title, Text } = Typography;
 
@@ -17,6 +19,11 @@ export const PayslipExecution: React.FC<PayslipExecutionProps> = ({ employees })
   const [calcLoading, setCalcLoading] = useState(false);
   const [calcData, setCalcData] = useState<any | null>(null);
   const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
+
+  const [printPayslip, setPrintPayslip] = useState<any | null>(null);
+  const [showPayslipModal, setShowPayslipModal] = useState(false);
+  const payslipPrintRef = useRef<HTMLDivElement>(null);
+  const handlePrintPayslip = useReactToPrint({ contentRef: payslipPrintRef, documentTitle: 'Payslip' });
 
   const handleEmployeeChange = async (employeeId: string) => {
     setSelectedEmpId(employeeId);
@@ -35,19 +42,26 @@ export const PayslipExecution: React.FC<PayslipExecutionProps> = ({ employees })
   const handleExecutePayslip = async (values: any) => {
     setLoading(true);
     try {
-      await employeeService.executePayslip({
+      const res = await employeeService.executePayslip({
         employee: values.employee,
         notes: values.notes || ''
       });
       message.success("Monthly payslip run finalized and locked successfully.");
-      form.resetFields();
-      setCalcData(null);
-      navigate('/employees?tab=payslip_history');
+      setPrintPayslip(res.data);
+      setShowPayslipModal(true);
     } catch (err) {
       message.error("Failed to execute corporate payroll transaction run.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClosePayslipModal = () => {
+    setShowPayslipModal(false);
+    form.resetFields();
+    setCalcData(null);
+    setSelectedEmpId(null);
+    navigate('/employees?tab=payslip_history');
   };
 
   return (
@@ -145,6 +159,30 @@ export const PayslipExecution: React.FC<PayslipExecutionProps> = ({ employees })
           </Card>
         </Col>
       </Row>
+
+      <Modal
+        title="Payslip Executed"
+        open={showPayslipModal}
+        onCancel={handleClosePayslipModal}
+        width={800}
+        footer={[
+          <Button key="close" onClick={handleClosePayslipModal}>Close</Button>,
+          <Button key="print" type="primary" icon={<PrinterOutlined />} onClick={() => handlePrintPayslip()} style={{ background: '#714B67', borderColor: '#714B67' }}>
+            Print Payslip
+          </Button>
+        ]}
+      >
+        {printPayslip && (
+          <div style={{ maxHeight: '60vh', overflowY: 'auto', border: '1px solid #eee' }}>
+            <PayslipDocument
+              ref={payslipPrintRef}
+              payslip={printPayslip}
+              calc={calcData}
+              employee={employees.find(e => e.id === selectedEmpId)}
+            />
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

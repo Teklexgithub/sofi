@@ -296,7 +296,7 @@ export const EmployeeHub: React.FC = () => {
               </div>
             ) : (
               // --- MODE B: DYNAMIC INTERACTIVE EDIT FORM WORKSPACE ---
-              <div style={{ maxHeight: 'calc(100vh - 280px)', overflowY: 'auto', paddingRight: '12px' }}>
+              <div style={{ paddingRight: '12px' }}>
                 <Form form={editForm} layout="vertical" onFinish={handleUpdateEmployee} requiredMark={false}>
                   <Row gutter={24}>
                     <Col xs={24} md={12}>
@@ -396,11 +396,9 @@ export const EmployeeHub: React.FC = () => {
             
             <Divider style={{ margin: '12px 0 24px 0' }} />
 
-            <div style={{ 
-              maxHeight: 'calc(100vh - 280px)', 
-              overflowY: 'auto', 
+            <div style={{
               paddingRight: '12px',
-              marginBottom: '16px' 
+              marginBottom: '16px'
             }}>
             <Form form={form} layout="vertical" onFinish={handleCreateEmployee} requiredMark={false} initialValues={{ job_start_date: dayjs(), status: 'ACTIVE' }}>
                 <Row gutter={24}>

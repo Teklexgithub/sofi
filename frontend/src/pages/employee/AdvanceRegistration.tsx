@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Input, Row, Col, Avatar, Form, Select, Typography, Space, message } from 'antd';
-import { UserOutlined, SaveOutlined, DollarOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Button, Input, Row, Col, Avatar, Form, Select, Typography, Space, message, Modal } from 'antd';
+import { UserOutlined, SaveOutlined, DollarOutlined, InfoCircleOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useReactToPrint } from 'react-to-print';
 import { employeeService } from '../../services/employeeService';
+import AdvanceVoucher from '../../components/print/AdvanceVoucher';
 
 const { Title, Text } = Typography;
 
@@ -16,24 +18,35 @@ export const AdvanceRegistration: React.FC<AdvanceRegistrationProps> = ({ employ
   const [loading, setLoading] = useState(false);
   const [targetEmp, setTargetEmp] = useState<any | null>(null);
 
+  const [printEntry, setPrintEntry] = useState<any | null>(null);
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const voucherPrintRef = useRef<HTMLDivElement>(null);
+  const handlePrintVoucher = useReactToPrint({ contentRef: voucherPrintRef, documentTitle: 'Advance Voucher' });
+
   const handleCreateLedgerEntry = async (values: any) => {
     setLoading(true);
     try {
-      await employeeService.createLedgerEntry({
+      const res = await employeeService.createLedgerEntry({
         employee: values.employee,
         entry_type: values.entry_type,
         amount: Number(values.amount),
         description: values.description || ''
       });
       message.success(`Recorded ${values.entry_type === 'ADVANCE' ? 'Cash Advance' : 'Fine'} successfully.`);
-      form.resetFields();
-      setTargetEmp(null);
-      navigate('/employees?tab=advance_history');
+      setPrintEntry(res.data);
+      setShowVoucherModal(true);
     } catch (err) {
       message.error("Failed to register ledger adjustment entry.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseVoucherModal = () => {
+    setShowVoucherModal(false);
+    form.resetFields();
+    setTargetEmp(null);
+    navigate('/employees?tab=advance_history');
   };
 
   return (
@@ -106,6 +119,25 @@ export const AdvanceRegistration: React.FC<AdvanceRegistrationProps> = ({ employ
           )}
         </Col>
       </Row>
+
+      <Modal
+        title="Transaction Registered"
+        open={showVoucherModal}
+        onCancel={handleCloseVoucherModal}
+        width={700}
+        footer={[
+          <Button key="close" onClick={handleCloseVoucherModal}>Close</Button>,
+          <Button key="print" type="primary" icon={<PrinterOutlined />} onClick={() => handlePrintVoucher()} style={{ background: '#714B67', borderColor: '#714B67' }}>
+            Print Voucher
+          </Button>
+        ]}
+      >
+        {printEntry && (
+          <div style={{ maxHeight: '60vh', overflowY: 'auto', border: '1px solid #eee' }}>
+            <AdvanceVoucher ref={voucherPrintRef} entry={printEntry} employee={targetEmp} />
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

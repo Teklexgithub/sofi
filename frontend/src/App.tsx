@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -38,8 +39,13 @@ import MainLayout from './layouts/MainLayout';
 import { useAuth } from './contexts/AuthContext';
 import { Spin } from 'antd';
 
+const RequireAdmin = ({ children }: { children: ReactNode }) => {
+  const { isAdmin } = useAuth();
+  return isAdmin ? <>{children}</> : <Navigate to="/" replace />;
+};
+
 function App() {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -64,10 +70,10 @@ function App() {
                   <Route path="/" element={<Dashboard />} />
                   
                   {/* INVENTORY APP */}
-                  <Route path="/inventory/products" element={<ProductList />} />
-                  <Route path="/inventory/products/:id" element={<ProductDetail />} />
-                  <Route path="/inventory/vendors" element={<Vendors />} />
-                  <Route path="/inventory/vendors/:id" element={<VendorDetail />} />
+                  <Route path="/inventory/products" element={<RequireAdmin><ProductList /></RequireAdmin>} />
+                  <Route path="/inventory/products/:id" element={<RequireAdmin><ProductDetail /></RequireAdmin>} />
+                  <Route path="/inventory/vendors" element={<RequireAdmin><Vendors /></RequireAdmin>} />
+                  <Route path="/inventory/vendors/:id" element={<RequireAdmin><VendorDetail /></RequireAdmin>} />
                   <Route path="/inventory/store" element={<StoreStock />} />
                   <Route path="/inventory/shop" element={<ShopStock />} />
                   <Route path="/inventory/store/:id" element={<StockDetail type="store" />} />
@@ -84,25 +90,22 @@ function App() {
                   <Route path="/sales" element={<Navigate to="/sales/daily-session" replace />} />
                   <Route path="/sales/daily-session" element={<DailySessionWorksheet />} />
                   <Route path="/sales/history" element={<SalesHistoryLog />} />
-                  <Route path="/sales/digital-accounts-setup" element={<DigitalAccountSetup />} />
-                  <Route path="/sales/digital-adjustments" element={<DigitalAccountAdjustments />} />
-                  <Route path="/sales/shortages-ledger" element={<ManagerShortagesDashboard />} />
-                  {/* <Route path="/sales/settlements" element={<SupplierSettlements />} /> */}
-                  <Route path="/sales/settlements" element={<VendorSettlements />} />
+                  <Route path="/sales/digital-accounts-setup" element={<RequireAdmin><DigitalAccountSetup /></RequireAdmin>} />
+                  <Route path="/sales/digital-adjustments" element={<RequireAdmin><DigitalAccountAdjustments /></RequireAdmin>} />
+                  <Route path="/sales/shortages-ledger" element={<RequireAdmin><ManagerShortagesDashboard /></RequireAdmin>} />
+                  <Route path="/sales/settlements" element={<RequireAdmin><VendorSettlements /></RequireAdmin>} />
 
                   {/* EMPLOYEE APP - NEW ROUTE */}
-                  <Route path="/employees" element={<EmployeeHub />} />
+                  <Route path="/employees" element={<RequireAdmin><EmployeeHub /></RequireAdmin>} />
 
                   {/* DASHBOARD APP - NEW ROUTE */}
-                  <Route path="/analytics" element={<DashboardHub />} />
-
-                  
+                  <Route path="/analytics" element={<RequireAdmin><DashboardHub /></RequireAdmin>} />
 
                   {/* SETTINGS APP - Secure Admin-Only Route */}
-                  <Route 
-                    path="/settings/*" 
+                  <Route
+                    path="/settings/*"
                     element={
-                      user?.role === 'ADMIN' ? (
+                      isAdmin ? (
                         <Routes>
                           <Route path="users" element={<UserList />} />
                           <Route path="users/:id" element={<UserDetail />} />
@@ -112,7 +115,7 @@ function App() {
                       ) : (
                         <Navigate to="/" replace />
                       )
-                    } 
+                    }
                   />
                   
                   {/* Fallback to Dashboard */}

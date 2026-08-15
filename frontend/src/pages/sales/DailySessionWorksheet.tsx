@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Table, InputNumber, Button, Card, Typography, DatePicker, 
   Select, Space, message, Divider, Tabs, Input, Row, Col, Empty, Alert, Badge,
@@ -10,22 +10,21 @@ import {
   PlusOutlined, DeleteOutlined, BankOutlined, DollarOutlined,
   EnvironmentOutlined, SafetyCertificateOutlined,
   AuditOutlined, MobileOutlined, UserOutlined, ContactsOutlined, SearchOutlined,
-  RiseOutlined, EditOutlined 
+  RiseOutlined, EditOutlined, PrinterOutlined
 } from '@ant-design/icons';
 import axios from 'axios'; // <-- FIXED: Added missing import cleanly
+import { useReactToPrint } from 'react-to-print';
 import { salesService } from '../../services/salesService';
-import { inventoryService } from '../../services/inventoryService'; 
 import { useAuth } from '../../contexts/AuthContext';
+import { useBranch } from '../../contexts/BranchContext';
+import DailySessionReport from '../../components/print/DailySessionReport';
 import dayjs from 'dayjs';
 import { useSearchParams } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
-// --- SCROLL CONTAINER FOR THE TABBED LISTS ---
+// --- CONTAINER FOR THE TABBED LISTS ---
 const scrollBoxStyle: React.CSSProperties = {
-  maxHeight: '380px', 
-  overflowY: 'auto', 
-  overflowX: 'hidden', 
   padding: '15px',
   background: '#ffffff',
   border: '1px solid #f0f0f0',
@@ -35,15 +34,19 @@ const scrollBoxStyle: React.CSSProperties = {
 };
 
 const DailySessionWorksheet: React.FC = () => {
-  const { user } = useAuth();
+  const { isAdmin } = useAuth();
+  const { assignedBranches, selectedBranch, setSelectedBranch } = useBranch();
   const [loading, setLoading] = useState(false);
+  const [printSession, setPrintSession] = useState<any | null>(null);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const sessionPrintRef = useRef<HTMLDivElement>(null);
+  const handlePrintSession = useReactToPrint({ contentRef: sessionPrintRef, documentTitle: 'Daily Session Report' });
   const [activeSubView, setActiveSubView] = useState<'worksheet' | 'debts' | 'credits'>('worksheet');
   const [searchParams] = useSearchParams();
   // Look at the top of DailySessionWorksheet, adjust activeSubView declaration:
   // const [activeSubView, setActiveSubView] = useState<'worksheet' | 'debts' | 'credits' | 'history'>('worksheet');
-  
+
   // --- MASTER DROPDOWN POOL STATES ---
-  const [branches, setBranches] = useState<any[]>([]);
   const [availableAccounts, setAvailableAccounts] = useState<any[]>([]);
   const [availableCustomers, setAvailableCustomers] = useState<any[]>([]);
   
@@ -61,7 +64,6 @@ const DailySessionWorksheet: React.FC = () => {
   const [updatingBalance, setUpdatingBalance] = useState(false);
   
   // --- CORE RUNTIME STATE ---
-  const [selectedBranch, setSelectedBranch] = useState<string | undefined>(user?.branch || undefined);
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [worksheetData, setWorksheetData] = useState<any[]>([]);
   
@@ -79,15 +81,13 @@ const DailySessionWorksheet: React.FC = () => {
   const [cashToAdmin, setCashToAdmin] = useState<number>(0);
   const [cashForChange, setCashForChange] = useState<number>(0);
 
-  const isAdmin = user?.role === 'ADMIN';
-
   useEffect(() => {
     const urlBranch = searchParams.get('branch');
     const urlDate = searchParams.get('date');
 
     if (urlBranch) setSelectedBranch(urlBranch);
     if (urlDate) setSelectedDate(dayjs(urlDate));
-    
+
     // If both exist in the URL parameters, automatically trigger the worksheet loader
     if (urlBranch && urlDate) {
       // Small timeout ensures the states are committed before firing the compilation engine
@@ -96,18 +96,6 @@ const DailySessionWorksheet: React.FC = () => {
       }, 300);
     }
   }, [searchParams]);
-
-  // --- 1. CORE DATA INITIALIZATION ---
-  useEffect(() => {
-    if (isAdmin) {
-      inventoryService.getBranches()
-        .then(res => {
-          const branchData = Array.isArray(res.data) ? res.data : (res.data.results || []);
-          setBranches(branchData);
-        })
-        .catch(() => message.error("Security Sync: Failed to load context branches."));
-    }
-  }, [isAdmin]);
 
   // Safe Context Populator with Runtime Crash Defenses
   const forceRefreshCustomerRegistry = () => {
@@ -296,7 +284,7 @@ const DailySessionWorksheet: React.FC = () => {
     setLoading(true);
     try {
       const payload = {
-        branch: selectedBranch,
+        branch: selectedBranch ?? undefined,
         trading_date: selectedDate.format('YYYY-MM-DD'),
         digital_balances: digitalBalances.filter(d => d.account_id !== ''),
         manual_deposits: manualDeposits.filter(m => m.amount > 0),
@@ -308,14 +296,27 @@ const DailySessionWorksheet: React.FC = () => {
         credit_payments: creditPayments.filter(p => p.customer_id !== '') 
       };
       
-      await salesService.submitDailySession(payload);
+      const res = await salesService.submitDailySession(payload);
       message.success("Success: Daily Branch settlement submitted safely!");
-      setTimeout(() => window.location.reload(), 1500); 
+
+      const sessionId = res.data?.session_id;
+      if (sessionId) {
+        const detailRes = await salesService.getDailySessionDetail(sessionId);
+        setPrintSession(detailRes.data);
+        setShowSessionModal(true);
+      } else {
+        window.location.reload();
+      }
     } catch (e: any) {
       message.error("Transaction failed during live balancing routine.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseSessionModal = () => {
+    setShowSessionModal(false);
+    window.location.reload();
   };
 
   const netCashValue = calculateNetDrawerCashLive();
@@ -393,10 +394,11 @@ const DailySessionWorksheet: React.FC = () => {
             />
           </div>
 
-          <Table 
-            dataSource={getFilteredDebtLedgerData()} 
+          <Table
+            dataSource={getFilteredDebtLedgerData()}
             rowKey="id"
-            columns={baseDebtLedgerColumns} 
+            columns={baseDebtLedgerColumns}
+            scroll={{ x: 'max-content' }}
           />
 
           <Modal
@@ -486,22 +488,22 @@ const DailySessionWorksheet: React.FC = () => {
               <Row gutter={24} align="bottom">
                   <Col span={9}>
                       <Text strong style={{ fontSize: '13px', color: '#888' }}><EnvironmentOutlined /> Branch</Text>
-                      {isAdmin ? (
-                          <Select 
-                            value={selectedBranch} 
-                            style={{ width: '100%' }} 
-                            size="large" 
+                      {assignedBranches.length > 1 ? (
+                          <Select
+                            value={selectedBranch}
+                            style={{ width: '100%' }}
+                            size="large"
                             placeholder="Select Target Location"
                             onChange={(val) => setSelectedBranch(val)}
                           >
-                            {branches.map(b => (
+                            {assignedBranches.map(b => (
                               <Select.Option key={b.id} value={b.id}>{b.name}</Select.Option>
                             ))}
                           </Select>
                       ) : (
                           <div style={{ padding: '10px 15px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: '8px', fontWeight: 'bold', color: '#714B67' }}>
                               <SafetyCertificateOutlined style={{ marginRight: 8 }} />
-                              {(user as any)?.branch_name || 'Assigned Branch'}
+                              {assignedBranches[0]?.name || 'Assigned Branch'}
                           </div>
                       )}
                   </Col>
@@ -520,11 +522,12 @@ const DailySessionWorksheet: React.FC = () => {
           <Tabs defaultActiveKey="1" type="card" size="large">
             <Tabs.TabPane tab={<span><ShoppingOutlined /> 1. Stock Count</span>} key="1">
               <div style={scrollBoxStyle}>
-                  <Table 
-                    dataSource={worksheetData} 
-                    pagination={false} 
-                    rowKey="product_id" 
-                    bordered 
+                  <Table
+                    dataSource={worksheetData}
+                    pagination={false}
+                    rowKey="product_id"
+                    bordered
+                    scroll={{ x: 'max-content' }}
                     locale={{ emptyText: "Generate the active worksheet statement to list products." }}
                     columns={[
                       { title: 'Product catalog profile', dataIndex: 'product_name', render: (t) => <Text strong style={{ color: '#714B67' }}>{t}</Text> },
@@ -834,6 +837,27 @@ const DailySessionWorksheet: React.FC = () => {
           </Tabs>
         </Card>
       )}
+
+      <Modal
+        title="Session Finalized"
+        open={showSessionModal}
+        onCancel={handleCloseSessionModal}
+        width={900}
+        footer={[
+          <Button key="done" type="primary" onClick={handleCloseSessionModal} style={{ background: '#714B67', borderColor: '#714B67' }}>
+            Done
+          </Button>,
+          <Button key="print" icon={<PrinterOutlined />} onClick={() => handlePrintSession()}>
+            Print Report
+          </Button>
+        ]}
+      >
+        {printSession && (
+          <div style={{ maxHeight: '60vh', overflowY: 'auto', border: '1px solid #eee' }}>
+            <DailySessionReport ref={sessionPrintRef} session={printSession} />
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

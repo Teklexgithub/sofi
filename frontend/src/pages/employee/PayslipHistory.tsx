@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Input, Tag, Typography, Divider, message } from 'antd';
-import { SearchOutlined, HistoryOutlined, FileTextOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Input, Tag, Typography, Divider, message, Button } from 'antd';
+import { SearchOutlined, HistoryOutlined, FileTextOutlined, PrinterOutlined } from '@ant-design/icons';
+import { useReactToPrint } from 'react-to-print';
 import { employeeService } from '../../services/employeeService';
+import PayslipDocument from '../../components/print/PayslipDocument';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -10,6 +12,15 @@ export const PayslipHistory: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [printPayslip, setPrintPayslip] = useState<any | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: 'Payslip' });
+
+  const handlePrintRow = (record: any) => {
+    setPrintPayslip(record);
+    setTimeout(() => handlePrint(), 0);
+  };
 
   const loadHistoryLogs = async () => {
     setLoading(true);
@@ -40,6 +51,14 @@ export const PayslipHistory: React.FC = () => {
     { title: 'Liabilities Deductions', dataIndex: 'total_deductions_applied', key: 'total_deductions_applied', render: (amt: any) => <Text type="danger">-{Number(amt).toLocaleString()} ETB</Text> },
     { title: 'Final Disbursed Net', dataIndex: 'final_net_cash_payout', key: 'final_net_cash_payout', render: (amt: any) => <Text style={{ color: '#52c41a', fontWeight: 'bold' }}>{Number(amt).toLocaleString()} ETB</Text> },
     { title: 'Settlement Run Date', dataIndex: 'executed_at', key: 'executed_at', render: (date: string) => dayjs(date).format('MMMM DD, YYYY | hh:mm A') },
+    {
+      title: 'Print',
+      key: 'print_action',
+      align: 'center' as const,
+      render: (_: any, record: any) => (
+        <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRow(record)}>Print</Button>
+      )
+    },
   ];
 
   return (
@@ -58,12 +77,13 @@ export const PayslipHistory: React.FC = () => {
       </div>
       <Divider style={{ margin: '12px 0 24px 0' }} />
 
-      <Table 
-        columns={columns} 
+      <Table
+        columns={columns}
         dataSource={filteredHistory}
         rowKey="id"
         loading={loading}
         bordered
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: record => (
             <div style={{ padding: '8px 24px', background: '#fafafa', borderRadius: '4px' }}>
@@ -74,6 +94,12 @@ export const PayslipHistory: React.FC = () => {
         }}
         pagination={{ pageSize: 15 }}
       />
+
+      {printPayslip && (
+        <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+          <PayslipDocument ref={printRef} payslip={printPayslip} />
+        </div>
+      )}
     </div>
   );
 };

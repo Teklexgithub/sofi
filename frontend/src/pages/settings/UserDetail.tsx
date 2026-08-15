@@ -114,10 +114,14 @@ const UserDetail: React.FC = () => {
           </Descriptions.Item>
           <Descriptions.Item label="System Role">{userData?.role}</Descriptions.Item>
           <Descriptions.Item label="Branch Assignment">
-             {userData?.branch_name ? (
-               <Button type="link" style={{ padding: 0 }} onClick={() => navigate(`/settings/branches/${userData.branch}`)}>
-                 <ShopOutlined style={{ marginRight: 4 }} /> {userData.branch_name}
-               </Button>
+             {userData?.branch_details && userData.branch_details.length > 0 ? (
+               <Space wrap>
+                 {userData.branch_details.map((b: { id: string; name: string }) => (
+                   <Button key={b.id} type="link" style={{ padding: 0 }} onClick={() => navigate(`/settings/branches/${b.id}`)}>
+                     <ShopOutlined style={{ marginRight: 4 }} /> {b.name}
+                   </Button>
+                 ))}
+               </Space>
              ) : (
                <Tag icon={<GlobalOutlined />}>Global Access</Tag>
              )}

@@ -1,81 +1,80 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Typography } from 'antd';
-import { 
-  LineChartOutlined, 
-  StockOutlined, 
-  TeamOutlined, 
-  DashboardOutlined 
+import {
+  LineChartOutlined,
+  StockOutlined,
+  TeamOutlined,
+  DashboardOutlined
 } from '@ant-design/icons';
 
 // Sub-module visualization components
 import { SalesAnalytics } from './components/SalesAnalytics';
 import { InventoryAnalytics } from './components/InventoryAnalytics';
 import { EmployeeAnalytics } from './components/EmployeeAnalytics';
+import { useTheme } from '../../contexts/ThemeContext';
+import { getChartTheme } from './shared/chartTheme';
 
 const { Sider, Content } = Layout;
 const { Title } = Typography;
 
 export const DashboardHub: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('sales');
+  const { isDark } = useTheme();
+  const theme = getChartTheme(isDark);
 
   return (
-    <Layout style={{ 
-      height: 'calc(100vh - 80px)', // Binds container context explicitly within screen boundaries
-      background: '#ffffff', 
-      borderRadius: '12px', 
-      boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-      overflow: 'hidden' // Locks outer component frame layout stable
+    <Layout style={{
+      background: theme.surface,
+      borderRadius: '12px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
     }}>
-      {/* Odoo-style Analytics Control Sidebar Panel */}
-      <Sider 
-        width={240} 
-        theme="light" 
-        style={{ 
-          borderRight: '1px solid #f0f0f0', 
-          background: '#ffffff',
-          height: '100%'
+      {/* Analytics section switcher */}
+      <Sider
+        width={240}
+        theme={isDark ? 'dark' : 'light'}
+        style={{
+          borderRight: `1px solid ${theme.border}`,
+          background: theme.surface,
+          height: 'calc(100vh - 46px)',
+          position: 'sticky',
+          top: '46px',
         }}
       >
         <div style={{ padding: '24px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <DashboardOutlined style={{ fontSize: '22px', color: '#714B67' }} />
           <Title level={4} style={{ margin: 0, color: '#714B67', fontWeight: 700 }}>Sofia Analytics</Title>
         </div>
-        
+
         <Menu
           mode="inline"
+          theme={isDark ? 'dark' : 'light'}
           selectedKeys={[activeTab]}
           onClick={({ key }) => setActiveTab(key)}
-          style={{ borderRight: 0 }}
+          style={{ borderRight: 0, background: 'transparent' }}
           items={[
-            { 
-              key: 'sales', 
-              icon: <LineChartOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Sales & Revenue Panel',
-              style: activeTab === 'sales' ? { backgroundColor: '#714B67', color: '#fff' } : {}
+            {
+              key: 'sales',
+              icon: <LineChartOutlined style={{ fontSize: '16px' }} />,
+              label: 'Sales',
             },
-            { 
-              key: 'inventory', 
-              icon: <StockOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Inventory Assets Desk',
-              style: activeTab === 'inventory' ? { backgroundColor: '#714B67', color: '#fff' } : {}
+            {
+              key: 'inventory',
+              icon: <StockOutlined style={{ fontSize: '16px' }} />,
+              label: 'Inventory',
             },
-            { 
-              key: 'employee', 
-              icon: <TeamOutlined style={{ fontSize: '16px' }} />, 
-              label: 'Workforce & Payroll Matrix',
-              style: activeTab === 'employee' ? { backgroundColor: '#714B67', color: '#fff' } : {}
+            {
+              key: 'employee',
+              icon: <TeamOutlined style={{ fontSize: '16px' }} />,
+              label: 'Employees',
             },
           ]}
         />
       </Sider>
 
-      {/* Main Metric Visualization Work Desk Canvas */}
-      {/* 🌟 FIXED: Created an isolated scroll context panel context */}
-      <Content style={{ 
-        padding: '24px', 
-        background: '#fafafa',
-        height: '100%',
-        overflowY: 'auto' // Activates clean internal element scrolling engine!
+      {/* Main visualization canvas for whichever section is selected */}
+      <Content style={{
+        padding: '24px',
+        background: theme.pagePlane,
       }}>
         {activeTab === 'sales' && <SalesAnalytics />}
         {activeTab === 'inventory' && <InventoryAnalytics />}

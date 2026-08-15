@@ -124,11 +124,12 @@ const ManagerShortagesDashboard: React.FC = () => {
           />
         </div>
 
-        <Table 
-          dataSource={getFilteredLedger()} 
-          rowKey="id" 
+        <Table
+          dataSource={getFilteredLedger()}
+          rowKey="id"
           loading={loading}
           bordered
+          scroll={{ x: 'max-content' }}
           columns={[
             {
               title: 'Date Logged',

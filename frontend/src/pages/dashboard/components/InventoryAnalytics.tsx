@@ -1,126 +1,146 @@
-import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, Statistic, Table, Typography, Spin, Alert, Empty } from 'antd';
-import { GoldOutlined, WarningOutlined, DollarOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { Row, Col, Table, Typography, Spin, Alert, Empty, Input } from 'antd';
+import { GoldOutlined, WarningOutlined, DollarOutlined, SearchOutlined } from '@ant-design/icons';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { dashboardService } from '../../../services/dashboardService';
+import type { InventoryAnalyticsResponse } from '../../../services/dashboardService';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { getChartTheme, formatETB } from '../shared/chartTheme';
+import ChartCard from '../shared/ChartCard';
+import StatTile from '../shared/StatTile';
 
 const { Text } = Typography;
-const COLORS = ['#008784', '#1f74ac', '#faad14', '#cf1322', '#714B67'];
 
 export const InventoryAnalytics: React.FC = () => {
+  const { isDark } = useTheme();
+  const theme = getChartTheme(isDark);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<InventoryAnalyticsResponse | null>(null);
+  const [vendorSearchQuery, setVendorSearchQuery] = useState('');
 
   useEffect(() => {
     dashboardService.getInventoryAnalytics()
       .then(res => { setData(res.data); setLoading(false); })
-      .catch(() => { setError("Failed to initialize active inventory asset data pipeline."); setLoading(false); });
+      .catch(() => { setError("Couldn't load inventory data. Try refreshing the page."); setLoading(false); });
   }, []);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '100px 0' }}><Spin size="large" tip="Compiling real-time asset ledger metrics..." /></div>;
-  if (error) return <Alert message={<span>Analytics Connection Error</span>} description={error} type="error" showIcon />;
-  if (!data) return <Empty description="No stock balance footprints found inside warehouse tables." />;
+  if (loading) return <div style={{ textAlign: 'center', padding: '100px 0' }}><Spin size="large" tip="Loading inventory data..." /></div>;
+  if (error) return <Alert message="Inventory data unavailable" description={error} type="error" showIcon />;
+  if (!data) return <Empty description="No stock recorded yet." />;
 
   const { metrics, charts, vendors_ledger } = data;
 
-  // Compute values for SVG Column Chart scaling
-  const categoryVals = charts.category_investment_split.map((c: any) => Number(c.valuation));
-  const maxCategoryVal = Math.max(...categoryVals, 1);
+  const branchValuation = [...(charts.branch_valuation_split || [])].sort((a, b) => Number(b.valuation) - Number(a.valuation));
+  const categoryValuation = [...(charts.category_investment_split || [])].sort((a, b) => Number(b.valuation) - Number(a.valuation));
+  const hasStockouts = Number(metrics.stockout_warning_count) > 0;
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto' }}>
-      {/* 1. TOP-ROW STRATEGIC METRIC CARDS */}
+    <div>
+      {/* KPI row */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} md={8}>
-          <Card bordered={false} bodyStyle={{ padding: '20px' }} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <Statistic title="Total Inventory Asset Valuation" value={Number(metrics.total_asset_valuation)} precision={2} suffix="ETB" valueStyle={{ color: '#008784' }} prefix={<GoldOutlined />} />
-          </Card>
+          <StatTile
+            icon={<GoldOutlined />}
+            label="Total Stock Value"
+            value={formatETB(metrics.total_asset_valuation)}
+            description="Everything currently in your stores and shops"
+          />
         </Col>
         <Col xs={24} md={8}>
-          <Card bordered={false} bodyStyle={{ padding: '20px' }} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <Statistic title="Active Vendor Debt (Unpaid Supplies)" value={Number(metrics.active_vendor_debt)} precision={2} suffix="ETB" valueStyle={{ color: '#cf1322' }} prefix={<DollarOutlined />} />
-          </Card>
+          <StatTile
+            icon={<DollarOutlined />}
+            label="Unpaid Deliveries"
+            value={formatETB(metrics.active_vendor_debt)}
+            description="What you owe vendors for stock already received"
+          />
         </Col>
         <Col xs={24} md={8}>
-          <Card bordered={false} bodyStyle={{ padding: '20px' }} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <Statistic title="Critical Out-of-Stock Products" value={Number(metrics.stockout_warning_count)} precision={0} suffix="Items" valueStyle={{ color: metrics.stockout_warning_count > 0 ? '#ff4d4f' : '#8c8c8c' }} prefix={<WarningOutlined />} />
-          </Card>
+          <StatTile
+            icon={<WarningOutlined />}
+            label="Products Out of Stock"
+            value={`${metrics.stockout_warning_count}`}
+            description="Products with zero stock in both store and shop"
+            status={hasStockouts ? 'critical' : 'good'}
+          />
         </Col>
       </Row>
 
-      {/* 2. HIGH-IMPACT VISUALIZATION CHARTS MATRIX */}
+      {/* Charts */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        {/* Dynamic Horizontal Distribution Matrix Container */}
         <Col xs={24} lg={12}>
-          <Card title={<Text strong style={{ color: '#714B67' }}>Inventory Valuation Split by Location</Text>} bordered={false} style={{ borderRadius: '8px' }}>
-            <div style={{ padding: '8px 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {charts.branch_valuation_split.map((item: any, i: number) => {
-                const totalVal = charts.branch_valuation_split.reduce((acc: number, cur: any) => acc + Number(cur.valuation), 0) || 1;
-                const pct = Math.min(100, Math.round((Number(item.valuation) / totalVal) * 100));
-                return (
-                  <div key={i}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <Text strong><span style={{ inlineSize: '12px', blockSize: '12px', backgroundColor: COLORS[i % COLORS.length], display: 'inline-block', borderRadius: '50%', marginRight: '8px' }} />{item.branch_name}</Text>
-                      <Text type="secondary">{Number(item.valuation).toLocaleString()} ETB ({pct}%)</Text>
-                    </div>
-                    <div style={{ inlineSize: '100%', blockSize: '12px', backgroundColor: '#f5f5f5', borderRadius: '6px', overflow: 'hidden' }}>
-                      <div style={{ inlineSize: `${pct}%`, blockSize: '100%', backgroundColor: COLORS[i % COLORS.length], borderRadius: '6px', transition: 'width 0.5s ease-in-out' }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
+          <ChartCard title="Stock Value by Branch" description="Where your inventory value is concentrated">
+            <ResponsiveContainer width="100%" height={Math.max(160, branchValuation.length * 44)}>
+              <BarChart data={branchValuation} layout="vertical" margin={{ top: 0, right: 24, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke={theme.gridline} horizontal={false} />
+                <XAxis type="number" tick={{ fill: theme.textMuted, fontSize: 11 }} axisLine={{ stroke: theme.axisLine }} tickLine={false} tickFormatter={(v) => formatETB(v, true)} />
+                <YAxis type="category" dataKey="branch_name" tick={{ fill: theme.textSecondary, fontSize: 12 }} axisLine={false} tickLine={false} width={110} />
+                <Tooltip
+                  contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: theme.textPrimary, fontWeight: 600 }}
+                  formatter={(value: any) => [formatETB(Number(value)), 'Stock Value']}
+                />
+                <Bar dataKey="valuation" fill={theme.sequential} radius={[0, 4, 4, 0]} maxBarSize={28} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </Col>
 
-        {/* Professional Vector SVG Column Chart */}
         <Col xs={24} lg={12}>
-          <Card title={<Text strong style={{ color: '#714B67' }}>Inventory Capital Allocation by Category</Text>} bordered={false} style={{ borderRadius: '8px' }}>
-            <div style={{ inlineSize: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <svg viewBox="0 0 400 200" style={{ inlineSize: '100%', maxBlockSize: '200px' }}>
-                <g fill="none" stroke="#f0f0f0" strokeWidth="1">
-                  <line x1="40" y1="20" x2="380" y2="20" />
-                  <line x1="40" y1="70" x2="380" y2="70" />
-                  <line x1="40" y1="120" x2="380" y2="120" />
-                  <line x1="40" y1="170" x2="380" y2="170" stroke="#d9d9d9" />
-                </g>
-                {charts.category_investment_split.map((item: any, i: number) => {
-                  const barWidth = 35;
-                  const spacing = (340 / charts.category_investment_split.length);
-                  const x = 55 + (i * spacing);
-                  const barHeight = (Number(item.valuation) / maxCategoryVal) * 140;
-                  const y = 170 - barHeight;
-                  return (
-                    <g key={i}>
-                      <rect x={x} y={y} width={barWidth} height={barHeight} fill="#008784" rx="3" />
-                      <text x={x + barWidth / 2} y="190" fill="#595959" fontSize="10" textAnchor="middle" fontWeight="500">{item.category}</text>
-                      <text x={x + barWidth / 2} y={y - 6} fill="#262626" fontSize="9" textAnchor="middle" fontWeight="600">{Math.round(Number(item.valuation)/1000)}k</text>
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-          </Card>
+          <ChartCard title="Stock Value by Category" description="Which product categories tie up the most money">
+            <ResponsiveContainer width="100%" height={Math.max(160, categoryValuation.length * 44)}>
+              <BarChart data={categoryValuation} layout="vertical" margin={{ top: 0, right: 24, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke={theme.gridline} horizontal={false} />
+                <XAxis type="number" tick={{ fill: theme.textMuted, fontSize: 11 }} axisLine={{ stroke: theme.axisLine }} tickLine={false} tickFormatter={(v) => formatETB(v, true)} />
+                <YAxis type="category" dataKey="category" tick={{ fill: theme.textSecondary, fontSize: 12 }} axisLine={false} tickLine={false} width={110} />
+                <Tooltip
+                  contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: theme.textPrimary, fontWeight: 600 }}
+                  formatter={(value: any) => [formatETB(Number(value)), 'Stock Value']}
+                />
+                <Bar dataKey="valuation" fill={theme.sequential} radius={[0, 4, 4, 0]} maxBarSize={28} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </Col>
       </Row>
 
-      {/* 3. COMPREHENSIVE VENDOR DEPENDENCY LOGISTICS GRID */}
+      {/* Table */}
       <Row gutter={[16, 16]}>
         <Col xs={24}>
-          <Card title={<Text strong style={{ color: '#714B67' }}>Comprehensive Vendor Dependency Logistics Grid (All Vendors)</Text>} bordered={false} style={{ borderRadius: '8px' }}>
-            <Table 
+          <ChartCard
+            title="Vendor Supply & Debt Summary"
+            description="How much each vendor has delivered, and what you owe them"
+            extra={
+              <Input
+                placeholder="Search by vendor or contact..."
+                prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                value={vendorSearchQuery}
+                onChange={e => setVendorSearchQuery(e.target.value)}
+                allowClear
+                size="small"
+                style={{ width: '240px' }}
+              />
+            }
+          >
+            <Table
               size="small"
               pagination={{ pageSize: 6 }}
-              dataSource={vendors_ledger}
+              dataSource={vendors_ledger.filter(v => {
+                const q = vendorSearchQuery.toLowerCase();
+                return v.vendor_name?.toLowerCase().includes(q) || v.contact_person?.toLowerCase().includes(q);
+              })}
               rowKey="vendor_id"
+              scroll={{ x: 'max-content' }}
+              locale={{ emptyText: 'No vendor activity yet.' }}
               columns={[
-                { title: 'Corporate Registered Supplier', dataIndex: 'vendor_name', key: 'vendor_name', render: (t: any) => <Text strong>{t}</Text> },
-                { title: 'Assigned Contact Representative', dataIndex: 'contact_person', key: 'contact_person' },
-                { title: 'Aggregate Volume Supplied', dataIndex: 'total_pieces_received', key: 'total_pieces_received', render: (v: any) => `${Number(v).toLocaleString()} Pieces` },
-                { title: 'Outstanding Debt Liability', dataIndex: 'pending_debt', key: 'pending_debt', render: (v: any) => <Text type="danger" strong>{Number(v).toLocaleString()} ETB</Text> }
+                { title: 'Vendor', dataIndex: 'vendor_name', key: 'vendor_name', render: (t: string) => <Text strong>{t}</Text> },
+                { title: 'Contact Person', dataIndex: 'contact_person', key: 'contact_person', render: (t: string) => t || '—' },
+                { title: 'Total Delivered', dataIndex: 'total_pieces_received', key: 'total_pieces_received', render: (v: number) => `${Number(v).toLocaleString()} pieces` },
+                { title: 'You Owe', dataIndex: 'pending_debt', key: 'pending_debt', render: (v: number) => Number(v) > 0 ? <Text style={{ color: theme.status.critical }} strong>{formatETB(v)}</Text> : <Text type="secondary">Paid up</Text> }
               ]}
             />
-          </Card>
+          </ChartCard>
         </Col>
       </Row>
     </div>

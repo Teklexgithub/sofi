@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Typography, Card, Tag, Space, Button, message } from 'antd';
-import { 
-  DatabaseOutlined, 
+import { Table, Typography, Card, Tag, Space, Button, Input, message } from 'antd';
+import {
+  DatabaseOutlined,
   EnvironmentOutlined,
   EyeOutlined,
   BlockOutlined,
   HistoryOutlined,
-  EditOutlined
+  EditOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { inventoryService } from '../../services/inventoryService';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -20,6 +21,7 @@ const { Title, Text } = Typography;
 const StoreStock: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -145,9 +147,13 @@ const StoreStock: React.FC = () => {
     return acc;
   }, {}));
 
+  const filteredData = (groupedData as any[]).filter(row =>
+    row.branch_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, gap: '16px', flexWrap: 'wrap' }}>
         <div>
           <Title level={3} style={{ marginBottom: 4 }}>
             <DatabaseOutlined style={{ color: '#714B67' }} /> Store Inventory (Bulk)
@@ -156,14 +162,24 @@ const StoreStock: React.FC = () => {
             Warehouse stock levels tracked in full packs and crates.
           </Text>
         </div>
-        <Button icon={<HistoryOutlined />} onClick={() => fetchStoreStock()}>Refresh Levels</Button>
+        <Space>
+          <Input
+            placeholder="Search by branch..."
+            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            allowClear
+            style={{ width: '220px' }}
+          />
+          <Button icon={<HistoryOutlined />} onClick={() => fetchStoreStock()}>Refresh Levels</Button>
+        </Space>
       </div>
 
-      <Card 
-        styles={{ body: { padding: 0 } }} 
-        style={{ 
-          borderRadius: '12px', 
-          overflow: 'hidden', 
+      <Card
+        styles={{ body: { padding: 0 } }}
+        style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
           boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
           background: isDark ? '#1f1f1f' : '#fff'
         }}
@@ -174,10 +190,11 @@ const StoreStock: React.FC = () => {
             expandedRowRender,
             expandRowByClick: true,
           }}
-          dataSource={groupedData}
+          dataSource={filteredData}
           loading={loading}
           rowKey="key"
           pagination={false}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 

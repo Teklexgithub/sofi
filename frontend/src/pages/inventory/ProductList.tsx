@@ -121,12 +121,13 @@ const ProductList: React.FC = () => {
           />
         </div>
         
-        <Table 
-          columns={columns} 
-          dataSource={products} 
-          loading={loading} 
-          rowKey="id" 
+        <Table
+          columns={columns}
+          dataSource={products}
+          loading={loading}
+          rowKey="id"
           pagination={{ pageSize: 10 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 

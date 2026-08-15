@@ -3,9 +3,10 @@ import {
   Card, Table, Form, Input, Button, Select, Space, 
   message, Typography, Divider, Popconfirm, Row, Col, Alert, Empty, InputNumber 
 } from 'antd';
-import { 
+import {
   PlusOutlined, DeleteOutlined, BankOutlined, EditOutlined,
-  SafetyCertificateOutlined, EnvironmentOutlined, CloseOutlined, SaveOutlined
+  SafetyCertificateOutlined, EnvironmentOutlined, CloseOutlined, SaveOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { salesService } from '../../services/salesService';
 import { inventoryService } from '../../services/inventoryService';
@@ -24,6 +25,7 @@ const DigitalAccountSetup: React.FC = () => {
 
   // --- EDIT MODE SYSTEM STATES ---
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Guardrail Protection: Deny access directly if non-admin attempts runtime viewing
   if (user?.role !== 'ADMIN') {
@@ -234,11 +236,25 @@ const DigitalAccountSetup: React.FC = () => {
         </Form>
 
         {/* DATA LEDGER TABLE RENDER */}
-        <Table 
-          dataSource={accounts} 
-          rowKey="id" 
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+          <Input
+            placeholder="Search by branch or account name..."
+            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            allowClear
+            style={{ width: '300px' }}
+          />
+        </div>
+        <Table
+          dataSource={accounts.filter(a => {
+            const q = searchQuery.toLowerCase();
+            return (a.branch_name || '').toLowerCase().includes(q) || (a.name || '').toLowerCase().includes(q);
+          })}
+          rowKey="id"
           loading={loading}
           bordered
+          scroll={{ x: 'max-content' }}
           locale={{ emptyText: <Empty description="No configured digital accounts found." /> }}
           columns={[
             { 

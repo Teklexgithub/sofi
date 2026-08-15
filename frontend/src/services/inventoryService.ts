@@ -71,9 +71,18 @@ export const inventoryService = {
   transferStock: (data: any) => inventoryApi.post('internal-transfers/', data),
 
   // OPERATIONS: History/Logs
-  getSupplyLogs: (branchId?: string) => 
+  getSupplyLogs: (branchId?: string) =>
     inventoryApi.get(`supply-logs/${branchId ? `?branch=${branchId}` : ''}`),
-    
-  getInternalTransfers: (branchId?: string) => 
+
+  getInternalTransfers: (branchId?: string) =>
     inventoryApi.get(`internal-transfers/${branchId ? `?branch=${branchId}` : ''}`),
+
+  /**
+   * Cross-branch delivery report for a single vendor over a date range.
+   * Admin-only in practice (Branch Admin still gets branch-scoped by the backend).
+   */
+  getVendorDeliveryReport: (vendorId: string, dateFrom: string, dateTo: string) =>
+    inventoryApi.get('supply-logs/', {
+      params: { vendor: vendorId, date_from: dateFrom, date_to: dateTo }
+    }),
 };

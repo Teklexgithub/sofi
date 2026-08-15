@@ -1,9 +1,10 @@
 from rest_framework import viewsets
 from .models import User
 from .serializers import UserSerializer
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from core.permissions import IsAdmin
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -20,16 +21,12 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({'error': 'no password provided'}, status=400)
     
     def get_permissions(self):
-        # 1. 'me' endpoint is for any logged in user
+        # 'me' endpoint is for any logged in user to read their own profile
         if self.action == 'me':
             return [IsAuthenticated()]
-        
-        # 2. These actions (and changing someone else's password) should be Admin only
-        if self.action in ['list', 'create', 'destroy', 'change_password']:
-            return [IsAdminUser()]
-            
-        # 3. For 'retrieve' or 'update', standard authentication
-        return [IsAuthenticated()]
+
+        # User management is a Settings/Admin-only function everywhere else
+        return [IsAdmin()]
 
     @action(detail=False, methods=['get'])
     def me(self, request):

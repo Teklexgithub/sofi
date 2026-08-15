@@ -1,24 +1,32 @@
 from rest_framework import viewsets, status, exceptions
+from rest_framework.permissions import IsAuthenticated
 from .models import Branch, Product, Vendor, StoreStock, ShopStock, SupplyLog, InternalTransfer
 from .serializers import BranchSerializer, ProductSerializer, VendorSerializer, StoreStockSerializer, ShopStockSerializer, SupplyLogSerializer, InternalTransferSerializer
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
+from core.permissions import IsAdmin, branch_scoped_queryset, assert_branch_allowed
+
+
+class AdminWriteMixin:
+    """Anyone authenticated can read (dropdowns etc. need this); only Admin can write."""
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [IsAuthenticated()]
+        return [IsAdmin()]
 
 
 
-
-
-class BranchViewSet(viewsets.ModelViewSet):
+class BranchViewSet(AdminWriteMixin, viewsets.ModelViewSet):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
 
-class ProductViewSet(viewsets.ModelViewSet):
+class ProductViewSet(AdminWriteMixin, viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-class VendorViewSet(viewsets.ModelViewSet):
+class VendorViewSet(AdminWriteMixin, viewsets.ModelViewSet):
     queryset = Vendor.objects.all().order_by('name')
     serializer_class = VendorSerializer
 
@@ -38,14 +46,17 @@ class StoreStockViewSet(viewsets.ModelViewSet):
     serializer_class = StoreStockSerializer
     filterset_fields = ['branch']
 
+    def get_queryset(self):
+        return branch_scoped_queryset(self.request.user, StoreStock.objects.all())
+
     @action(detail=True, methods=['post'], url_path='adjust')
     def adjust(self, request, pk=None):
         """
-        Allows MAIN ADMIN only to manually override Store quantities.
+        Allows Admin only to manually override Store quantities.
         Expects: { "new_quantity": 50.5 }
         """
-        if not request.user.is_superuser:
-            raise exceptions.PermissionDenied("Only the Main Admin can manually adjust stock levels.")
+        if request.user.role != 'ADMIN':
+            raise exceptions.PermissionDenied("Only the Admin can manually adjust stock levels.")
 
         stock_item = self.get_object()
         new_qty = request.data.get('new_quantity')
@@ -69,14 +80,17 @@ class ShopStockViewSet(viewsets.ModelViewSet):
     serializer_class = ShopStockSerializer
     filterset_fields = ['branch']
 
+    def get_queryset(self):
+        return branch_scoped_queryset(self.request.user, ShopStock.objects.all())
+
     @action(detail=True, methods=['post'], url_path='adjust')
     def adjust(self, request, pk=None):
         """
-        Allows MAIN ADMIN only to manually override Shop quantities.
+        Allows Admin only to manually override Shop quantities.
         Expects: { "new_quantity": 100 }
         """
-        if not request.user.is_superuser:
-            raise exceptions.PermissionDenied("Only the Main Admin can manually adjust stock levels.")
+        if request.user.role != 'ADMIN':
+            raise exceptions.PermissionDenied("Only the Admin can manually adjust stock levels.")
 
         stock_item = self.get_object()
         new_qty = request.data.get('new_quantity')
@@ -100,6 +114,10 @@ class SupplyLogViewSet(viewsets.ModelViewSet):
     queryset = SupplyLog.objects.all().order_by('-date_received')
     serializer_class = SupplyLogSerializer
 
+    def create(self, request, *args, **kwargs):
+        assert_branch_allowed(request.user, request.data.get('branch'))
+        return super().create(request, *args, **kwargs)
+
     @action(detail=False, methods=['post'], url_path='bulk-create')
     def bulk_create(self, request):
         """
@@ -110,14 +128,8 @@ class SupplyLogViewSet(viewsets.ModelViewSet):
         date_received = request.data.get('date_received')
         items_data = request.data.get('items', [])
 
-        # 1. SECURITY LOCK
-        # Prevent Managers from receiving stock for other branches
-        if not user.is_superuser:
-            if not branch_id or str(branch_id) != str(user.branch.id):
-                raise exceptions.PermissionDenied(
-                    f"Access Denied: You are registered to {user.branch.name}. "
-                    "You cannot log deliveries for other locations."
-                )
+        # SECURITY LOCK: Branch Admins can only log deliveries for their own branch(es)
+        assert_branch_allowed(user, branch_id)
 
         if not items_data:
             return Response({"error": "No items provided"}, status=status.HTTP_400_BAD_REQUEST)
@@ -147,12 +159,27 @@ class SupplyLogViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Managers only see the delivery logs for their own branch.
+        Branch Admins only see the delivery logs for their own branch(es).
+        Admins can additionally filter by vendor/date range (e.g. for a
+        vendor's cross-branch delivery report) - branch scoping is still
+        applied first, so this never widens a Branch Admin's access.
         """
-        user = self.request.user
-        if user.is_superuser:
-            return SupplyLog.objects.all().order_by('-date_received')
-        return SupplyLog.objects.filter(branch=user.branch).order_by('-date_received')
+        qs = SupplyLog.objects.all().order_by('-date_received')
+        qs = branch_scoped_queryset(self.request.user, qs)
+
+        vendor_id = self.request.query_params.get('vendor')
+        if vendor_id:
+            qs = qs.filter(product__vendor_id=vendor_id)
+
+        date_from = self.request.query_params.get('date_from')
+        if date_from:
+            qs = qs.filter(date_received__gte=date_from)
+
+        date_to = self.request.query_params.get('date_to')
+        if date_to:
+            qs = qs.filter(date_received__lte=date_to)
+
+        return qs
 
 
 
@@ -164,51 +191,38 @@ class InternalTransferViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """
-        Overriding create to add a strict security check before 
+        Overriding create to add a strict security check before
         the serializer even starts processing.
         """
-        user = request.user
-        # Get the branch from the request data
         target_branch_id = request.data.get('branch')
 
-        # SECURITY LOCK:
-        # If not a superuser/admin, they MUST match their assigned branch
-        if not user.is_superuser:
-            # If they didn't provide a branch, we will assign it.
-            # If they provided one that DOESN'T match theirs, we block them.
-            if target_branch_id and str(target_branch_id) != str(user.branch.id):
-                raise PermissionDenied(
-                    f"Security Alert: You are assigned to {user.branch.name}. "
-                    "You cannot perform refills for other branches."
-                )
-        
+        # Branch Admins may only perform refills for one of their assigned branches.
+        # If they didn't provide a branch, it'll be assigned in perform_create.
+        if target_branch_id:
+            assert_branch_allowed(request.user, target_branch_id)
+
         return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         user = self.request.user
-        
-        if not user.is_superuser:
-            # Force the branch to be the user's branch regardless of what was sent
-            serializer.save(
-                branch=user.branch, 
-                performed_by=user
-            )
+
+        if user.role != 'ADMIN':
+            # create() already verified any provided branch belongs to this user;
+            # if none was provided, fall back to their only/first assigned branch.
+            branch = serializer.validated_data.get('branch') or user.branches.first()
+            if not branch:
+                raise exceptions.PermissionDenied("You are not assigned to any branch.")
+            serializer.save(branch=branch, performed_by=user)
         else:
             # Admins must provide a branch in the request body
             serializer.save(performed_by=user)
 
     def get_queryset(self):
         """
-        Managers only see their own branch history. 
-        Admins see everything.
+        Branch Admins only see their own branch(es) history. Admins see everything.
         """
-        user = self.request.user
-        # Handle cases where user might not be logged in (safety)
-        if not user.is_authenticated:
+        if not self.request.user.is_authenticated:
             return InternalTransfer.objects.none()
 
-        if user.is_superuser:
-            return InternalTransfer.objects.all().order_by('-timestamp')
-        
-        # Managers are restricted to their branch
-        return InternalTransfer.objects.filter(branch=user.branch).order_by('-timestamp')
+        qs = InternalTransfer.objects.all().order_by('-timestamp')
+        return branch_scoped_queryset(self.request.user, qs)

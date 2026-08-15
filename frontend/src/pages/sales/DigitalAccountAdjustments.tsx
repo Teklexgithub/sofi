@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, Table, Form, Input, Button, Select, 
-  Typography, Divider, Popconfirm, Row, Col, Alert, InputNumber, Radio, message 
+import {
+  Card, Table, Form, Input, Button, Select,
+  Typography, Divider, Popconfirm, Row, Col, Alert, InputNumber, Radio, message
 } from 'antd';
-import { 
-  PlusOutlined, DeleteOutlined, TransactionOutlined, 
-  FileTextOutlined, WalletOutlined, ArrowUpOutlined, ArrowDownOutlined 
+import {
+  PlusOutlined, DeleteOutlined, TransactionOutlined,
+  FileTextOutlined, WalletOutlined, ArrowUpOutlined, ArrowDownOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { salesService } from '../../services/salesService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -21,6 +22,7 @@ const DigitalAccountAdjustments: React.FC = () => {
   const [adjustments, setAdjustments] = useState<any[]>([]);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [txType, setTxType] = useState<'DEBIT' | 'CREDIT'>('DEBIT');
+  const [searchQuery, setSearchQuery] = useState('');
 
   if (user?.role !== 'ADMIN') {
     return (
@@ -135,7 +137,26 @@ const DigitalAccountAdjustments: React.FC = () => {
           </Row>
         </Form>
 
-        <Table dataSource={adjustments} rowKey="id" loading={loading} bordered columns={[
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+          <Input
+            placeholder="Search by account, branch, or reason..."
+            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            allowClear
+            style={{ width: '320px' }}
+          />
+        </div>
+        <Table
+          dataSource={adjustments.filter(a => {
+            const q = searchQuery.toLowerCase();
+            return (a.account_name || '').toLowerCase().includes(q) || (a.branch_name || '').toLowerCase().includes(q) || (a.reason || '').toLowerCase().includes(q);
+          })}
+          rowKey="id"
+          loading={loading}
+          bordered
+          scroll={{ x: 'max-content' }}
+          columns={[
           { title: 'Date Logged', dataIndex: 'logged_at', key: 'date', render: (d) => <Text style={{color:'#666'}}>{dayjs(d).format('YYYY-MM-DD HH:mm')}</Text> },
           { title: 'Source Branch Hub', dataIndex: 'branch_name', key: 'branch' },
           { title: 'Target Account Channel', dataIndex: 'account_name', key: 'acc', render: (t) => <Text strong style={{color:'#714B67'}}><WalletOutlined style={{marginRight:6}} />{t}</Text> },

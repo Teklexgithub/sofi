@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, Row, Col, Select, DatePicker, Button, Table, 
-  Tag, InputNumber, Statistic, message, Typography, Space, Radio
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Card, Row, Col, Select, DatePicker, Button, Table,
+  Tag, InputNumber, Statistic, message, Typography, Space, Radio, Modal, Input
 } from 'antd';
-import { 
-  FileTextOutlined, HistoryOutlined, SearchOutlined, 
-  CheckCircleOutlined, InfoCircleOutlined, DownOutlined, 
-  DollarCircleOutlined
+import {
+  FileTextOutlined, HistoryOutlined, SearchOutlined,
+  CheckCircleOutlined, InfoCircleOutlined, DownOutlined,
+  DollarCircleOutlined, PrinterOutlined, TruckOutlined
 } from '@ant-design/icons';
+import { useReactToPrint } from 'react-to-print';
 import dayjs from 'dayjs';
 import { inventoryService } from '../../services/inventoryService';
 import { salesService } from '../../services/salesService';
+import VendorSettlementVoucher from '../../components/print/VendorSettlementVoucher';
+import VendorDeliveryReport from '../../components/print/VendorDeliveryReport';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -51,7 +54,23 @@ export const VendorSettlements: React.FC = () => {
   // History Tab States
   const [historicalSettlements, setHistoricalSettlements] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const [deliverySearchQuery, setDeliverySearchQuery] = useState('');
+
+  // --- PRINTABLE VOUCHER STATE ---
+  const [printSettlement, setPrintSettlement] = useState<any | null>(null);
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const voucherPrintRef = useRef<HTMLDivElement>(null);
+  const handlePrintVoucher = useReactToPrint({ contentRef: voucherPrintRef, documentTitle: 'Vendor Settlement Voucher' });
+
+  // --- DELIVERY REPORT TAB STATES ---
+  const [deliveryVendor, setDeliveryVendor] = useState<string | null>(null);
+  const [deliveryDateRange, setDeliveryDateRange] = useState<any>(null);
+  const [deliveryRows, setDeliveryRows] = useState<any[]>([]);
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const deliveryReportPrintRef = useRef<HTMLDivElement>(null);
+  const handlePrintDeliveryReport = useReactToPrint({ contentRef: deliveryReportPrintRef, documentTitle: 'Vendor Delivery Report' });
+
   useEffect(() => {
     fetchVendors();
   }, []);
@@ -115,29 +134,57 @@ export const VendorSettlements: React.FC = () => {
 
   const handlePostSettlement = async () => {
     if (!worksheetData || worksheetData.itemized_deliveries.length === 0 || !selectedVendor) return;
-    
+
     setLoading(true);
     try {
       const supplyLogIds = worksheetData.itemized_deliveries
         .filter((log: DeliveryLog) => log.id !== "prior-debt-liability-node")
         .map((log: DeliveryLog) => log.id);
-      
-      await salesService.createSettlement({
+
+      const res = await salesService.createSettlement({
         vendor_id: selectedVendor,
         supply_log_ids: supplyLogIds,
         amount_handed_over: amountHandedOver
       });
-      
+
       message.success('Vendor settlement processed and logged successfully!');
-      
-      setWorksheetData(null);
-      setSelectedVendor(null);
-      setDateRange(null);
-      setAmountHandedOver(0);
+
+      setPrintSettlement(res.data);
+      setShowVoucherModal(true);
     } catch (err) {
       message.error('Failed to submit settlement entry validation');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCloseVoucherModal = () => {
+    setShowVoucherModal(false);
+    setWorksheetData(null);
+    setSelectedVendor(null);
+    setDateRange(null);
+    setAmountHandedOver(0);
+  };
+
+  const handlePrintHistoryRow = (record: any) => {
+    setPrintSettlement(record);
+    setTimeout(() => handlePrintVoucher(), 0);
+  };
+
+  const handleGenerateDeliveryReport = async () => {
+    if (!deliveryVendor || !deliveryDateRange) {
+      return message.warning('Please select both a vendor and a date range');
+    }
+    setDeliveryLoading(true);
+    try {
+      const startStr = deliveryDateRange[0].format('YYYY-MM-DD');
+      const endStr = deliveryDateRange[1].format('YYYY-MM-DD');
+      const res = await inventoryService.getVendorDeliveryReport(deliveryVendor, startStr, endStr);
+      setDeliveryRows(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      message.error('Failed to load vendor delivery report');
+    } finally {
+      setDeliveryLoading(false);
     }
   };
 
@@ -216,6 +263,16 @@ export const VendorSettlements: React.FC = () => {
         if (status === 'PARTIAL') return <Tag color="warning" style={{ fontWeight: 600 }}>PARTIALLY PAID</Tag>;
         return <Tag color="error" style={{ fontWeight: 600 }}>UNPAID</Tag>;
       }
+    },
+    {
+      title: 'Voucher',
+      key: 'print_action',
+      align: 'center' as const,
+      render: (_: any, record: any) => (
+        <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrintHistoryRow(record)}>
+          Print
+        </Button>
+      )
     }
   ];
 
@@ -265,8 +322,9 @@ export const VendorSettlements: React.FC = () => {
   };
 
   const filteredHistory = historicalSettlements.filter(item => {
-    if (statusFilter === 'ALL') return true;
-    return item.payment_status === statusFilter;
+    if (statusFilter !== 'ALL' && item.payment_status !== statusFilter) return false;
+    if (historySearchQuery && !item.id.toLowerCase().includes(historySearchQuery.toLowerCase())) return false;
+    return true;
   });
 
   const aggregateTotalCost = filteredHistory.reduce((acc, curr) => acc + Number(curr.total_batch_cost), 0);
@@ -293,8 +351,8 @@ export const VendorSettlements: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1250px', margin: '0 auto', padding: '24px', height: 'calc(100vh - 40px)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ flexShrink: 0 }}>
+    <div style={{ maxWidth: '1250px', margin: '0 auto', padding: '24px' }}>
+      <div>
         <Title level={2} style={{ color: '#714B67', marginBottom: '24px', fontWeight: 700, letterSpacing: '-0.5px' }}>
           Wholesale Vendor Settlements Hub
         </Title>
@@ -307,11 +365,13 @@ export const VendorSettlements: React.FC = () => {
           <button onClick={() => setActiveTab('2')} style={getTabButtonStyle('2')}>
             <HistoryOutlined /> Payment History Log
           </button>
+          <button onClick={() => setActiveTab('3')} style={getTabButtonStyle('3')}>
+            <TruckOutlined /> Delivery Report
+          </button>
         </div>
       </div>
 
-      {/* --- SCROLLING ROUTER VIEW CONTAINER BLOCK --- */}
-      <div style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '4px', paddingBottom: '32px' }}>
+      <div style={{ paddingBottom: '32px' }}>
         {/* --- TAB 1: STATEMENT WORKSPACE WORKSHEET --- */}
         {activeTab === '1' && (
           <div>
@@ -459,11 +519,22 @@ export const VendorSettlements: React.FC = () => {
                 title={
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                     <span>Historical Locked Settlement Batches</span>
-                    <Radio.Group value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} size="small">
-                      <Radio.Button value="ALL">ALL REC.</Radio.Button>
-                      <Radio.Button value="PARTIAL">PARTIALLY PAID</Radio.Button>
-                      <Radio.Button value="FULL">FULLY PAID</Radio.Button>
-                    </Radio.Group>
+                    <Space size="middle">
+                      <Input
+                        placeholder="Search by settlement ID..."
+                        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                        value={historySearchQuery}
+                        onChange={e => setHistorySearchQuery(e.target.value)}
+                        allowClear
+                        size="small"
+                        style={{ width: '220px' }}
+                      />
+                      <Radio.Group value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} size="small">
+                        <Radio.Button value="ALL">ALL REC.</Radio.Button>
+                        <Radio.Button value="PARTIAL">PARTIALLY PAID</Radio.Button>
+                        <Radio.Button value="FULL">FULLY PAID</Radio.Button>
+                      </Radio.Group>
+                    </Space>
                   </div>
                 }
                 bodyStyle={{ padding: 0 }}
@@ -496,6 +567,145 @@ export const VendorSettlements: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* --- TAB 3: VENDOR DELIVERY REPORT --- */}
+        {activeTab === '3' && (
+          <div>
+            <Card bordered={false} style={{ background: '#fcfcfc', borderRadius: '8px', marginBottom: '24px', border: '1px solid #f0f0f0' }}>
+              <Row gutter={24} align="bottom">
+                <Col xs={24} md={8}>
+                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>Vendor</div>
+                  <Select
+                    style={{ width: '100%' }}
+                    placeholder="Select Vendor"
+                    value={deliveryVendor}
+                    onChange={(val: string | null) => setDeliveryVendor(val)}
+                    size="large"
+                  >
+                    {vendors.map(v => <Option key={v.id} value={v.id}>{v.name}</Option>)}
+                  </Select>
+                </Col>
+                <Col xs={24} md={10}>
+                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>Date Range</div>
+                  <RangePicker
+                    style={{ width: '100%' }}
+                    value={deliveryDateRange}
+                    onChange={(dates: any) => setDeliveryDateRange(dates || null)}
+                    size="large"
+                  />
+                </Col>
+                <Col xs={24} md={6}>
+                  <Button
+                    type="primary"
+                    icon={<SearchOutlined />}
+                    onClick={handleGenerateDeliveryReport}
+                    loading={deliveryLoading}
+                    block
+                    size="large"
+                    style={{ backgroundColor: '#714B67', borderColor: '#714B67', borderRadius: '6px', fontWeight: 500 }}
+                  >
+                    Generate Report
+                  </Button>
+                </Col>
+              </Row>
+            </Card>
+
+            {deliveryRows.length > 0 ? (
+              <Card
+                title="Deliveries Across All Branches"
+                extra={
+                  <Space size="middle">
+                    <Input
+                      placeholder="Search by branch or product..."
+                      prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                      value={deliverySearchQuery}
+                      onChange={e => setDeliverySearchQuery(e.target.value)}
+                      allowClear
+                      size="small"
+                      style={{ width: '240px' }}
+                    />
+                    <Button icon={<PrinterOutlined />} onClick={() => handlePrintDeliveryReport()}>
+                      Print Report
+                    </Button>
+                  </Space>
+                }
+                bodyStyle={{ padding: 0 }}
+                style={{ borderRadius: '8px', border: '1px solid #f0f0f0', overflow: 'hidden' }}
+              >
+                <Table
+                  dataSource={deliveryRows.filter(r => {
+                    const q = deliverySearchQuery.toLowerCase();
+                    return (r.branch_name || '').toLowerCase().includes(q) || (r.product_name || '').toLowerCase().includes(q);
+                  })}
+                  rowKey="id"
+                  pagination={false}
+                  size="middle"
+                  scroll={{ x: 'max-content' }}
+                  columns={[
+                    { title: 'Date', dataIndex: 'date_received', render: (d: string) => dayjs(d).format('YYYY-MM-DD') },
+                    { title: 'Branch', dataIndex: 'branch_name', render: (t: string) => <Tag color="blue">{t}</Tag> },
+                    { title: 'Product', dataIndex: 'product_name' },
+                    { title: 'Packs', dataIndex: 'packs_received', align: 'right' as const },
+                    { title: 'Pieces', dataIndex: 'calculated_pieces_count', align: 'right' as const },
+                    { title: 'Unit Price', dataIndex: 'buying_price_unit', align: 'right' as const, render: (v: number) => `${Number(v).toFixed(2)} ETB` },
+                    { title: 'Subtotal', dataIndex: 'calculated_row_subtotal', align: 'right' as const, render: (v: number) => <Text strong>{Number(v).toFixed(2)} ETB</Text> },
+                  ]}
+                />
+              </Card>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '80px 0', background: '#fff', border: '1px dashed #d9d9d9', borderRadius: '8px' }}>
+                <TruckOutlined style={{ fontSize: '32px', marginBottom: '16px', color: '#714B67' }} />
+                <div style={{ color: '#666', fontSize: '16px' }}>Select a vendor and date range to generate the cross-branch delivery report.</div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* --- SETTLEMENT POSTED CONFIRMATION MODAL WITH PRINTABLE VOUCHER --- */}
+      <Modal
+        title="Settlement Posted"
+        open={showVoucherModal}
+        onCancel={handleCloseVoucherModal}
+        width={800}
+        footer={[
+          <Button key="close" onClick={handleCloseVoucherModal}>Close</Button>,
+          <Button key="print" type="primary" icon={<PrinterOutlined />} onClick={() => handlePrintVoucher()} style={{ background: '#714B67', borderColor: '#714B67' }}>
+            Print Voucher
+          </Button>
+        ]}
+      >
+        {printSettlement && (
+          <div style={{ maxHeight: '60vh', overflowY: 'auto', border: '1px solid #eee' }}>
+            <VendorSettlementVoucher
+              ref={voucherPrintRef}
+              settlement={printSettlement}
+              vendor={vendors.find(v => v.id === printSettlement.vendor)}
+            />
+          </div>
+        )}
+      </Modal>
+
+      {/* --- HIDDEN PRINT TARGET FOR HISTORY REPRINTS (no preview modal) --- */}
+      {!showVoucherModal && printSettlement && (
+        <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+          <VendorSettlementVoucher
+            ref={voucherPrintRef}
+            settlement={printSettlement}
+            vendor={vendors.find(v => v.id === printSettlement.vendor)}
+          />
+        </div>
+      )}
+
+      {/* --- HIDDEN PRINT TARGET FOR DELIVERY REPORT --- */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+        <VendorDeliveryReport
+          ref={deliveryReportPrintRef}
+          vendorName={vendors.find(v => v.id === deliveryVendor)?.name || 'N/A'}
+          dateFrom={deliveryDateRange ? deliveryDateRange[0].format('YYYY-MM-DD') : ''}
+          dateTo={deliveryDateRange ? deliveryDateRange[1].format('YYYY-MM-DD') : ''}
+          rows={deliveryRows}
+        />
       </div>
     </div>
   );

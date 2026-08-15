@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Space, Tag, Typography, Card, message } from 'antd';
-import { PlusOutlined, ReloadOutlined, UserOutlined, GlobalOutlined, ShopOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Tag, Typography, Card, Input, message } from 'antd';
+import { PlusOutlined, ReloadOutlined, UserOutlined, GlobalOutlined, ShopOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { settingsService } from '../../services/settingsService';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -13,6 +13,7 @@ const UserList: React.FC = () => {
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -29,6 +30,11 @@ const UserList: React.FC = () => {
   };
 
   useEffect(() => { fetchUsers(); }, []);
+
+  const filteredUsers = users.filter(u => {
+    const q = searchQuery.toLowerCase();
+    return u.email?.toLowerCase().includes(q) || u.role?.toLowerCase().includes(q);
+  });
 
   const columns = [
     { 
@@ -47,21 +53,21 @@ const UserList: React.FC = () => {
         </Space>
       )
     },
-    { 
-      title: 'Role', 
-      dataIndex: 'role', 
+    {
+      title: 'Role',
+      dataIndex: 'role',
       key: 'role',
       render: (role: string) => {
-        let color = role === 'ADMIN' ? 'volcano' : role === 'MANAGER' ? 'blue' : 'green';
+        const color = role === 'ADMIN' ? 'volcano' : 'blue';
         return <Tag color={color} style={{ fontWeight: '500' }}>{role}</Tag>;
       }
     },
-    { 
-      title: 'Branch Assignment', 
-      dataIndex: 'branch_name', 
+    {
+      title: 'Branch Assignment',
+      dataIndex: 'branch_details',
       key: 'branch',
-      render: (name: string, record: any) => {
-        if (record.role === 'ADMIN' && !name) {
+      render: (branchDetails: { id: string; name: string }[], record: UserAccount) => {
+        if (record.role === 'ADMIN' && (!branchDetails || branchDetails.length === 0)) {
           return (
             <Space style={{ color: '#8c8c8c' }}>
               <GlobalOutlined />
@@ -69,10 +75,19 @@ const UserList: React.FC = () => {
             </Space>
           );
         }
+        if (!branchDetails || branchDetails.length === 0) {
+          return (
+            <Space>
+              <ShopOutlined style={{ color: '#d9d9d9' }} />
+              <Text>Not Assigned</Text>
+            </Space>
+          );
+        }
         return (
-          <Space>
-            <ShopOutlined style={{ color: name ? '#1890ff' : '#d9d9d9' }} />
-            <Text>{name || 'Not Assigned'}</Text>
+          <Space wrap>
+            {branchDetails.map(b => (
+              <Tag key={b.id} icon={<ShopOutlined />} color="blue">{b.name}</Tag>
+            ))}
           </Space>
         );
       }
@@ -101,10 +116,18 @@ const UserList: React.FC = () => {
           <Text type="secondary">Manage employee accounts and branch permissions</Text>
         </Space>
         <Space>
+          <Input
+            placeholder="Search by email or role..."
+            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            allowClear
+            style={{ width: '260px' }}
+          />
           <Button icon={<ReloadOutlined />} onClick={fetchUsers} title="Refresh Table" />
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
             onClick={() => setIsModalVisible(true)}
             style={{ background: '#714B67', border: 'none' }}
           >
@@ -113,19 +136,20 @@ const UserList: React.FC = () => {
         </Space>
       </div>
 
-      <Card styles={{ body: { padding: '0' } }} style={{ 
-        borderRadius: '8px', 
+      <Card styles={{ body: { padding: '0' } }} style={{
+        borderRadius: '8px',
         background: isDark ? '#1f1f1f' : '#fff',
         border: isDark ? '1px solid #333' : '1px solid #f0f0f0',
         overflow: 'hidden',
         boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
       }}>
-        <Table 
-          columns={columns} 
-          dataSource={users} 
-          loading={loading} 
+        <Table
+          columns={columns}
+          dataSource={filteredUsers}
+          loading={loading}
           rowKey="id"
           pagination={{ pageSize: 10 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 

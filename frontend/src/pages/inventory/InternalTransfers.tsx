@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Table, Typography, Card, Button, message, Tag, Input, Space } from 'antd'; // Added Input and Space to imports
 import { PlusOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons'; // Added SearchOutlined
 import { inventoryService } from '../../services/inventoryService';
-import { useAuth } from '../../contexts/AuthContext'; 
+import { useAuth } from '../../contexts/AuthContext';
+import { useBranch } from '../../contexts/BranchContext';
 import InternalTransferModal from './InternalTransferModal';
 
 const { Title } = Typography;
 
 const InternalTransfers: React.FC = () => {
-  const { user } = useAuth(); 
+  const { isAdmin } = useAuth();
+  const { selectedBranch } = useBranch();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -71,17 +73,18 @@ const InternalTransfers: React.FC = () => {
       </div>
 
       <Card styles={{ body: { padding: 0 } }}>
-        <Table 
+        <Table
           dataSource={filteredData} // Updated from data to filteredData
-          columns={columns} 
-          loading={loading} 
-          rowKey="id" 
+          columns={columns}
+          loading={loading}
+          rowKey="id"
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
     <InternalTransferModal 
       visible={isModalVisible} 
-      branchId={user?.role === 'ADMIN' ? "" : (user?.branch || "")} 
+      branchId={isAdmin ? "" : (selectedBranch || "")}
       onCancel={() => setIsModalVisible(false)} 
       onSuccess={() => { setIsModalVisible(false); fetchTransfers(); }} 
     />

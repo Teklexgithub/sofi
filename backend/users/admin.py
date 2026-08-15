@@ -7,11 +7,11 @@ class CustomUserAdmin(UserAdmin):
     readonly_fields = ('date_joined', 'last_login') 
 
     ordering = ('email',)
-    list_display = ('email', 'role', 'branch', 'is_staff', 'is_active')
-    
+    list_display = ('email', 'role', 'is_staff', 'is_active')
+
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal Info', {'fields': ('role', 'branch')}),
+        ('Personal Info', {'fields': ('role', 'branches')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         # 2. It's now safe to keep it here because it's in readonly_fields
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
@@ -20,11 +20,11 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password', 'role', 'branch'),
+            'fields': ('email', 'password', 'role', 'branches'),
         }),
     )
 
     search_fields = ('email',)
-    filter_horizontal = ()
+    filter_horizontal = ('branches',)
 
 admin.site.register(User, CustomUserAdmin)

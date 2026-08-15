@@ -123,8 +123,11 @@ export const salesService = {
   getShortagesLedger: (branchId?: string) => 
     salesApi.get(`shortages/${branchId ? `?branch=${branchId}` : ''}`),
 
-  deleteDailySession: (sessionId: string) => 
+  deleteDailySession: (sessionId: string) =>
     salesApi.delete(`sessions/${sessionId}/`),
+
+  getDailySessionDetail: (sessionId: string) =>
+    salesApi.get(`sessions/${sessionId}/`),
 
 
   /**

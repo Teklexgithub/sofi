@@ -24,6 +24,7 @@ from .serializers import (
 )
 from inventory.models import ShopStock, Product, SupplyLog, Vendor
 from django.utils.dateparse import parse_date
+from core.permissions import IsAdmin, branch_scoped_queryset, assert_branch_allowed
 
 
 
@@ -33,7 +34,9 @@ from django.utils.dateparse import parse_date
 
 # --- 1. DIGITAL ACCOUNTS VIEWSET (FULL CRUD) ---
 class DigitalAccountViewSet(viewsets.ModelViewSet):
+    """Branch bank/digital account registration is an Admin-only function."""
     serializer_class = DigitalAccountSerializer
+    permission_classes = [IsAdmin]
 
     def get_queryset(self):
         queryset = DigitalAccount.objects.all().order_by('name')
@@ -97,17 +100,22 @@ class CustomerCreditViewSet(viewsets.ModelViewSet):
     search_fields = ['customer_name'] 
 
     def get_queryset(self):
-        queryset = CustomerCredit.objects.all()
+        queryset = branch_scoped_queryset(self.request.user, CustomerCredit.objects.all())
         branch_id = self.request.query_params.get('branch')
         active_only = self.request.query_params.get('active_only')
 
         if branch_id:
             queryset = queryset.filter(branch_id=branch_id)
-        
+
         if active_only == 'true':
             queryset = queryset.filter(total_balance__gt=0)
-            
+
         return queryset
+
+    def create(self, request, *args, **kwargs):
+        """ Branch Admins may only register customer debts for their own branch(es) """
+        assert_branch_allowed(request.user, request.data.get('branch'))
+        return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         """ Restrict direct manual balance updates (PUT) strictly to Admins """
@@ -142,6 +150,9 @@ class DailySessionViewSet(viewsets.ModelViewSet):
     queryset = DailySession.objects.all()
     serializer_class = DailySessionSerializer
 
+    def get_queryset(self):
+        return branch_scoped_queryset(self.request.user, DailySession.objects.all())
+
     @action(detail=False, methods=['get'])
     def prepare(self, request):
         """
@@ -154,6 +165,8 @@ class DailySessionViewSet(viewsets.ModelViewSet):
 
         if not branch_id:
             return Response({"error": "Branch parameter is missing"}, status=400)
+
+        assert_branch_allowed(request.user, branch_id)
 
         # 1. Look backwards chronologically to pull the most recent closed session record
         last_session = DailySession.objects.filter(branch_id=branch_id).order_by('-trading_date').first()
@@ -183,6 +196,8 @@ class DailySessionViewSet(viewsets.ModelViewSet):
         data = request.data
         branch_id = data.get('branch')
         date_str = data.get('trading_date')
+
+        assert_branch_allowed(request.user, branch_id)
 
         with transaction.atomic():
             # 1. Create Parent Session Record
@@ -379,42 +394,26 @@ class DailySessionViewSet(viewsets.ModelViewSet):
 # --- 4. DIGITAL ACCOUNT ADJUSTMENTS ---
 class DigitalAccountAdjustmentViewSet(viewsets.ModelViewSet):
     """
-    Dedicated controller for Admins to log vendor payments 
+    Dedicated controller for Admins to log vendor payments
     and cash injections independently of branch managers.
     """
     queryset = DigitalAccountAdjustment.objects.all().order_by('-logged_at')
     serializer_class = DigitalAccountAdjustmentSerializer
-
-    def create(self, request, *args, **kwargs):
-        if request.user.role != 'ADMIN':
-            return Response(
-                {"detail": "Access Denied: Only system administrators can post structural ledger adjustments."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        return super().create(request, *args, **kwargs)
+    permission_classes = [IsAdmin]
 
 
 # --- 5. MANAGER LIABILITY SHORTAGES VIEWSET ---
 class ManagerShortageViewSet(viewsets.ModelViewSet):
     """
     Provides a secure panel for the corporate auditing team to manage employee deficits.
+    Admin-only: this audits branch admins themselves, so branch admins don't get a view into it.
     """
     queryset = ManagerShortageLedger.objects.all().order_by('-logged_at')
     serializer_class = ManagerShortageSerializer
     filter_backends = [filters.SearchFilter]
-    
-    # 🌟 FIXED: Updated lookup search string properties paths matching the profile database model schema 
-    search_fields = ['employee__full_name', 'session__branch__name']
+    permission_classes = [IsAdmin]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Security Guard: Enforcement restriction checking parameters ladder
-        if self.request.user.role != 'ADMIN':
-            # 🌟 FIXED: Safe lookup matching the authenticated user profile details parameters string if accessing remotely
-            queryset = queryset.filter(employee__phone_number=self.request.user.phone)
-            
-        return queryset
+    search_fields = ['employee__full_name', 'session__branch__name']
 
 
 
@@ -434,8 +433,10 @@ class ManagerShortageViewSet(viewsets.ModelViewSet):
 
 
 class VendorSettlementViewSet(viewsets.ModelViewSet):
+    """Vendor payments are an Admin-only function."""
     queryset = VendorSettlement.objects.all().order_by('-created_at')
     serializer_class = VendorSettlementSerializer
+    permission_classes = [IsAdmin]
 
     @action(detail=False, methods=['get'], url_path='statement-worksheet')
     def statement_worksheet(self, request):

@@ -9,11 +9,13 @@ import datetime
 
 from .models import EmployeeProfile, EmployeeLedgerEntry, PayslipRun
 from .serializers import EmployeeProfileSerializer, EmployeeLedgerEntrySerializer, PayslipRunSerializer
+from core.permissions import IsAdmin
 
 # Import your existing shortage ledger model across app domains
 from sales.models import ManagerShortageLedger
 
 
+# The entire Employee app (profiles, advances/fines, payroll) is an Admin-only function.
 
 
 class EmployeeProfileViewSet(viewsets.ModelViewSet):
@@ -21,11 +23,13 @@ class EmployeeProfileViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeProfileSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['full_name', 'phone_number']
+    permission_classes = [IsAdmin]
 
 
 class EmployeeLedgerEntryViewSet(viewsets.ModelViewSet):
     queryset = EmployeeLedgerEntry.objects.all().order_by('-created_at')
     serializer_class = EmployeeLedgerEntrySerializer
+    permission_classes = [IsAdmin]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -45,6 +49,7 @@ class EmployeeLedgerEntryViewSet(viewsets.ModelViewSet):
 class PayslipRunViewSet(viewsets.ModelViewSet):
     queryset = PayslipRun.objects.all().order_by('-executed_at')
     serializer_class = PayslipRunSerializer
+    permission_classes = [IsAdmin]
 
     @action(detail=False, methods=['GET'], url_path='calculate-payroll')
     def calculate_payroll(self, request):

@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'MANAGER' | 'SALES';
+export type UserRole = 'ADMIN' | 'BRANCH_ADMIN';
 
 export interface Branch {
   id: string;
@@ -13,7 +13,8 @@ export interface UserAccount {
   email: string;
   username: string;
   role: UserRole;
-  branch: string | null; // This is the Branch ID
+  branches: string[]; // Branch IDs
+  branch_details: { id: string; name: string }[];
   first_name: string;
   last_name: string;
 }

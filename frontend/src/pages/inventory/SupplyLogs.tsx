@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Typography, Tag, Space, message, Input } from 'antd'; // Added Input to imports
 import { PlusOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons'; // Added SearchOutlined
 import { inventoryService } from '../../services/inventoryService';
-import { useAuth } from '../../contexts/AuthContext'; 
+import { useAuth } from '../../contexts/AuthContext';
+import { useBranch } from '../../contexts/BranchContext';
 import LogSupplyModal from './LogSupplyModal';
 import dayjs from 'dayjs';
 
 const { Title } = Typography;
 
 const SupplyLogs: React.FC = () => {
-  const { user } = useAuth(); 
+  const { isAdmin } = useAuth();
+  const { selectedBranch } = useBranch();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -104,18 +106,19 @@ const SupplyLogs: React.FC = () => {
       </div>
 
       <Card styles={{ body: { padding: 0 } }}>
-        <Table 
+        <Table
           dataSource={filteredLogs} // Updated from logs to filteredLogs
-          columns={columns} 
-          rowKey="id" 
+          columns={columns}
+          rowKey="id"
           loading={loading}
           pagination={{ pageSize: 10 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
       <LogSupplyModal 
         visible={modalVisible}
-        branchId={user?.role === 'ADMIN' ? "" : (user?.branch || "")}
+        branchId={isAdmin ? "" : (selectedBranch || "")}
         onCancel={() => setModalVisible(false)}
         onSuccess={() => {
           setModalVisible(false);

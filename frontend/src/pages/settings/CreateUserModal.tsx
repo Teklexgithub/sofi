@@ -26,12 +26,11 @@ const CreateUserModal: React.FC<CreateUserProps> = ({ visible, onCancel, onSucce
       if (initialValues) {
         form.setFieldsValue({
           ...initialValues,
-          // Ensure branch is passed as the ID string for the Select component
-          branch: typeof initialValues.branch === 'object' ? (initialValues.branch as any)?.id : initialValues.branch
+          branches: initialValues.branches,
         });
       } else {
         form.resetFields();
-        form.setFieldsValue({ role: 'SALES' });
+        form.setFieldsValue({ role: 'BRANCH_ADMIN' });
       }
     }
   }, [visible, initialValues, form]);
@@ -71,7 +70,7 @@ const CreateUserModal: React.FC<CreateUserProps> = ({ visible, onCancel, onSucce
         layout="vertical" 
         onFinish={onFinish} 
         preserve={false}
-        initialValues={initialValues || { role: 'SALES' }} // Provide direct initialValues to the form
+        initialValues={initialValues || { role: 'BRANCH_ADMIN' }} // Provide direct initialValues to the form
       >
         <Form.Item 
           name="email" 
@@ -84,13 +83,12 @@ const CreateUserModal: React.FC<CreateUserProps> = ({ visible, onCancel, onSucce
         <Form.Item name="role" label="System Role" rules={[{ required: true }]}>
           <Select placeholder="Select Role">
             <Select.Option value="ADMIN">Admin/Owner</Select.Option>
-            <Select.Option value="MANAGER">Branch Manager</Select.Option>
-            <Select.Option value="SALES">Sales Person</Select.Option>
+            <Select.Option value="BRANCH_ADMIN">Branch Admin</Select.Option>
           </Select>
         </Form.Item>
 
-        <Form.Item name="branch" label="Assigned Branch">
-          <Select placeholder="Select Branch" allowClear showSearch optionFilterProp="children">
+        <Form.Item name="branches" label="Assigned Branches">
+          <Select mode="multiple" placeholder="Select Branch(es)" allowClear showSearch optionFilterProp="children">
             {branches.map(b => (
               <Select.Option key={b.id} value={b.id}>{b.name}</Select.Option>
             ))}

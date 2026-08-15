@@ -1,193 +1,212 @@
-import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, Statistic, Table, Tag, Typography, Spin, Alert, Empty, Space } from 'antd';
-import { ArrowUpOutlined, FallOutlined, WalletOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { Row, Col, Table, Tag, Typography, Spin, Alert, Empty, Space, Input } from 'antd';
+import {
+  DollarCircleOutlined, ExclamationCircleOutlined, CreditCardOutlined,
+  WalletOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, SearchOutlined
+} from '@ant-design/icons';
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
+import dayjs from 'dayjs';
 import { dashboardService } from '../../../services/dashboardService';
+import type { SalesAnalyticsResponse } from '../../../services/dashboardService';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { getChartTheme, formatETB } from '../shared/chartTheme';
+import ChartCard from '../shared/ChartCard';
+import StatTile from '../shared/StatTile';
+import PartToWholeBar from '../shared/PartToWholeBar';
 
 const { Text } = Typography;
-const PIE_COLORS = ['#52c41a', '#1890ff', '#faad14'];
 
 export const SalesAnalytics: React.FC = () => {
+  const { isDark } = useTheme();
+  const theme = getChartTheme(isDark);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<SalesAnalyticsResponse | null>(null);
+  const [vendorSearchQuery, setVendorSearchQuery] = useState('');
 
   useEffect(() => {
     dashboardService.getSalesAnalytics()
       .then(res => { setData(res.data); setLoading(false); })
-      .catch(() => { setError("Failed to initialize active sales performance data pipeline."); setLoading(false); });
+      .catch(() => { setError("Couldn't load sales data. Try refreshing the page."); setLoading(false); });
   }, []);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '100px 0' }}><Spin size="large" tip="Aggregating transactional metrics..." /></div>;
-  if (error) return <Alert message={<span>Analytics Connection Error</span>} description={error} type="error" showIcon />;
-  if (!data) return <Empty description="No transactional balance records logged inside database system." />;
+  if (loading) return <div style={{ textAlign: 'center', padding: '100px 0' }}><Spin size="large" tip="Loading sales data..." /></div>;
+  if (error) return <Alert message="Sales data unavailable" description={error} type="error" showIcon />;
+  if (!data) return <Empty description="No sales recorded yet." />;
 
   const { metrics, charts, vendors_credit_ledger } = data;
 
-  // 1. Data Parsing for 30-Day Revenue vs Shortage SVG Area Chart
-  const timelineData = charts.revenue_shortage_timeline || [];
-  const grossSalesVals = timelineData.map((d: any) => Number(d.gross_sales || 0));
-  const maxSalesVal = Math.max(...grossSalesVals, 1000);
+  const timelineData = (charts.revenue_shortage_timeline || []).map(d => ({
+    ...d,
+    label: dayjs(d.date).format('MMM D'),
+  }));
 
-  // Generate SVG Path for Gross Revenue (Smooth Area Fill)
-  let revenuePath = "";
-  let revenueAreaPath = "";
-  if (timelineData.length > 1) {
-    const widthSpacing = 340 / (timelineData.length - 1);
-    timelineData.forEach((d: any, i: number) => {
-      const x = 40 + i * widthSpacing;
-      const h = (Number(d.gross_sales || 0) / maxSalesVal) * 130;
-      const y = 160 - h;
-      if (i === 0) {
-        revenuePath = `M ${x} ${y}`;
-        revenueAreaPath = `M ${x} 160 L ${x} ${y}`;
-      } else {
-        revenuePath += ` L ${x} ${y}`;
-        revenueAreaPath += ` L ${x} ${y}`;
-      }
-      if (i === timelineData.length - 1) {
-        revenueAreaPath += ` L ${x} 160 Z`;
-      }
-    });
-  }
+  const branchLeaderboard = charts.branch_sales_leaderboard || [];
+
+  const statusTag = (label: string, count: number, kind: 'good' | 'warning' | 'critical', icon: React.ReactNode) => (
+    <Tag color={theme.status[kind]} style={{ color: '#fff', fontWeight: 600, border: 'none' }} icon={icon}>
+      {label}: {count}
+    </Tag>
+  );
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto' }}>
-      {/* 1. TOP-ROW STRATEGIC METRIC CARDS */}
+    <div>
+      {/* KPI row */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} bodyStyle={{ padding: '20px' }} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <Statistic title="Gross Revenue Today" value={Number(metrics.gross_revenue_today)} precision={2} suffix="ETB" valueStyle={{ color: '#3f8600' }} prefix={<ArrowUpOutlined />} />
-          </Card>
+          <StatTile
+            icon={<DollarCircleOutlined />}
+            label="Total Sales Today"
+            value={formatETB(metrics.gross_revenue_today)}
+            description="Everything sold across all branches today"
+          />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} bodyStyle={{ padding: '20px' }} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <Statistic title="Active Shortages Leakage" value={Number(metrics.active_shortages_unsettled)} precision={2} suffix="ETB" valueStyle={{ color: '#cf1322' }} prefix={<FallOutlined />} />
-          </Card>
+          <StatTile
+            icon={<ExclamationCircleOutlined />}
+            label="Unresolved Cash Shortages"
+            value={formatETB(metrics.active_shortages_unsettled)}
+            description="Till shortages not yet deducted from payroll"
+            status={Number(metrics.active_shortages_unsettled) > 0 ? 'warning' : 'good'}
+          />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} bodyStyle={{ padding: '20px' }} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <Statistic title="Total Customer Debt Exposure" value={Number(metrics.total_customer_debt)} precision={2} suffix="ETB" valueStyle={{ color: '#faad14' }} prefix={<WalletOutlined />} />
-          </Card>
+          <StatTile
+            icon={<CreditCardOutlined />}
+            label="Customer Debt"
+            value={formatETB(metrics.total_customer_debt)}
+            description="Total owed to you by customers on credit"
+          />
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} bodyStyle={{ padding: '20px' }} style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <Statistic title="Net Realized Liquid Flow (Today)" value={Number(metrics.net_cash_intake_today)} precision={2} suffix="ETB" valueStyle={{ color: '#1890ff' }} prefix={<ShoppingCartOutlined />} />
-          </Card>
+          <StatTile
+            icon={<WalletOutlined />}
+            label="Net Cash Collected Today"
+            value={formatETB(metrics.net_cash_intake_today)}
+            description="Cash + digital payments received today, after expenses"
+          />
         </Col>
       </Row>
 
-      {/* 2. HIGH-IMPACT VISUALIZATION CHARTS MATRIX */}
+      {/* Charts */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        {/* SVG Area Spark-Timeline Chart */}
         <Col xs={24} xl={16}>
-          <Card title={<Text strong style={{ color: '#714B67' }}>30-Day Revenue Pacing Timeline Trend</Text>} bordered={false} style={{ borderRadius: '8px' }}>
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
-              <svg viewBox="0 0 400 180" style={{ width: '100%', maxHeight: '220px' }}>
-                <g fill="none" stroke="#f0f0f0" strokeWidth="1">
-                  <line x1="40" y1="30" x2="380" y2="30" />
-                  <line x1="40" y1="95" x2="380" y2="95" />
-                  <line x1="40" y1="160" x2="380" y2="160" stroke="#d9d9d9" />
-                </g>
-                {timelineData.length > 1 && (
-                  <>
-                    {/* Area Shading */}
-                    <path d={revenueAreaPath} fill="#714B67" fillOpacity="0.08" />
-                    {/* Trend Line */}
-                    <path d={revenuePath} stroke="#714B67" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                  </>
-                )}
-                {/* Timeline axis endpoints */}
-                {timelineData.length > 0 && (
-                  <>
-                    <text x="40" y="175" fill="#8c8c8c" fontSize="8" textAnchor="start">{timelineData[0].date}</text>
-                    <text x="380" y="175" fill="#8c8c8c" fontSize="8" textAnchor="end">{timelineData[timelineData.length - 1].date}</text>
-                  </>
-                )}
-              </svg>
-            </div>
-          </Card>
+          <ChartCard title="Sales Trend (Last 30 Days)" description="Total sales recorded each day, across all branches">
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={timelineData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="salesTrendFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={theme.sequential} stopOpacity={0.35} />
+                    <stop offset="100%" stopColor={theme.sequential} stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={theme.gridline} vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fill: theme.textMuted, fontSize: 11 }}
+                  axisLine={{ stroke: theme.axisLine }}
+                  tickLine={false}
+                  interval="preserveStartEnd"
+                  minTickGap={30}
+                />
+                <YAxis
+                  tick={{ fill: theme.textMuted, fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => formatETB(v, true)}
+                  width={70}
+                />
+                <Tooltip
+                  contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: theme.textPrimary, fontWeight: 600 }}
+                  formatter={(value: any) => [formatETB(Number(value)), 'Sales']}
+                  labelFormatter={(_, payload) => payload?.[0]?.payload?.date || ''}
+                />
+                <Area type="monotone" dataKey="gross_sales" stroke={theme.sequential} strokeWidth={2.5} fill="url(#salesTrendFill)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </Col>
 
-        {/* Modular Composition Share Mix Tracker */}
         <Col xs={24} xl={8}>
-          <Card title={<Text strong style={{ color: '#714B67' }}>Cash Intake Composition Share Mix</Text>} bordered={false} style={{ borderRadius: '8px' }}>
-            <div style={{ padding: '8px 4px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <Text><span style={{ inlineSize: '10px', blockSize: '10px', backgroundColor: PIE_COLORS[0], display: 'inline-block', borderRadius: '50%', marginRight: '8px' }} />Physical Cash</Text>
-                  <Text strong>{charts.revenue_composition_mix.physical_cash_percentage}%</Text>
-                </div>
-                <div style={{ width: '100%', height: '8px', background: '#f5f5f5', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ width: `${charts.revenue_composition_mix.physical_cash_percentage}%`, height: '100%', background: PIE_COLORS[0] }} />
-                </div>
-              </div>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <Text><span style={{ inlineSize: '10px', blockSize: '10px', backgroundColor: PIE_COLORS[1], display: 'inline-block', borderRadius: '50%', marginRight: '8px' }} />Digital Wallets</Text>
-                  <Text strong>{charts.revenue_composition_mix.digital_wallet_percentage}%</Text>
-                </div>
-                <div style={{ width: '100%', height: '8px', background: '#f5f5f5', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ width: `${charts.revenue_composition_mix.digital_wallet_percentage}%`, height: '100%', background: PIE_COLORS[1] }} />
-                </div>
-              </div>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <Text><span style={{ inlineSize: '10px', blockSize: '10px', backgroundColor: PIE_COLORS[2], display: 'inline-block', borderRadius: '50%', marginRight: '8px' }} />Issued Credits</Text>
-                  <Text strong>{charts.revenue_composition_mix.credit_payouts_percentage}%</Text>
-                </div>
-                <div style={{ width: '100%', height: '8px', background: '#f5f5f5', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ width: `${charts.revenue_composition_mix.credit_payouts_percentage}%`, height: '100%', background: PIE_COLORS[2] }} />
-                </div>
-              </div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 3. LEADERBOARDS & CREDIT BALANCE TABLES */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={10}>
-          <Card title={<Text strong style={{ color: '#714B67' }}>Branch Revenue Leaderboard</Text>} bordered={false} style={{ borderRadius: '8px' }}>
-            <Table 
-              size="small"
-              pagination={{ pageSize: 4 }}
-              dataSource={charts.branch_sales_leaderboard}
-              rowKey="branch_name"
-              columns={[
-                { title: 'Rank', key: 'index', width: 60, render: (_, __, i) => <Text strong>#{i + 1}</Text> },
-                { title: 'Operational Station Location', dataIndex: 'branch_name', key: 'branch_name' },
-                { title: 'Total Revenue', dataIndex: 'total_sales_revenue', key: 'total_sales_revenue', align: 'right', render: (val) => `${Number(val).toLocaleString()} ETB` }
+          <ChartCard title="How Money Came In" description="Share of all-time sales collected by payment method">
+            <PartToWholeBar
+              segments={[
+                { name: 'Cash', value: Number(charts.revenue_composition_mix.physical_cash_percentage), color: theme.categorical[0] },
+                { name: 'Digital Wallets', value: Number(charts.revenue_composition_mix.digital_wallet_percentage), color: theme.categorical[1] },
+                { name: 'Store Credit', value: Number(charts.revenue_composition_mix.credit_payouts_percentage), color: theme.categorical[2] },
               ]}
             />
-          </Card>
+          </ChartCard>
         </Col>
+      </Row>
 
-        <Col xs={24} lg={14}>
-          <Card title={<Text strong style={{ color: '#714B67' }}>Comprehensive Corporate Supplier Liability Matrix</Text>} bordered={false} style={{ borderRadius: '8px' }}>
-            <Table 
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={24}>
+          <ChartCard title="Sales by Branch" description="Which branches are selling the most, all-time">
+            <ResponsiveContainer width="100%" height={Math.max(160, branchLeaderboard.length * 44)}>
+              <BarChart data={branchLeaderboard} layout="vertical" margin={{ top: 0, right: 24, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke={theme.gridline} horizontal={false} />
+                <XAxis type="number" tick={{ fill: theme.textMuted, fontSize: 11 }} axisLine={{ stroke: theme.axisLine }} tickLine={false} tickFormatter={(v) => formatETB(v, true)} />
+                <YAxis type="category" dataKey="branch_name" tick={{ fill: theme.textSecondary, fontSize: 12 }} axisLine={false} tickLine={false} width={110} />
+                <Tooltip
+                  contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: theme.textPrimary, fontWeight: 600 }}
+                  formatter={(value: any) => [formatETB(Number(value)), 'Total Sales']}
+                />
+                <Bar dataKey="total_sales_revenue" fill={theme.sequential} radius={[0, 4, 4, 0]} maxBarSize={28} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </Col>
+      </Row>
+
+      {/* Table */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24}>
+          <ChartCard
+            title="What You Owe Each Vendor"
+            description="Advance credit, outstanding debt, and settlement status per vendor"
+            extra={
+              <Input
+                placeholder="Search by vendor..."
+                prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                value={vendorSearchQuery}
+                onChange={e => setVendorSearchQuery(e.target.value)}
+                allowClear
+                size="small"
+                style={{ width: '220px' }}
+              />
+            }
+          >
+            <Table
               size="small"
-              pagination={{ pageSize: 4 }}
-              dataSource={vendors_credit_ledger}
+              pagination={{ pageSize: 6 }}
+              dataSource={vendors_credit_ledger.filter(v => v.vendor_name?.toLowerCase().includes(vendorSearchQuery.toLowerCase()))}
               rowKey="vendor_id"
+              scroll={{ x: 'max-content' }}
+              locale={{ emptyText: 'No vendor activity yet.' }}
               columns={[
-                { title: 'Registered Vendor Target', dataIndex: 'vendor_name', key: 'vendor_name', render: (t) => <Text strong>{t}</Text> },
-                { title: 'Pre-Payments Float', dataIndex: 'advance_prepayment_balance', key: 'advance', render: (v) => <Text style={{ color: '#52c41a' }}>{Number(v).toLocaleString()} ETB</Text> },
-                { title: 'Outstanding Debt', dataIndex: 'total_outstanding_debt', key: 'debt', render: (v) => <Text type="danger" strong>{Number(v).toLocaleString()} ETB</Text> },
-                { 
-                  title: 'Cycle Breakdown Status', 
-                  dataIndex: 'settlements_status_metrics', 
-                  key: 'metrics', 
+                { title: 'Vendor', dataIndex: 'vendor_name', key: 'vendor_name', render: (t) => <Text strong>{t}</Text> },
+                { title: 'Your Advance Credit', dataIndex: 'advance_prepayment_balance', key: 'advance', render: (v) => <Text style={{ color: theme.status.good }}>{formatETB(v)}</Text> },
+                { title: 'You Owe', dataIndex: 'total_outstanding_debt', key: 'debt', render: (v) => <Text style={{ color: theme.status.critical }} strong>{formatETB(v)}</Text> },
+                {
+                  title: 'Settlements',
+                  dataIndex: 'settlements_status_metrics',
+                  key: 'metrics',
                   render: (m) => (
-                    <Space size={4}>
-                      <Tag color="red">Unpaid: {m.unpaid}</Tag>
-                      <Tag color="orange">Partial: {m.partial}</Tag>
-                      <Tag color="green">Paid: {m.fully_paid}</Tag>
+                    <Space size={4} wrap>
+                      {statusTag('Unpaid', m.unpaid, 'critical', <CloseCircleOutlined />)}
+                      {statusTag('Partial', m.partial, 'warning', <ClockCircleOutlined />)}
+                      {statusTag('Paid', m.fully_paid, 'good', <CheckCircleOutlined />)}
                     </Space>
-                  ) 
+                  )
                 }
               ]}
             />
-          </Card>
+          </ChartCard>
         </Col>
       </Row>
     </div>

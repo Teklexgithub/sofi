@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Typography, Card, Tag, Space, Button, message } from 'antd';
-import { 
-  CalendarOutlined, 
+import { Table, Typography, Card, Tag, Space, Button, Input, message } from 'antd';
+import {
+  CalendarOutlined,
   EnvironmentOutlined,
   EyeOutlined,
   ShopOutlined, // Fixed missing import
   ThunderboltOutlined,
   DatabaseOutlined,
-  EditOutlined
+  EditOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { inventoryService } from '../../services/inventoryService';
 import dayjs from 'dayjs';
@@ -19,6 +20,7 @@ const { Title, Text } = Typography;
 const ShopStock: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   const fetchStock = async () => {
@@ -151,19 +153,33 @@ const ShopStock: React.FC = () => {
     return acc;
   }, {}));
 
+  const filteredData = (groupedData as any[]).filter(row =>
+    row.branch_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px' }}>
-      <div style={{ marginBottom: 24 }}>
-        <Title level={3} style={{ marginBottom: 4 }}>
-          <ShopOutlined style={{ color: '#714B67' }} /> Daily Shop Inventory
-        </Title>
-        <Text type="secondary">
-          Everything currently in the shop floor, organized by arrival date and location.
-        </Text>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, gap: '16px', flexWrap: 'wrap' }}>
+        <div>
+          <Title level={3} style={{ marginBottom: 4 }}>
+            <ShopOutlined style={{ color: '#714B67' }} /> Daily Shop Inventory
+          </Title>
+          <Text type="secondary">
+            Everything currently in the shop floor, organized by arrival date and location.
+          </Text>
+        </div>
+        <Input
+          placeholder="Search by branch..."
+          prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          allowClear
+          style={{ width: '260px' }}
+        />
       </div>
 
-      <Card 
-        styles={{ body: { padding: 0 } }} 
+      <Card
+        styles={{ body: { padding: 0 } }}
         style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
       >
         <Table
@@ -172,10 +188,11 @@ const ShopStock: React.FC = () => {
             expandedRowRender,
             expandRowByClick: true, // Easier for novices: just click the row!
           }}
-          dataSource={groupedData}
+          dataSource={filteredData}
           loading={loading}
           rowKey="key"
           pagination={{ pageSize: 10 }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
     </div>

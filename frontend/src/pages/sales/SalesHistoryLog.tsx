@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Card, Typography, Button, Space, Input, Divider, Popconfirm, message, Tag, Modal, Descriptions, Row, Col } from 'antd'; 
-import { 
-  SearchOutlined, CalendarOutlined, SafetyCertificateOutlined, 
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Card, Typography, Button, Space, Input, Divider, Popconfirm, message, Tag, Modal, Descriptions, Row, Col } from 'antd';
+import {
+  SearchOutlined, CalendarOutlined, SafetyCertificateOutlined,
   DeleteOutlined, EditOutlined, HistoryOutlined, EyeOutlined,
-  UserOutlined, CheckCircleOutlined 
+  UserOutlined, CheckCircleOutlined, PrinterOutlined
 } from '@ant-design/icons';
+import { useReactToPrint } from 'react-to-print';
 import { useNavigate } from 'react-router-dom';
 import { salesService } from '../../services/salesService';
 import { useAuth } from '../../contexts/AuthContext';
+import DailySessionReport from '../../components/print/DailySessionReport';
 
 const { Text, Title } = Typography;
 
@@ -21,6 +23,9 @@ const SalesHistoryLog: React.FC = () => {
   // --- DETAILS MODAL CONTROLLER STATES ---
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [activeInspectionRecord, setActiveInspectionRecord] = useState<any | null>(null);
+
+  const sessionPrintRef = useRef<HTMLDivElement>(null);
+  const handlePrintSession = useReactToPrint({ contentRef: sessionPrintRef, documentTitle: 'Daily Session Report' });
 
   const loadSessionsFromDatabase = async () => {
     setLoading(true);
@@ -87,11 +92,12 @@ const SalesHistoryLog: React.FC = () => {
           />
         </div>
 
-        <Table 
-          dataSource={getFilteredSessions()} 
-          rowKey="id" 
+        <Table
+          dataSource={getFilteredSessions()}
+          rowKey="id"
           loading={loading}
           bordered
+          scroll={{ x: 'max-content' }}
           columns={[
             {
               title: 'Trading Date',
@@ -186,6 +192,9 @@ const SalesHistoryLog: React.FC = () => {
         open={isDetailsModalOpen}
         onCancel={() => setIsDetailsModalOpen(false)}
         footer={[
+          <Button key="print_btn" icon={<PrinterOutlined />} onClick={() => handlePrintSession()}>
+            Print Report
+          </Button>,
           <Button key="close_btn" type="primary" style={{ background: '#714B67', borderColor: '#714B67' }} onClick={() => setIsDetailsModalOpen(false)}>
             Close Audit View
           </Button>
@@ -374,6 +383,12 @@ const SalesHistoryLog: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      {activeInspectionRecord && (
+        <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+          <DailySessionReport ref={sessionPrintRef} session={activeInspectionRecord} />
+        </div>
+      )}
     </div>
   );
 };
