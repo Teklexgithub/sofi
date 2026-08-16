@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Descriptions, Space, Typography, Tag, Breadcrumb, Popconfirm, message } from 'antd';
 import { EditOutlined, DeleteOutlined, BarChartOutlined, ShopOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import { useTheme } from '../../contexts/ThemeContext';
 // Removed unused Product import to fix "value is never read" error
@@ -13,7 +14,8 @@ const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isDark } = useTheme();
-  
+  const { t } = useTranslation('inventory');
+
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -24,7 +26,7 @@ const ProductDetail: React.FC = () => {
       const response = await inventoryService.getProductDetail(id!);
       setProduct(response.data);
     } catch (error) {
-      message.error("Could not load product details");
+      message.error(t('productDetail.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -37,17 +39,17 @@ const ProductDetail: React.FC = () => {
   const handleDelete = async () => {
     try {
       await inventoryService.deleteProduct(id!);
-      message.success("Product deleted successfully");
+      message.success(t('productDetail.deleteSuccess'));
       navigate('/inventory/products');
     } catch (error) {
-      message.error("Failed to delete product");
+      message.error(t('productDetail.deleteFailed'));
     }
   };
 
   // Fixed the 'danger' prop error here by using type="danger"
   if (!product && !loading) return (
     <div style={{ padding: '40px', textAlign: 'center' }}>
-      <Text type="danger">Product not found</Text> 
+      <Text type="danger">{t('productDetail.notFound')}</Text>
     </div>
   );
 
@@ -56,7 +58,7 @@ const ProductDetail: React.FC = () => {
       <Breadcrumb style={{ marginBottom: '16px' }}>
         <Breadcrumb.Item>
           <span onClick={() => navigate('/inventory/products')} style={{ cursor: 'pointer', color: '#714B67', fontWeight: 500 }}>
-            Products
+            {t('common:fields.products')}
           </span>
         </Breadcrumb.Item>
         <Breadcrumb.Item>{product?.name}</Breadcrumb.Item>
@@ -71,52 +73,52 @@ const ProductDetail: React.FC = () => {
               icon={product?.destination === 'SHOP' ? <ShopOutlined /> : <DatabaseOutlined />} 
               color={product?.destination === 'SHOP' ? 'cyan' : 'blue'}
             >
-              {product?.destination === 'SHOP' ? 'Direct to Shop' : 'Goes to Warehouse'}
+              {product?.destination === 'SHOP' ? t('productDetail.directToShop') : t('productDetail.goesToWarehouse')}
             </Tag>
           </Space>
         </Space>
-        
+
         <Space>
-          <Button 
-            icon={<BarChartOutlined />} 
+          <Button
+            icon={<BarChartOutlined />}
             onClick={() => navigate(product?.destination === 'SHOP' ? `/inventory/shop?product=${id}` : `/inventory/store?product=${id}`)}
           >
-            Check Stock
+            {t('productDetail.checkStock')}
           </Button>
-          <Button 
-            icon={<EditOutlined />} 
-            type="primary" 
-            ghost 
-            onClick={() => setIsEditModalVisible(true)} 
+          <Button
+            icon={<EditOutlined />}
+            type="primary"
+            ghost
+            onClick={() => setIsEditModalVisible(true)}
             style={{ color: '#714B67', borderColor: '#714B67' }}
           >
-            Edit
+            {t('common:actions.edit')}
           </Button>
-          <Popconfirm title="Delete Product?" onConfirm={handleDelete} okText="Yes" cancelText="No">
-            <Button icon={<DeleteOutlined />} danger>Delete</Button>
+          <Popconfirm title={t('productDetail.deleteConfirmTitle')} onConfirm={handleDelete} okText={t('common:actions.yes')} cancelText={t('common:actions.no')}>
+            <Button icon={<DeleteOutlined />} danger>{t('common:actions.delete')}</Button>
           </Popconfirm>
         </Space>
       </div>
 
       <Card loading={loading} style={{ borderRadius: '8px', background: isDark ? '#1f1f1f' : '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-        <Descriptions title="Full Product Specifications" bordered column={2}>
-          <Descriptions.Item label="Product Name" span={2}><strong>{product?.name}</strong></Descriptions.Item>
-          <Descriptions.Item label="Category">{product?.category_display}</Descriptions.Item>
-          <Descriptions.Item label="Primary Vendor">{product?.vendor_name || 'Not Linked'}</Descriptions.Item>
-          
-          <Descriptions.Item label="Inventory Destination" span={2}>
-            {product?.destination === 'SHOP' 
-              ? 'External deliveries for this product bypass the warehouse and go directly to the shop floor.' 
-              : 'External deliveries for this product are stored in the warehouse before being transferred to the shop.'}
+        <Descriptions title={t('productDetail.fullSpecs')} bordered column={2}>
+          <Descriptions.Item label={t('productDetail.productNameLabel')} span={2}><strong>{product?.name}</strong></Descriptions.Item>
+          <Descriptions.Item label={t('common:fields.category')}>{product?.category_display}</Descriptions.Item>
+          <Descriptions.Item label={t('productDetail.primaryVendor')}>{product?.vendor_name || t('productDetail.notLinked')}</Descriptions.Item>
+
+          <Descriptions.Item label={t('productDetail.inventoryDestination')} span={2}>
+            {product?.destination === 'SHOP'
+              ? t('productDetail.destinationShopDesc')
+              : t('productDetail.destinationStoreDesc')}
           </Descriptions.Item>
 
-          <Descriptions.Item label="Pack Multiplier">
-            <Text type="success">{product?.pieces_per_pack} pieces per pack</Text>
+          <Descriptions.Item label={t('productDetail.packMultiplier')}>
+            <Text type="success">{product?.pieces_per_pack} {t('productDetail.piecesPerPack')}</Text>
           </Descriptions.Item>
-          <Descriptions.Item label="Prices (per piece)">
+          <Descriptions.Item label={t('productDetail.pricesPerPiece')}>
              <Space direction="vertical">
-               <Text>Buy: <span style={{ fontWeight: 600 }}>ETB {product?.buying_price_per_piece}</span></Text>
-               <Text>Sell: <span style={{ fontWeight: 600 }}>ETB {product?.selling_price_per_piece}</span></Text>
+               <Text>{t('productDetail.buy')}: <span style={{ fontWeight: 600 }}>{t('common:units.etb')} {product?.buying_price_per_piece}</span></Text>
+               <Text>{t('productDetail.sell')}: <span style={{ fontWeight: 600 }}>{t('common:units.etb')} {product?.selling_price_per_piece}</span></Text>
              </Space>
           </Descriptions.Item>
         </Descriptions>

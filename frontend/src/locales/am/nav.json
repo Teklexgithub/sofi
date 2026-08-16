@@ -1,0 +1,57 @@
+{
+  "apps": {
+    "inventory": "ክምችት",
+    "sales": "ሽያጭ",
+    "employee": "ሰራተኛ",
+    "dashboard": "ትንተና",
+    "settings": "ቅንብሮች"
+  },
+  "headerTitle": {
+    "inventory": "ክምችት",
+    "sales": "ሽያጭ",
+    "employee": "ሰራተኛ",
+    "settings": "ቅንብሮች",
+    "analytics": "የትንተና ዳሽቦርድ",
+    "default": "ሶፊያ ERP"
+  },
+  "inventory": {
+    "stockLevels": "የክምችት መጠን",
+    "storeStock": "የመጋዘን ክምችት (ጥቅሎች)",
+    "shopStock": "የሱቅ ክምችት (ቁርጥራጮች)",
+    "masterData": "ዋና ውሂብ",
+    "products": "ምርቶች",
+    "vendors": "አቅራቢዎች",
+    "operations": "ስራዎች",
+    "vendorDeliveries": "የአቅራቢ አቅርቦቶች",
+    "storeToShopRefills": "ከመጋዘን ወደ ሱቅ ማዘዋወሪያ"
+  },
+  "sales": {
+    "dailySessions": "የቀን ስራ",
+    "dailyWorksheet": "የቀን ስራ ሉህ",
+    "salesHistory": "የሽያጭ ታሪክ",
+    "vendorSettlements": "የአቅራቢ ክፍያ ማስተካከያ",
+    "digitalAccounts": "ዲጂታል አካውንቶች",
+    "bankAccounts": "የባንክ አካውንቶች",
+    "journalAdjustments": "የመዝገብ ማስተካከያ",
+    "shortagesLedger": "የጉድለት መዝገብ"
+  },
+  "employee": {
+    "employees": "ሰራተኞች",
+    "advancesFines": "ቅድሚያ ክፍያ እና ቅጣት",
+    "issueAdvanceFine": "ቅድሚያ ክፍያ/ቅጣት መዝግብ",
+    "ledgerHistory": "የመዝገብ ታሪክ",
+    "payslipsRun": "የደመወዝ ክፍያ",
+    "executePayout": "ክፍያ ፈጽም",
+    "payslipHistory": "የደመወዝ ክፍያ ታሪክ"
+  },
+  "settings": {
+    "configuration": "ማዋቀሪያ",
+    "users": "ተጠቃሚዎች",
+    "branches": "ቅርንጫፎች"
+  },
+  "user": {
+    "darkMode": "ጨለማ ገጽታ",
+    "language": "ቋንቋ",
+    "logout": "ውጣ"
+  }
+}

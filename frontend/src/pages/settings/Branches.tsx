@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Space, Typography, Card, Input, message } from 'antd';
 import { PlusOutlined, ReloadOutlined, ShopOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { settingsService } from '../../services/settingsService';
 import { useTheme } from '../../contexts/ThemeContext';
 import type { Branch } from '../../types/settings';
@@ -10,6 +11,7 @@ import CreateBranchModal from './CreateBranchModal';
 const { Title } = Typography;
 
 const Branches: React.FC = () => {
+  const { t } = useTranslation('settings');
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -23,7 +25,7 @@ const Branches: React.FC = () => {
       const response = await settingsService.getBranches();
       setBranches(response.data);
     } catch (error) {
-      message.error("Failed to load branches");
+      message.error(t('common:messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -37,16 +39,16 @@ const Branches: React.FC = () => {
   });
 
   const columns = [
-    { 
-      title: 'Branch Name', 
-      dataIndex: 'name', 
+    {
+      title: t('branches.columns.name'),
+      dataIndex: 'name',
       key: 'name',
       render: (text: string, record: Branch) => (
         <Space>
           <ShopOutlined style={{ color: '#714B67' }} />
-          <Button 
-            type="link" 
-            onClick={() => navigate(`/settings/branches/${record.id}`)} 
+          <Button
+            type="link"
+            onClick={() => navigate(`/settings/branches/${record.id}`)}
             style={{ padding: 0, fontWeight: 'bold' }}
           >
             {text}
@@ -54,12 +56,12 @@ const Branches: React.FC = () => {
         </Space>
       )
     },
-    { title: 'Location', dataIndex: 'location', key: 'location' },
+    { title: t('common:fields.location'), dataIndex: 'location', key: 'location' },
     {
-      title: 'Action',
+      title: t('common:fields.action'),
       key: 'action',
       render: (_: any, record: Branch) => (
-        <Button type="link" onClick={() => navigate(`/settings/branches/${record.id}`)}>Manage</Button>
+        <Button type="link" onClick={() => navigate(`/settings/branches/${record.id}`)}>{t('common:actions.manage')}</Button>
       ),
     },
   ];
@@ -67,10 +69,10 @@ const Branches: React.FC = () => {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
-        <Title level={3} style={{ margin: 0 }}>Branches</Title>
+        <Title level={3} style={{ margin: 0 }}>{t('branches.title')}</Title>
         <Space>
           <Input
-            placeholder="Search by branch or location..."
+            placeholder={t('branches.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -84,7 +86,7 @@ const Branches: React.FC = () => {
             onClick={() => setIsModalVisible(true)}
             style={{ background: '#714B67', border: 'none' }}
           >
-            Create Branch
+            {t('branches.createButton')}
           </Button>
         </Space>
       </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Descriptions, Tag, Button, Space, Typography, Breadcrumb, message, Spin } from 'antd';
 import { EditOutlined, HistoryOutlined, ShopOutlined, InboxOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -18,7 +19,8 @@ const StockDetail: React.FC<StockDetailProps> = ({ type }) => {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const { user } = useAuth();
-  
+  const { t } = useTranslation('inventory');
+
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isAdjustModalVisible, setIsAdjustModalVisible] = useState(false);
@@ -30,12 +32,12 @@ const StockDetail: React.FC<StockDetailProps> = ({ type }) => {
     if (!id) return;
     setLoading(true);
     try {
-      const res = type === 'store' 
-        ? await inventoryService.getStoreStockDetail(id) 
+      const res = type === 'store'
+        ? await inventoryService.getStoreStockDetail(id)
         : await inventoryService.getShopStockDetail(id);
       setData(res.data);
     } catch (e) {
-      message.error("Failed to load stock details");
+      message.error(t('stockDetail.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -52,20 +54,20 @@ const StockDetail: React.FC<StockDetailProps> = ({ type }) => {
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '50px' }}><Spin size="large" /></div>;
-  if (!data) return <div style={{ padding: '50px', textAlign: 'center' }}><Text type="danger">Stock record not found.</Text></div>;
+  if (!data) return <div style={{ padding: '50px', textAlign: 'center' }}><Text type="danger">{t('stockDetail.notFound')}</Text></div>;
 
   const currentQuantity = type === 'store' ? data.quantity_in_packs : data.quantity_in_pieces;
-  const unitLabel = type === 'store' ? 'Packs' : 'Pieces';
+  const unitLabel = type === 'store' ? t('common:units.packs') : t('common:units.pieces');
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
       <Breadcrumb style={{ marginBottom: '16px' }}>
         <Breadcrumb.Item>
-          <span 
-            onClick={() => navigate(type === 'store' ? '/inventory/store' : '/inventory/shop')} 
+          <span
+            onClick={() => navigate(type === 'store' ? '/inventory/store' : '/inventory/shop')}
             style={{ cursor: 'pointer', color: '#714B67', fontWeight: '500' }}
           >
-            {type === 'store' ? 'Store Stock' : 'Shop Stock'}
+            {type === 'store' ? t('stockDetail.storeStockBreadcrumb') : t('stockDetail.shopStockBreadcrumb')}
           </span>
         </Breadcrumb.Item>
         <Breadcrumb.Item>{data.product_name}</Breadcrumb.Item>
@@ -81,23 +83,23 @@ const StockDetail: React.FC<StockDetailProps> = ({ type }) => {
             )}
             {data.product_name}
           </Title>
-          <Text type="secondary">Full audit and adjustment view for this location</Text>
+          <Text type="secondary">{t('stockDetail.subtitle')}</Text>
         </Space>
-        
+
         <Space>
           <Button icon={<HistoryOutlined />} onClick={handleMovementLogs}>
-            Movement Logs
+            {t('stockDetail.movementLogs')}
           </Button>
 
           {/* Logic: Button only renders for Admins */}
           {isAdmin && (
-            <Button 
-              type="primary" 
-              icon={<EditOutlined />} 
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
               style={{ background: '#714B67', border: 'none' }}
               onClick={() => setIsAdjustModalVisible(true)}
             >
-              Adjust {unitLabel}
+              {t('stockDetail.adjustButton', { unit: unitLabel })}
             </Button>
           )}
         </Space>
@@ -105,29 +107,29 @@ const StockDetail: React.FC<StockDetailProps> = ({ type }) => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <Card style={{ borderRadius: '8px', background: isDark ? '#1f1f1f' : '#fff' }}>
-          <Descriptions title="Current Levels" column={1} bordered>
-            <Descriptions.Item label="Quantity">
+          <Descriptions title={t('stockDetail.currentLevels')} column={1} bordered>
+            <Descriptions.Item label={t('common:fields.quantity')}>
               <Text strong style={{ fontSize: '20px', color: '#714B67' }}>
                 {currentQuantity} {unitLabel}
               </Text>
             </Descriptions.Item>
-            <Descriptions.Item label="Status">
+            <Descriptions.Item label={t('common:fields.status')}>
               <Tag color={currentQuantity > 0 ? 'green' : 'red'}>
-                {currentQuantity > 0 ? 'In Stock' : 'Out of Stock'}
+                {currentQuantity > 0 ? t('stockDetail.inStock') : t('stockDetail.outOfStock')}
               </Tag>
             </Descriptions.Item>
           </Descriptions>
         </Card>
 
         <Card style={{ borderRadius: '8px', background: isDark ? '#1f1f1f' : '#fff' }}>
-          <Descriptions title="Location Info" column={1} bordered>
-            <Descriptions.Item label="Branch">
+          <Descriptions title={t('stockDetail.locationInfo')} column={1} bordered>
+            <Descriptions.Item label={t('common:fields.branch')}>
                <Tag color="blue" style={{ fontWeight: 'bold' }}>
-                 {data.branch_name || 'Main Warehouse'}
+                 {data.branch_name || t('stockDetail.mainWarehouse')}
                </Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Inventory Type">
-               {type === 'store' ? 'Bulk Storage (Unopened)' : 'Retail Display (Ready for Sale)'}
+            <Descriptions.Item label={t('stockDetail.inventoryType')}>
+               {type === 'store' ? t('stockDetail.bulkStorage') : t('stockDetail.retailDisplay')}
             </Descriptions.Item>
           </Descriptions>
         </Card>

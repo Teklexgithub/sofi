@@ -9,6 +9,7 @@ import {
   EditOutlined,
   SearchOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import { useTheme } from '../../contexts/ThemeContext';
 import dayjs from 'dayjs';
@@ -24,6 +25,7 @@ const StoreStock: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { isDark } = useTheme();
   const navigate = useNavigate();
+  const { t } = useTranslation('inventory');
 
   const fetchStoreStock = async () => {
     setLoading(true);
@@ -31,7 +33,7 @@ const StoreStock: React.FC = () => {
       const res = await inventoryService.getStoreStock();
       setData(res.data);
     } catch (e) {
-      message.error("Failed to load store inventory");
+      message.error(t('storeStock.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -44,48 +46,48 @@ const StoreStock: React.FC = () => {
   // --- NESTED TABLE: Shows bulk products (Packs) inside that Branch Store ---
   const expandedRowRender = (record: any) => {
     const subColumns = [
-      { 
-        title: 'Product Name', 
-        dataIndex: 'product_name', 
+      {
+        title: t('storeStock.columns.productName'),
+        dataIndex: 'product_name',
         key: 'name',
         render: (text: string) => <Text strong>{text}</Text>
       },
-      { 
-        title: 'Category', 
-        dataIndex: 'category_display', 
+      {
+        title: t('common:fields.category'),
+        dataIndex: 'category_display',
         key: 'category',
         render: (cat: string) => <Tag>{cat}</Tag>
       },
-      { 
-        title: 'Current Inventory', 
-        dataIndex: 'quantity_in_packs', 
+      {
+        title: t('storeStock.columns.currentInventory'),
+        dataIndex: 'quantity_in_packs',
         key: 'qty',
         render: (q: number) => (
           <Tag color={q > 10 ? 'blue' : 'orange'} style={{ fontWeight: 'bold' }}>
-            {q} Full Packs
+            {t('storeStock.columns.fullPacks', { count: q })}
           </Tag>
-        ) 
+        )
       },
       {
-        title: 'Last Activity',
+        title: t('storeStock.columns.lastActivity'),
         dataIndex: 'last_updated',
         key: 'updated',
         render: (date: string) => dayjs(date).format('MMM DD, HH:mm')
       },
 
       {
-        title: 'Action',
+        title: t('common:fields.action'),
         key: 'adjust',
         render: (record: any) => (
-          <Button 
-            type="link" 
-            icon={<EditOutlined />} 
+          <Button
+            type="link"
+            icon={<EditOutlined />}
             onClick={(e) => {
               e.stopPropagation(); // Prevent row collapse
               navigate(`/inventory/stock/store/${record.id}`);
             }}
           >
-            View & Adjust
+            {t('storeStock.viewAndAdjust')}
           </Button>
         )
       }
@@ -109,26 +111,26 @@ const StoreStock: React.FC = () => {
   // --- MAIN TABLE COLUMNS: The Branch Summary ---
   const mainColumns = [
     {
-      title: 'Warehouse Location',
+      title: t('storeStock.columns.warehouseLocation'),
       dataIndex: 'branch_name',
       key: 'branch',
       render: (name: string) => (
         <Space>
           <EnvironmentOutlined style={{ color: '#714B67' }} />
-          <Text strong style={{ fontSize: '16px' }}>{name} Warehouse</Text>
+          <Text strong style={{ fontSize: '16px' }}>{t('storeStock.columns.warehouseSuffix', { name })}</Text>
         </Space>
       )
     },
     {
-      title: 'Total Categories',
+      title: t('storeStock.columns.totalCategories'),
       dataIndex: 'item_count',
       key: 'count',
-      render: (count: number) => <Tag color="purple">{count} Product Types</Tag>
+      render: (count: number) => <Tag color="purple">{t('storeStock.columns.productTypes', { count })}</Tag>
     },
     {
-      title: 'Action',
+      title: t('common:fields.action'),
       key: 'action',
-      render: () => <Button type="link" icon={<EyeOutlined />} style={{ color: '#714B67' }}>Manage Store Items</Button>
+      render: () => <Button type="link" icon={<EyeOutlined />} style={{ color: '#714B67' }}>{t('storeStock.manageItems')}</Button>
     }
   ];
 
@@ -156,22 +158,22 @@ const StoreStock: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, gap: '16px', flexWrap: 'wrap' }}>
         <div>
           <Title level={3} style={{ marginBottom: 4 }}>
-            <DatabaseOutlined style={{ color: '#714B67' }} /> Store Inventory (Bulk)
+            <DatabaseOutlined style={{ color: '#714B67' }} /> {t('storeStock.title')}
           </Title>
           <Text type="secondary">
-            Warehouse stock levels tracked in full packs and crates.
+            {t('storeStock.subtitle')}
           </Text>
         </div>
         <Space>
           <Input
-            placeholder="Search by branch..."
+            placeholder={t('storeStock.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             allowClear
             style={{ width: '220px' }}
           />
-          <Button icon={<HistoryOutlined />} onClick={() => fetchStoreStock()}>Refresh Levels</Button>
+          <Button icon={<HistoryOutlined />} onClick={() => fetchStoreStock()}>{t('storeStock.refreshLevels')}</Button>
         </Space>
       </div>
 
@@ -201,7 +203,7 @@ const StoreStock: React.FC = () => {
       <div style={{ marginTop: 20, display: 'flex', gap: '10px', alignItems: 'center' }}>
         <BlockOutlined style={{ color: '#888' }} />
         <Text type="secondary" style={{ fontSize: '12px' }}>
-          Items in the Store are stored as bulk packaging and must be <b>Internal Transferred</b> to appear in Shop Stock.
+          {t('storeStock.footerPrefix')} <b>{t('storeStock.footerBold')}</b> {t('storeStock.footerSuffix')}
         </Text>
       </div>
     </div>

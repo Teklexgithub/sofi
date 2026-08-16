@@ -9,6 +9,7 @@ import {
   DollarCircleOutlined, PrinterOutlined, TruckOutlined
 } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
+import { useTranslation, Trans } from 'react-i18next';
 import dayjs from 'dayjs';
 import { inventoryService } from '../../services/inventoryService';
 import { salesService } from '../../services/salesService';
@@ -39,6 +40,7 @@ interface WorksheetPayload {
 }
 
 export const VendorSettlements: React.FC = () => {
+  const { t } = useTranslation('sales');
   const [vendors, setVendors] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<string>('1');
   const [loading, setLoading] = useState<boolean>(false);
@@ -93,7 +95,7 @@ export const VendorSettlements: React.FC = () => {
         setVendors([]);
       }
     } catch (error) {
-      message.error("Failed to load vendors registry");
+      message.error(t('vendorSettlements.messages.loadVendorsFailed'));
     } finally {
       setLoading(false);
     }
@@ -106,7 +108,7 @@ export const VendorSettlements: React.FC = () => {
       const res = await salesService.getSettlements(selectedVendor);
       setHistoricalSettlements(res.data || []);
     } catch (err) {
-      message.error("Failed to sync vendor's master history log file");
+      message.error(t('vendorSettlements.messages.loadHistoryFailed'));
     } finally {
       setLoading(false);
     }
@@ -114,19 +116,19 @@ export const VendorSettlements: React.FC = () => {
 
   const handleGenerateStatement = async () => {
     if (!selectedVendor || !dateRange) {
-      return message.warning('Please select both a vendor node and a date range configuration');
+      return message.warning(t('vendorSettlements.messages.selectVendorAndRange'));
     }
     setLoading(true);
     try {
       const startStr = dateRange[0].format('YYYY-MM-DD');
       const endStr = dateRange[1].format('YYYY-MM-DD');
-      
+
       const res = await salesService.getStatementWorksheet(selectedVendor, startStr, endStr);
       setWorksheetData(res.data);
-      setAmountHandedOver(res.data.net_balance_due); 
-      message.success('Statement worksheet metrics compiled successfully.');
+      setAmountHandedOver(res.data.net_balance_due);
+      message.success(t('vendorSettlements.messages.statementCompiled'));
     } catch (err) {
-      message.error('Error computing statement worksheet profiles.');
+      message.error(t('vendorSettlements.messages.statementFailed'));
     } finally {
       setLoading(false);
     }
@@ -147,12 +149,12 @@ export const VendorSettlements: React.FC = () => {
         amount_handed_over: amountHandedOver
       });
 
-      message.success('Vendor settlement processed and logged successfully!');
+      message.success(t('vendorSettlements.messages.settlementSuccess'));
 
       setPrintSettlement(res.data);
       setShowVoucherModal(true);
     } catch (err) {
-      message.error('Failed to submit settlement entry validation');
+      message.error(t('vendorSettlements.messages.settlementFailed'));
     } finally {
       setLoading(false);
     }
@@ -173,7 +175,7 @@ export const VendorSettlements: React.FC = () => {
 
   const handleGenerateDeliveryReport = async () => {
     if (!deliveryVendor || !deliveryDateRange) {
-      return message.warning('Please select both a vendor and a date range');
+      return message.warning(t('vendorSettlements.messages.selectVendorAndRangeShort'));
     }
     setDeliveryLoading(true);
     try {
@@ -182,95 +184,95 @@ export const VendorSettlements: React.FC = () => {
       const res = await inventoryService.getVendorDeliveryReport(deliveryVendor, startStr, endStr);
       setDeliveryRows(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      message.error('Failed to load vendor delivery report');
+      message.error(t('vendorSettlements.messages.deliveryReportFailed'));
     } finally {
       setDeliveryLoading(false);
     }
   };
 
   const columns = [
-    { 
-      title: 'Date Received', 
-      dataIndex: 'date_received', 
-      render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm') 
+    {
+      title: t('vendorSettlements.columns.dateReceived'),
+      dataIndex: 'date_received',
+      render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm')
     },
-    { 
-      title: 'Product', 
-      dataIndex: 'product_name', 
+    {
+      title: t('common:fields.product'),
+      dataIndex: 'product_name',
     },
-    { 
-      title: 'Packs Rec.', 
-      dataIndex: 'packs_received', 
+    {
+      title: t('vendorSettlements.columns.packsReceived'),
+      dataIndex: 'packs_received',
       align: 'right' as const,
-      render: (v: number) => <Text strong>{v} Packs</Text>
+      render: (v: number) => <Text strong>{v} {t('common:units.packs')}</Text>
     },
-    { 
-      title: 'Converted Pieces', 
-      dataIndex: 'calculated_pieces_count', 
+    {
+      title: t('vendorSettlements.columns.convertedPieces'),
+      dataIndex: 'calculated_pieces_count',
       align: 'right' as const,
     },
-    { 
-      title: 'Unit Buy Price', 
-      dataIndex: 'buying_price_unit', 
-      align: 'right' as const, 
-      render: (v: number) => `${Number(v).toFixed(2)} ETB`
+    {
+      title: t('vendorSettlements.columns.unitBuyPrice'),
+      dataIndex: 'buying_price_unit',
+      align: 'right' as const,
+      render: (v: number) => `${Number(v).toFixed(2)} ${t('common:units.etb')}`
     },
-    { 
-      title: 'Subtotal Cost', 
-      dataIndex: 'calculated_row_subtotal', 
-      align: 'right' as const, 
-      render: (v: number) => <Text type="danger" strong>{Number(v).toFixed(2)} ETB</Text>
+    {
+      title: t('vendorSettlements.columns.subtotalCost'),
+      dataIndex: 'calculated_row_subtotal',
+      align: 'right' as const,
+      render: (v: number) => <Text type="danger" strong>{Number(v).toFixed(2)} {t('common:units.etb')}</Text>
     },
   ];
 
   const historyColumns = [
     {
-      title: 'Settlement ID Reference',
+      title: t('vendorSettlements.historyColumns.settlementId'),
       dataIndex: 'id',
       render: (id: string) => <Tag color="purple" style={{ fontFamily: 'monospace', fontSize: '13px' }}>#{id.substring(0, 8).toUpperCase()}</Tag>
     },
     {
-      title: 'Date Finalized',
+      title: t('vendorSettlements.historyColumns.dateFinalized'),
       dataIndex: 'created_at',
       render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm')
     },
     {
-      title: 'Total Batch Cost',
+      title: t('vendorSettlements.historyColumns.totalBatchCost'),
       dataIndex: 'total_batch_cost',
       align: 'right' as const,
-      render: (v: number) => <Text strong>{Number(v).toFixed(2)} ETB</Text>
+      render: (v: number) => <Text strong>{Number(v).toFixed(2)} {t('common:units.etb')}</Text>
     },
     {
-      title: 'Amount Paid Total',
+      title: t('vendorSettlements.historyColumns.amountPaidTotal'),
       dataIndex: 'amount_paid_total',
       align: 'right' as const,
-      render: (v: number) => <Text style={{ color: '#52c41a' }} strong>{Number(v).toFixed(2)} ETB</Text>
+      render: (v: number) => <Text style={{ color: '#52c41a' }} strong>{Number(v).toFixed(2)} {t('common:units.etb')}</Text>
     },
     {
-      title: 'Remaining Debt',
+      title: t('vendorSettlements.historyColumns.remainingDebt'),
       dataIndex: 'remaining_debt',
       align: 'right' as const,
-      render: (v: number) => Number(v) > 0 
-        ? <Text type="danger" strong>{Number(v).toFixed(2)} ETB</Text>
-        : <Text type="secondary">0.00 ETB</Text>
+      render: (v: number) => Number(v) > 0
+        ? <Text type="danger" strong>{Number(v).toFixed(2)} {t('common:units.etb')}</Text>
+        : <Text type="secondary">0.00 {t('common:units.etb')}</Text>
     },
     {
-      title: 'Payment Status',
+      title: t('common:fields.status'),
       dataIndex: 'payment_status',
       align: 'center' as const,
       render: (status: string) => {
-        if (status === 'FULL') return <Tag color="success" style={{ fontWeight: 600 }}>FULLY PAID</Tag>;
-        if (status === 'PARTIAL') return <Tag color="warning" style={{ fontWeight: 600 }}>PARTIALLY PAID</Tag>;
-        return <Tag color="error" style={{ fontWeight: 600 }}>UNPAID</Tag>;
+        if (status === 'FULL') return <Tag color="success" style={{ fontWeight: 600 }}>{t('common:status.fullyPaid')}</Tag>;
+        if (status === 'PARTIAL') return <Tag color="warning" style={{ fontWeight: 600 }}>{t('common:status.partial')}</Tag>;
+        return <Tag color="error" style={{ fontWeight: 600 }}>{t('common:status.unpaid')}</Tag>;
       }
     },
     {
-      title: 'Voucher',
+      title: t('vendorSettlements.historyColumns.voucher'),
       key: 'print_action',
       align: 'center' as const,
       render: (_: any, record: any) => (
         <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrintHistoryRow(record)}>
-          Print
+          {t('common:actions.print')}
         </Button>
       )
     }
@@ -279,35 +281,35 @@ export const VendorSettlements: React.FC = () => {
   // --- 🌟 SIMPLIFIED AUDIT EXPANSION: FULL WIDTH PAYMENT HISTORIES ONLY 🌟 ---
   const expandedRowRender = (record: any) => {
     const installmentColumns = [
-      { 
-        title: 'Paid At Timestamp', 
-        dataIndex: 'paid_at', 
-        render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm') 
+      {
+        title: t('vendorSettlements.installments.paidAt'),
+        dataIndex: 'paid_at',
+        render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm')
       },
-      { 
-        title: 'Physical Cash Handed Over', 
-        dataIndex: 'amount_handed_over', 
-        align: 'right' as const, 
-        render: (v: any) => <Text strong>{Number(v).toFixed(2)} ETB</Text> 
+      {
+        title: t('vendorSettlements.installments.cashHandedOver'),
+        dataIndex: 'amount_handed_over',
+        align: 'right' as const,
+        render: (v: any) => <Text strong>{Number(v).toFixed(2)} {t('common:units.etb')}</Text>
       },
-      { 
-        title: 'Advance Surplus Created', 
-        dataIndex: 'advance_amount_created', 
-        align: 'right' as const, 
-        render: (v: any) => Number(v) > 0 ? <Text type="success" strong>+{Number(v).toFixed(2)} ETB</Text> : <Text type="secondary">0.00</Text> 
+      {
+        title: t('vendorSettlements.installments.advanceCreated'),
+        dataIndex: 'advance_amount_created',
+        align: 'right' as const,
+        render: (v: any) => Number(v) > 0 ? <Text type="success" strong>+{Number(v).toFixed(2)} {t('common:units.etb')}</Text> : <Text type="secondary">0.00</Text>
       },
-      { 
-        title: 'Advance Spent From Past', 
-        dataIndex: 'advance_used_from_past', 
-        align: 'right' as const, 
-        render: (v: any) => Number(v) > 0 ? <Text type="warning" strong>-{Number(v).toFixed(2)} ETB</Text> : <Text type="secondary">0.00</Text> 
+      {
+        title: t('vendorSettlements.installments.advanceSpent'),
+        dataIndex: 'advance_used_from_past',
+        align: 'right' as const,
+        render: (v: any) => Number(v) > 0 ? <Text type="warning" strong>-{Number(v).toFixed(2)} {t('common:units.etb')}</Text> : <Text type="secondary">0.00</Text>
       },
     ];
 
     return (
       <div style={{ padding: '16px 24px', background: '#fafafa', borderRadius: '6px', border: '1px solid #e8e8e8' }}>
         <div style={{ marginBottom: '10px', fontWeight: 600, color: '#555', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <DollarCircleOutlined style={{ color: '#714B67' }} /> Payout Installment Audit Trail Log
+          <DollarCircleOutlined style={{ color: '#714B67' }} /> {t('vendorSettlements.installments.title')}
         </div>
         <Table 
           columns={installmentColumns} 
@@ -354,19 +356,19 @@ export const VendorSettlements: React.FC = () => {
     <div style={{ maxWidth: '1250px', margin: '0 auto', padding: '24px' }}>
       <div>
         <Title level={2} style={{ color: '#714B67', marginBottom: '24px', fontWeight: 700, letterSpacing: '-0.5px' }}>
-          Wholesale Vendor Settlements Hub
+          {t('vendorSettlements.title')}
         </Title>
-        
+
         {/* --- CUSTOM NAVIGATION TAB BUTTON LINKS --- */}
         <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center' }}>
           <button onClick={() => setActiveTab('1')} style={getTabButtonStyle('1')}>
-            <FileTextOutlined /> Vendor Statements Workspace
+            <FileTextOutlined /> {t('vendorSettlements.tabs.statement')}
           </button>
           <button onClick={() => setActiveTab('2')} style={getTabButtonStyle('2')}>
-            <HistoryOutlined /> Payment History Log
+            <HistoryOutlined /> {t('vendorSettlements.tabs.history')}
           </button>
           <button onClick={() => setActiveTab('3')} style={getTabButtonStyle('3')}>
-            <TruckOutlined /> Delivery Report
+            <TruckOutlined /> {t('vendorSettlements.tabs.delivery')}
           </button>
         </div>
       </div>
@@ -378,10 +380,10 @@ export const VendorSettlements: React.FC = () => {
             <Card bordered={false} style={{ background: '#fcfcfc', borderRadius: '8px', marginBottom: '24px', border: '1px solid #f0f0f0' }}>
               <Row gutter={24} align="bottom">
                 <Col xs={24} md={8}>
-                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>Vendor</div>
+                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>{t('common:fields.vendor')}</div>
                   <Select
                     style={{ width: '100%' }}
-                    placeholder="Select Target Location / Vendor Node"
+                    placeholder={t('vendorSettlements.selectVendorPlaceholder')}
                     value={selectedVendor}
                     onChange={(val: string | null) => setSelectedVendor(val)}
                     size="large"
@@ -390,25 +392,25 @@ export const VendorSettlements: React.FC = () => {
                   </Select>
                 </Col>
                 <Col xs={24} md={10}>
-                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>Date Selection Window</div>
-                  <RangePicker 
-                    style={{ width: '100%' }} 
+                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>{t('vendorSettlements.dateSelectionWindowLabel')}</div>
+                  <RangePicker
+                    style={{ width: '100%' }}
                     value={dateRange}
                     onChange={(dates: any) => setDateRange(dates || null)}
                     size="large"
                   />
                 </Col>
                 <Col xs={24} md={6}>
-                  <Button 
-                    type="primary" 
-                    icon={<SearchOutlined />} 
+                  <Button
+                    type="primary"
+                    icon={<SearchOutlined />}
                     onClick={handleGenerateStatement}
                     loading={loading}
                     block
                     size="large"
                     style={{ backgroundColor: '#714B67', borderColor: '#714B67', borderRadius: '6px', fontWeight: 500 }}
                   >
-                    Generate Worksheet
+                    {t('vendorSettlements.generateWorksheetBtn')}
                   </Button>
                 </Col>
               </Row>
@@ -419,24 +421,24 @@ export const VendorSettlements: React.FC = () => {
                 <Row gutter={16} style={{ marginBottom: '24px' }}>
                   <Col span={8}>
                     <Card bordered={false} style={{ background: '#f9f9f9', textAlign: 'center', borderRadius: '8px', border: '1px solid #eee' }}>
-                      <Statistic title="Calculated Gross Batch Cost" value={worksheetData.calculated_batch_cost} precision={2} suffix="ETB" valueStyle={{ fontWeight: 'bold', color: '#444' }} />
+                      <Statistic title={t('vendorSettlements.stats.grossBatchCost')} value={worksheetData.calculated_batch_cost} precision={2} suffix={t('common:units.etb')} valueStyle={{ fontWeight: 'bold', color: '#444' }} />
                     </Card>
                   </Col>
                   <Col span={8} hidden={worksheetData.available_past_advance <= 0}>
                     <Card bordered={false} style={{ background: '#fff1f0', textAlign: 'center', borderRadius: '8px', border: '1px solid #ffa39e' }}>
-                      <Statistic title="Applied Past Advance Credits" value={worksheetData.available_past_advance} precision={2} suffix="ETB" valueStyle={{ fontWeight: 'bold', color: '#cf1322' }} />
+                      <Statistic title={t('vendorSettlements.stats.pastAdvance')} value={worksheetData.available_past_advance} precision={2} suffix={t('common:units.etb')} valueStyle={{ fontWeight: 'bold', color: '#cf1322' }} />
                     </Card>
                   </Col>
                   <Col span={worksheetData.available_past_advance > 0 ? 8 : 16}>
                     <Card bordered={false} style={{ background: '#f6ffed', textAlign: 'center', borderRadius: '8px', border: '1px solid #b7eb8f' }}>
-                      <Statistic title="Net Balance Due Now" value={worksheetData.net_balance_due} precision={2} suffix="ETB" valueStyle={{ fontWeight: 'bold', color: '#3f8600' }} />
+                      <Statistic title={t('vendorSettlements.stats.netBalanceDue')} value={worksheetData.net_balance_due} precision={2} suffix={t('common:units.etb')} valueStyle={{ fontWeight: 'bold', color: '#3f8600' }} />
                     </Card>
                   </Col>
                 </Row>
 
                 <Row gutter={24}>
                   <Col lg={16} xs={24}>
-                    <Card title="Unpaid Delivery Log Rows Found" bodyStyle={{ padding: 0 }} style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                    <Card title={t('vendorSettlements.unpaidDeliveriesTitle')} bodyStyle={{ padding: 0 }} style={{ borderRadius: '8px', overflow: 'hidden' }}>
                       <Table
                         dataSource={worksheetData.itemized_deliveries}
                         rowKey="id"
@@ -448,8 +450,8 @@ export const VendorSettlements: React.FC = () => {
                   </Col>
 
                   <Col lg={8} xs={24}>
-                    <Card title="Reconciliation Posting" style={{ borderRadius: '8px' }}>
-                      <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>Actual Cash Handed Over (ETB):</div>
+                    <Card title={t('vendorSettlements.reconciliationTitle')} style={{ borderRadius: '8px' }}>
+                      <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>{t('vendorSettlements.actualCashHandedLabel', { unit: t('common:units.etb') })}</div>
                       <InputNumber
                         style={{ width: '100%', marginBottom: 16 }}
                         size="large"
@@ -460,20 +462,26 @@ export const VendorSettlements: React.FC = () => {
 
                       {amountHandedOver > worksheetData.net_balance_due && (
                         <Tag color="blue" style={{ width: '100%', padding: '10px', marginBottom: 16, whiteSpace: 'normal', borderRadius: '4px' }}>
-                          <InfoCircleOutlined /> An extra <b>{(amountHandedOver - worksheetData.net_balance_due).toFixed(2)} ETB</b> will be allocated as an advance credit for future supply cycles.
+                          <InfoCircleOutlined />{' '}
+                          <Trans
+                            t={t}
+                            i18nKey="vendorSettlements.advanceCreditNotice"
+                            values={{ amount: (amountHandedOver - worksheetData.net_balance_due).toFixed(2), unit: t('common:units.etb') }}
+                            components={{ b: <b /> }}
+                          />
                         </Tag>
                       )}
 
-                      <Button 
-                        type="primary" 
-                        block 
+                      <Button
+                        type="primary"
+                        block
                         size="large"
                         icon={<CheckCircleOutlined />}
                         onClick={handlePostSettlement}
                         loading={loading}
                         style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', borderRadius: '6px', height: '45px', fontWeight: 600 }}
                       >
-                        Post & Save Settlement
+                        {t('vendorSettlements.postSettlementBtn')}
                       </Button>
                     </Card>
                   </Col>
@@ -482,7 +490,7 @@ export const VendorSettlements: React.FC = () => {
             ) : (
               <div style={{ textAlign: 'center', padding: '80px 0', background: '#fff', border: '1px solid #e8e8e8', borderRadius: '8px' }}>
                 <InfoCircleOutlined style={{ fontSize: '32px', marginBottom: '16px', color: '#714B67' }} />
-                <div style={{ color: '#666', fontSize: '16px' }}>Select both vendor and date interval to load the active statement worksheet.</div>
+                <div style={{ color: '#666', fontSize: '16px' }}>{t('vendorSettlements.emptyStatement')}</div>
               </div>
             )}
           </div>
@@ -494,10 +502,10 @@ export const VendorSettlements: React.FC = () => {
             <Card bordered={false} style={{ background: '#fcfcfc', borderRadius: '8px', marginBottom: '24px', border: '1px solid #f0f0f0' }}>
               <Row gutter={24} align="middle">
                 <Col xs={24} md={10}>
-                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>Select Targeted Vendor Profile</div>
+                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>{t('vendorSettlements.selectVendorProfileLabel')}</div>
                   <Select
                     style={{ width: '100%' }}
-                    placeholder="Choose wholesale vendor node..."
+                    placeholder={t('vendorSettlements.chooseVendorPlaceholder')}
                     value={selectedVendor}
                     onChange={(val: string | null) => setSelectedVendor(val)}
                     size="large"
@@ -507,21 +515,21 @@ export const VendorSettlements: React.FC = () => {
                 </Col>
                 <Col xs={24} md={14} style={{ textAlign: 'right', marginTop: '24px' }}>
                   <Space size="middle">
-                    <Text type="secondary" strong>Lifecycle Volume: <Text style={{ color: '#444' }}>{aggregateTotalCost.toFixed(2)} ETB</Text></Text>
-                    <Text type="secondary" strong>Total Unresolved Debt: <Text type="danger">{aggregateTotalDebt.toFixed(2)} ETB</Text></Text>
+                    <Text type="secondary" strong>{t('vendorSettlements.lifecycleVolumeLabel')} <Text style={{ color: '#444' }}>{aggregateTotalCost.toFixed(2)} {t('common:units.etb')}</Text></Text>
+                    <Text type="secondary" strong>{t('vendorSettlements.totalUnresolvedDebtLabel')} <Text type="danger">{aggregateTotalDebt.toFixed(2)} {t('common:units.etb')}</Text></Text>
                   </Space>
                 </Col>
               </Row>
             </Card>
 
             {selectedVendor ? (
-              <Card 
+              <Card
                 title={
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                    <span>Historical Locked Settlement Batches</span>
+                    <span>{t('vendorSettlements.historicalBatchesTitle')}</span>
                     <Space size="middle">
                       <Input
-                        placeholder="Search by settlement ID..."
+                        placeholder={t('vendorSettlements.searchSettlementPlaceholder')}
                         prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
                         value={historySearchQuery}
                         onChange={e => setHistorySearchQuery(e.target.value)}
@@ -530,9 +538,9 @@ export const VendorSettlements: React.FC = () => {
                         style={{ width: '220px' }}
                       />
                       <Radio.Group value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} size="small">
-                        <Radio.Button value="ALL">ALL REC.</Radio.Button>
-                        <Radio.Button value="PARTIAL">PARTIALLY PAID</Radio.Button>
-                        <Radio.Button value="FULL">FULLY PAID</Radio.Button>
+                        <Radio.Button value="ALL">{t('vendorSettlements.filterAll')}</Radio.Button>
+                        <Radio.Button value="PARTIAL">{t('common:status.partial')}</Radio.Button>
+                        <Radio.Button value="FULL">{t('common:status.fullyPaid')}</Radio.Button>
                       </Radio.Group>
                     </Space>
                   </div>
@@ -562,7 +570,7 @@ export const VendorSettlements: React.FC = () => {
             ) : (
               <div style={{ textAlign: 'center', padding: '80px 0', background: '#fff', border: '1px dashed #d9d9d9', borderRadius: '8px' }}>
                 <HistoryOutlined style={{ fontSize: '32px', marginBottom: '16px', color: '#714B67' }} />
-                <div style={{ color: '#666', fontSize: '16px' }}>Select a target vendor from the menu pool to pull historical cash settlement statements.</div>
+                <div style={{ color: '#666', fontSize: '16px' }}>{t('vendorSettlements.emptyHistory')}</div>
               </div>
             )}
           </div>
@@ -574,10 +582,10 @@ export const VendorSettlements: React.FC = () => {
             <Card bordered={false} style={{ background: '#fcfcfc', borderRadius: '8px', marginBottom: '24px', border: '1px solid #f0f0f0' }}>
               <Row gutter={24} align="bottom">
                 <Col xs={24} md={8}>
-                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>Vendor</div>
+                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>{t('common:fields.vendor')}</div>
                   <Select
                     style={{ width: '100%' }}
-                    placeholder="Select Vendor"
+                    placeholder={t('vendorSettlements.selectVendorSimplePlaceholder')}
                     value={deliveryVendor}
                     onChange={(val: string | null) => setDeliveryVendor(val)}
                     size="large"
@@ -586,7 +594,7 @@ export const VendorSettlements: React.FC = () => {
                   </Select>
                 </Col>
                 <Col xs={24} md={10}>
-                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>Date Range</div>
+                  <div style={{ fontWeight: 600, marginBottom: '8px', color: '#555' }}>{t('vendorSettlements.dateRangeLabel')}</div>
                   <RangePicker
                     style={{ width: '100%' }}
                     value={deliveryDateRange}
@@ -604,7 +612,7 @@ export const VendorSettlements: React.FC = () => {
                     size="large"
                     style={{ backgroundColor: '#714B67', borderColor: '#714B67', borderRadius: '6px', fontWeight: 500 }}
                   >
-                    Generate Report
+                    {t('vendorSettlements.generateReportBtn')}
                   </Button>
                 </Col>
               </Row>
@@ -612,11 +620,11 @@ export const VendorSettlements: React.FC = () => {
 
             {deliveryRows.length > 0 ? (
               <Card
-                title="Deliveries Across All Branches"
+                title={t('vendorSettlements.deliveriesAcrossBranchesTitle')}
                 extra={
                   <Space size="middle">
                     <Input
-                      placeholder="Search by branch or product..."
+                      placeholder={t('vendorSettlements.searchDeliveryPlaceholder')}
                       prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
                       value={deliverySearchQuery}
                       onChange={e => setDeliverySearchQuery(e.target.value)}
@@ -625,7 +633,7 @@ export const VendorSettlements: React.FC = () => {
                       style={{ width: '240px' }}
                     />
                     <Button icon={<PrinterOutlined />} onClick={() => handlePrintDeliveryReport()}>
-                      Print Report
+                      {t('vendorSettlements.printReportBtn')}
                     </Button>
                   </Space>
                 }
@@ -642,20 +650,20 @@ export const VendorSettlements: React.FC = () => {
                   size="middle"
                   scroll={{ x: 'max-content' }}
                   columns={[
-                    { title: 'Date', dataIndex: 'date_received', render: (d: string) => dayjs(d).format('YYYY-MM-DD') },
-                    { title: 'Branch', dataIndex: 'branch_name', render: (t: string) => <Tag color="blue">{t}</Tag> },
-                    { title: 'Product', dataIndex: 'product_name' },
-                    { title: 'Packs', dataIndex: 'packs_received', align: 'right' as const },
-                    { title: 'Pieces', dataIndex: 'calculated_pieces_count', align: 'right' as const },
-                    { title: 'Unit Price', dataIndex: 'buying_price_unit', align: 'right' as const, render: (v: number) => `${Number(v).toFixed(2)} ETB` },
-                    { title: 'Subtotal', dataIndex: 'calculated_row_subtotal', align: 'right' as const, render: (v: number) => <Text strong>{Number(v).toFixed(2)} ETB</Text> },
+                    { title: t('common:fields.date'), dataIndex: 'date_received', render: (d: string) => dayjs(d).format('YYYY-MM-DD') },
+                    { title: t('common:fields.branch'), dataIndex: 'branch_name', render: (val: string) => <Tag color="blue">{val}</Tag> },
+                    { title: t('common:fields.product'), dataIndex: 'product_name' },
+                    { title: t('common:units.packs'), dataIndex: 'packs_received', align: 'right' as const },
+                    { title: t('common:units.pieces'), dataIndex: 'calculated_pieces_count', align: 'right' as const },
+                    { title: t('vendorSettlements.unitPriceLabel'), dataIndex: 'buying_price_unit', align: 'right' as const, render: (v: number) => `${Number(v).toFixed(2)} ${t('common:units.etb')}` },
+                    { title: t('vendorSettlements.subtotalLabel'), dataIndex: 'calculated_row_subtotal', align: 'right' as const, render: (v: number) => <Text strong>{Number(v).toFixed(2)} {t('common:units.etb')}</Text> },
                   ]}
                 />
               </Card>
             ) : (
               <div style={{ textAlign: 'center', padding: '80px 0', background: '#fff', border: '1px dashed #d9d9d9', borderRadius: '8px' }}>
                 <TruckOutlined style={{ fontSize: '32px', marginBottom: '16px', color: '#714B67' }} />
-                <div style={{ color: '#666', fontSize: '16px' }}>Select a vendor and date range to generate the cross-branch delivery report.</div>
+                <div style={{ color: '#666', fontSize: '16px' }}>{t('vendorSettlements.emptyDelivery')}</div>
               </div>
             )}
           </div>
@@ -664,14 +672,14 @@ export const VendorSettlements: React.FC = () => {
 
       {/* --- SETTLEMENT POSTED CONFIRMATION MODAL WITH PRINTABLE VOUCHER --- */}
       <Modal
-        title="Settlement Posted"
+        title={t('vendorSettlements.postedModal.title')}
         open={showVoucherModal}
         onCancel={handleCloseVoucherModal}
         width={800}
         footer={[
-          <Button key="close" onClick={handleCloseVoucherModal}>Close</Button>,
+          <Button key="close" onClick={handleCloseVoucherModal}>{t('common:actions.close')}</Button>,
           <Button key="print" type="primary" icon={<PrinterOutlined />} onClick={() => handlePrintVoucher()} style={{ background: '#714B67', borderColor: '#714B67' }}>
-            Print Voucher
+            {t('vendorSettlements.postedModal.printBtn')}
           </Button>
         ]}
       >

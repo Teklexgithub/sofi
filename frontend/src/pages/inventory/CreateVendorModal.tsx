@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, message, Row, Col } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 
 interface CreateVendorProps {
@@ -17,6 +18,7 @@ const CreateVendorModal: React.FC<CreateVendorProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useTranslation('inventory');
 
   useEffect(() => {
     if (visible) {
@@ -33,14 +35,14 @@ const CreateVendorModal: React.FC<CreateVendorProps> = ({
     try {
       if (initialValues?.id) {
         await inventoryService.updateVendor(initialValues.id, values);
-        message.success('Vendor updated in Sofia ERP');
+        message.success(t('createVendorModal.updateSuccess'));
       } else {
         await inventoryService.createVendor(values);
-        message.success('Vendor added to Sofia ERP');
+        message.success(t('createVendorModal.createSuccess'));
       }
       onSuccess();
     } catch (error) {
-      message.error(initialValues?.id ? 'Failed to update vendor' : 'Failed to create vendor');
+      message.error(initialValues?.id ? t('createVendorModal.updateFailed') : t('createVendorModal.createFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -48,33 +50,33 @@ const CreateVendorModal: React.FC<CreateVendorProps> = ({
 
   return (
     <Modal
-      title={initialValues?.id ? "Edit Vendor" : "Add New Vendor"}
+      title={initialValues?.id ? t('createVendorModal.editTitle') : t('createVendorModal.createTitle')}
       open={visible}
       onOk={() => form.submit()}
       onCancel={onCancel}
       confirmLoading={submitting}
-      okText="Save"
+      okText={t('common:actions.save')}
       okButtonProps={{ style: { background: '#714B67', border: 'none' } }}
     >
       <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item name="name" label="Vendor Name" rules={[{ required: true, message: 'Required' }]}>
-          <Input placeholder="e.g. BGI Ethiopia" />
+        <Form.Item name="name" label={t('createVendorModal.nameLabel')} rules={[{ required: true, message: t('createVendorModal.nameRequired') }]}>
+          <Input placeholder={t('createVendorModal.namePlaceholder')} />
         </Form.Item>
 
-        <Form.Item name="contact_person" label="Contact Person">
-          <Input placeholder="e.g. Ato Abebe" />
+        <Form.Item name="contact_person" label={t('common:fields.contactPerson')}>
+          <Input placeholder={t('createVendorModal.contactPlaceholder')} />
         </Form.Item>
 
         <Row gutter={16}>
           <Col span={24}>
-            <Form.Item name="phone_no" label="Phone Number">
-              <Input placeholder="e.g. +251 911..." />
+            <Form.Item name="phone_no" label={t('common:fields.phoneNumber')}>
+              <Input placeholder={t('createVendorModal.phonePlaceholder')} />
             </Form.Item>
           </Col>
         </Row>
 
-        <Form.Item name="bank_account" label="Bank Account Number">
-          <Input placeholder="e.g. CBE 1000123456789" />
+        <Form.Item name="bank_account" label={t('createVendorModal.bankAccountLabel')}>
+          <Input placeholder={t('createVendorModal.bankAccountPlaceholder')} />
         </Form.Item>
       </Form>
     </Modal>

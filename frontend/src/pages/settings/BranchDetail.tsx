@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Descriptions, Space, Typography, Breadcrumb, Popconfirm, message, Tag } from 'antd';
 import { EditOutlined, DeleteOutlined, ContainerOutlined, PhoneOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { settingsService } from '../../services/settingsService';
 import { useTheme } from '../../contexts/ThemeContext';
 import type { Branch } from '../../types/settings';
@@ -10,6 +11,7 @@ import CreateBranchModal from './CreateBranchModal';
 const { Title, Text } = Typography;
 
 const BranchDetail: React.FC = () => {
+  const { t } = useTranslation('settings');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isDark } = useTheme();
@@ -24,7 +26,7 @@ const BranchDetail: React.FC = () => {
       const response = await settingsService.getBranchDetail(id!);
       setBranch(response.data);
     } catch (error) {
-      message.error("Could not load branch details");
+      message.error(t('common:messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -37,10 +39,10 @@ const BranchDetail: React.FC = () => {
   const handleDelete = async () => {
     try {
       await settingsService.deleteBranch(id!);
-      message.success("Branch removed");
+      message.success(t('branchDetail.deleteSuccess'));
       navigate('/settings/branches');
     } catch (error) {
-      message.error("Cannot delete branch with active inventory");
+      message.error(t('branchDetail.deleteFailed'));
     }
   };
 
@@ -49,7 +51,7 @@ const BranchDetail: React.FC = () => {
       <Breadcrumb style={{ marginBottom: '16px' }}>
         <Breadcrumb.Item>
           <span onClick={() => navigate('/settings/branches')} style={{ cursor: 'pointer', color: '#714B67', fontWeight: 500 }}>
-            Branches
+            {t('branches.title')}
           </span>
         </Breadcrumb.Item>
         <Breadcrumb.Item>{branch?.name}</Breadcrumb.Item>
@@ -58,42 +60,42 @@ const BranchDetail: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
         <Space direction="vertical" size={0}>
           <Title level={2} style={{ margin: 0 }}>{branch?.name}</Title>
-          <Tag color="blue">Registered Branch</Tag>
+          <Tag color="blue">{t('branchDetail.registeredBranchTag')}</Tag>
         </Space>
         <Space>
           <Button icon={<ContainerOutlined />} onClick={() => navigate(`/inventory/store?branch=${id}`)}>
-            Branch Inventory
+            {t('branchDetail.branchInventoryButton')}
           </Button>
-          <Button 
-            icon={<EditOutlined />} 
-            type="primary" 
-            ghost 
+          <Button
+            icon={<EditOutlined />}
+            type="primary"
+            ghost
             onClick={() => setIsEditModalVisible(true)}
             style={{ borderColor: '#714B67', color: '#714B67' }}
           >
-            Edit
+            {t('common:actions.edit')}
           </Button>
-          <Popconfirm 
-            title="Delete this branch?" 
-            description="All branch-specific data will be lost."
+          <Popconfirm
+            title={t('branchDetail.deleteConfirmTitle')}
+            description={t('branchDetail.deleteConfirmDesc')}
             onConfirm={handleDelete}
             okButtonProps={{ danger: true }}
           >
-            <Button icon={<DeleteOutlined />} danger>Delete</Button>
+            <Button icon={<DeleteOutlined />} danger>{t('common:actions.delete')}</Button>
           </Popconfirm>
         </Space>
       </div>
 
       <Card loading={loading} style={{ borderRadius: '8px', background: isDark ? '#1f1f1f' : '#fff' }}>
-        <Descriptions title="Branch Contact & Location Information" bordered column={1}>
-          <Descriptions.Item label={<span><EnvironmentOutlined /> Location</span>}>
-            {branch?.location || 'Not Specified'}
+        <Descriptions title={t('branchDetail.sectionTitle')} bordered column={1}>
+          <Descriptions.Item label={<span><EnvironmentOutlined /> {t('common:fields.location')}</span>}>
+            {branch?.location || t('branchDetail.notSpecified')}
           </Descriptions.Item>
-          <Descriptions.Item label={<span><PhoneOutlined /> Primary Phone</span>}>
-            <Text strong>{branch?.phone_no || 'N/A'}</Text>
+          <Descriptions.Item label={<span><PhoneOutlined /> {t('branchDetail.primaryPhoneLabel')}</span>}>
+            <Text strong>{branch?.phone_no || t('branchDetail.notAvailable')}</Text>
           </Descriptions.Item>
-          <Descriptions.Item label={<span><PhoneOutlined /> Secondary Phone</span>}>
-            {branch?.phone_no_second || 'N/A'}
+          <Descriptions.Item label={<span><PhoneOutlined /> {t('branchDetail.secondaryPhoneLabel')}</span>}>
+            {branch?.phone_no_second || t('branchDetail.notAvailable')}
           </Descriptions.Item>
         </Descriptions>
       </Card>

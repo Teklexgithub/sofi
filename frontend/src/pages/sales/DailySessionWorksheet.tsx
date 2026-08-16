@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons';
 import axios from 'axios'; // <-- FIXED: Added missing import cleanly
 import { useReactToPrint } from 'react-to-print';
+import { useTranslation } from 'react-i18next';
 import { salesService } from '../../services/salesService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBranch } from '../../contexts/BranchContext';
@@ -34,6 +35,7 @@ const scrollBoxStyle: React.CSSProperties = {
 };
 
 const DailySessionWorksheet: React.FC = () => {
+  const { t } = useTranslation('sales');
   const { isAdmin } = useAuth();
   const { assignedBranches, selectedBranch, setSelectedBranch } = useBranch();
   const [loading, setLoading] = useState(false);
@@ -141,9 +143,9 @@ const DailySessionWorksheet: React.FC = () => {
   // --- 2. INLINE CUSTOMER CREATION LOGIC ---
   const handleInlineCustomerCreate = async (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     e.preventDefault();
-    if (!newCustomerName.trim()) return message.warning("Please enter a valid name.");
-    if (!selectedBranch) return message.error("Please lock a branch location first.");
-    
+    if (!newCustomerName.trim()) return message.warning(t('dailySession.messages.nameRequired'));
+    if (!selectedBranch) return message.error(t('dailySession.messages.branchRequired'));
+
     setCreatingCustomer(true);
     try {
       const response = await salesService.createCustomer({
@@ -151,14 +153,14 @@ const DailySessionWorksheet: React.FC = () => {
         branch: selectedBranch,
         total_balance: 0
       });
-      
-      message.success(`Profile for "${newCustomerName}" registered successfully!`);
-      
+
+      message.success(t('dailySession.messages.customerRegistered', { name: newCustomerName }));
+
       const freshCustomer = response.data;
       setAvailableCustomers([...availableCustomers, freshCustomer]);
       setNewCustomerName('');
     } catch (err) {
-      message.error("Failed to register new profile. Ensure name is unique.");
+      message.error(t('dailySession.messages.customerRegisterFailed'));
     } finally {
       setCreatingCustomer(false);
     }
@@ -181,11 +183,11 @@ const DailySessionWorksheet: React.FC = () => {
         { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
       
-      message.success(`Historical debt record for ${selectedDebtorRecord.customer_name} updated to ${adjustedBalanceValue} ETB.`);
+      message.success(t('dailySession.messages.balanceUpdated', { name: selectedDebtorRecord.customer_name, amount: adjustedBalanceValue, unit: t('common:units.etb') }));
       setIsEditModalOpen(false);
-      forceRefreshCustomerRegistry(); 
+      forceRefreshCustomerRegistry();
     } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || "Authorization Failure: Balance modification rejected.";
+      const errorMsg = err.response?.data?.detail || t('dailySession.messages.balanceUpdateFailed');
       message.error(errorMsg);
     } finally {
       setUpdatingBalance(false);
@@ -194,23 +196,23 @@ const DailySessionWorksheet: React.FC = () => {
 
   // --- 4. WORKSHEET STAGING CONTROLLERS ---
   const loadWorksheet = async () => {
-    if (!selectedBranch) return message.warning("Please select an active branch location.");
+    if (!selectedBranch) return message.warning(t('dailySession.messages.selectBranchFirst'));
     setLoading(true);
     try {
       const res = await salesService.prepareWorksheet(selectedBranch, selectedDate.format('YYYY-MM-DD'));
-      
+
       if (res && res.data) {
         const productList = Array.isArray(res.data.products) ? res.data.products : [];
         const dynamicFloat = typeof res.data.opening_cash_float === 'number' ? res.data.opening_cash_float : 0;
-        
+
         setWorksheetData(productList.map((item: any) => ({ ...item, closing_balance: null })));
         setOpeningCashFloat(dynamicFloat);
-        message.success("Worksheet compiled! Proceed through steps.");
+        message.success(t('dailySession.messages.worksheetCompiled'));
       } else {
         throw new Error("Empty response object structure.");
       }
     } catch (e) {
-      message.error("Sync Exception: Verify that inventory values exist for this target node.");
+      message.error(t('dailySession.messages.worksheetLoadFailed'));
     } finally {
       setLoading(false);
     }
@@ -276,9 +278,9 @@ const DailySessionWorksheet: React.FC = () => {
 
   // --- 5. DATA TRANSMISSION ---
   const submitAll = async () => {
-    if (worksheetData.length === 0) return message.error("Action Aborted: No active session active.");
+    if (worksheetData.length === 0) return message.error(t('dailySession.messages.noActiveSession'));
     if (worksheetData.some(item => item.closing_balance === null)) {
-      return message.error("Validation Error: Please record current counts for all listed catalog items.");
+      return message.error(t('dailySession.messages.countsRequired'));
     }
 
     setLoading(true);
@@ -297,7 +299,7 @@ const DailySessionWorksheet: React.FC = () => {
       };
       
       const res = await salesService.submitDailySession(payload);
-      message.success("Success: Daily Branch settlement submitted safely!");
+      message.success(t('dailySession.messages.submitSuccess'));
 
       const sessionId = res.data?.session_id;
       if (sessionId) {
@@ -308,7 +310,7 @@ const DailySessionWorksheet: React.FC = () => {
         window.location.reload();
       }
     } catch (e: any) {
-      message.error("Transaction failed during live balancing routine.");
+      message.error(t('dailySession.messages.submitFailed'));
     } finally {
       setLoading(false);
     }
@@ -324,25 +326,25 @@ const DailySessionWorksheet: React.FC = () => {
 
   // --- FIXED: Explicitly typed as any[] to resolve signature assignment layout errors ---
   const baseDebtLedgerColumns: any[] = [
-    { title: 'Customer Name Account', dataIndex: 'customer_name', key: 'name', render: (t: string) => <Text strong>{t}</Text> },
-    { title: 'Outstanding Debt Profile (ETB)', dataIndex: 'total_balance', key: 'balance', render: (v: number) => <Text type={v > 0 ? "danger" : "success"} code>{Number(v).toFixed(2)} ETB</Text> },
-    { title: 'Last Audit Update Timestamp', dataIndex: 'last_updated', key: 'updated', render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm') }
+    { title: t('dailySession.debtsLedger.columns.customerName'), dataIndex: 'customer_name', key: 'name', render: (val: string) => <Text strong>{val}</Text> },
+    { title: t('dailySession.debtsLedger.columns.outstandingDebt', { unit: t('common:units.etb') }), dataIndex: 'total_balance', key: 'balance', render: (v: number) => <Text type={v > 0 ? "danger" : "success"} code>{Number(v).toFixed(2)} {t('common:units.etb')}</Text> },
+    { title: t('dailySession.debtsLedger.columns.lastUpdate'), dataIndex: 'last_updated', key: 'updated', render: (d: string) => dayjs(d).format('YYYY-MM-DD HH:mm') }
   ];
 
   if (isAdmin) {
     baseDebtLedgerColumns.push({
-      title: 'Administrative Options',
+      title: t('dailySession.debtsLedger.columns.adminOptions'),
       key: 'actions_panel_override',
       align: 'center',
       render: (_: any, record: any) => (
-        <Button 
+        <Button
           type="primary"
           ghost
-          icon={<EditOutlined />} 
+          icon={<EditOutlined />}
           onClick={() => openDirectBalanceAdjustment(record)}
           size="middle"
         >
-          Adjust Balance
+          {t('dailySession.debtsLedger.adjustBalance')}
         </Button>
       )
     });
@@ -358,15 +360,15 @@ const DailySessionWorksheet: React.FC = () => {
           icon={<CalculatorOutlined />}
           style={activeSubView === 'worksheet' ? { background: '#714B67', borderColor: '#714B67' } : {}}
         >
-          Daily Worksheet Staging
+          {t('dailySession.subNav.worksheet')}
         </Button>
-        <Button 
+        <Button
           type={activeSubView === 'debts' ? 'primary' : 'default'}
           onClick={() => setActiveSubView('debts')}
           icon={<UserOutlined />}
           style={activeSubView === 'debts' ? { background: '#714B67', borderColor: '#714B67' } : {}}
         >
-          Advance: Debts Ledger
+          {t('dailySession.subNav.debts')}
         </Button>
         {/* <Button 
           type={activeSubView === 'credits' ? 'primary' : 'default'}
@@ -380,13 +382,13 @@ const DailySessionWorksheet: React.FC = () => {
 
       {/* VIEW RENDER CONDITIONS BLOCK */}
       {activeSubView === 'debts' && (
-        <Card title="Advance Monitor: Historic Customer Debt Ledger">
-          <Alert message="Displays active debtor tracking matrices matching outstanding operational balances across this physical retail hub cluster." type="info" showIcon style={{marginBottom: 20}} />
-          
+        <Card title={t('dailySession.debtsLedger.cardTitle')}>
+          <Alert message={t('dailySession.debtsLedger.alertMessage')} type="info" showIcon style={{marginBottom: 20}} />
+
           <div style={{ marginBottom: '20px', maxWidth: '400px' }}>
             <Input
               prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-              placeholder="Search debtor profile by name..."
+              placeholder={t('dailySession.debtsLedger.searchPlaceholder')}
               allowClear
               size="large"
               value={debtLedgerSearchQuery}
@@ -402,29 +404,29 @@ const DailySessionWorksheet: React.FC = () => {
           />
 
           <Modal
-            title={<span><EditOutlined style={{ marginRight: 8, color: '#714B67' }} /> Manual Historical Debt Adjustment</span>}
+            title={<span><EditOutlined style={{ marginRight: 8, color: '#714B67' }} /> {t('dailySession.debtsLedger.editModal.title')}</span>}
             open={isEditModalOpen}
             onOk={handleExecuteBalanceAdjustment}
             confirmLoading={updatingBalance}
             onCancel={() => setIsEditModalOpen(false)}
-            okText="Override Historical Balance"
+            okText={t('dailySession.debtsLedger.editModal.okText')}
             okButtonProps={{ style: { background: '#714B67', borderColor: '#714B67' } }}
             destroyOnClose
           >
             {selectedDebtorRecord && (
               <div style={{ padding: '10px 0' }}>
-                <Alert 
-                  message="Critical Financial Override Action"
-                  description="This operation modifies historical debt balances directly. Ensure corporate validation paperwork matches this ad-hoc field adjustment."
+                <Alert
+                  message={t('dailySession.debtsLedger.editModal.warningTitle')}
+                  description={t('dailySession.debtsLedger.editModal.warningDesc')}
                   type="warning"
                   showIcon
                   style={{ marginBottom: 20 }}
                 />
                 <Form layout="vertical">
-                  <Form.Item label="Customer Account Target:">
+                  <Form.Item label={t('dailySession.debtsLedger.editModal.customerLabel')}>
                     <Input value={selectedDebtorRecord.customer_name} disabled size="large" />
                   </Form.Item>
-                  <Form.Item label="New Total Outstanding Balance (ETB):" required>
+                  <Form.Item label={t('dailySession.debtsLedger.editModal.newBalanceLabel', { unit: t('common:units.etb') })} required>
                     <InputNumber
                       style={{ width: '100%' }}
                       size="large"
@@ -441,59 +443,59 @@ const DailySessionWorksheet: React.FC = () => {
       )}
 
       {activeSubView === 'credits' && (
-        <Card title="Advance Monitor: Credit Sales & Recovery Reports Tracking">
-          <Alert message="Monthly aggregated data logs showing structural asset distribution tracking histories." type="success" showIcon style={{marginBottom: 20}} />
-          <Empty description="No historic monthly logs detected for the current active quarter." />
+        <Card title={t('dailySession.creditsView.cardTitle')}>
+          <Alert message={t('dailySession.creditsView.alertMessage')} type="success" showIcon style={{marginBottom: 20}} />
+          <Empty description={t('dailySession.creditsView.emptyDescription')} />
         </Card>
       )}
 
       {activeSubView === 'worksheet' && (
         <Card bordered={false} style={{ borderRadius: '15px', boxShadow: '0 12px 40px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '10px' }}>
-            <Title level={2} style={{ color: '#714B67', margin: 0 }}><AuditOutlined /> Daily Branch Settlement</Title>
-            
+            <Title level={2} style={{ color: '#714B67', margin: 0 }}><AuditOutlined /> {t('dailySession.title')}</Title>
+
             <Space size="middle" style={{ flexWrap: 'wrap' }}>
-              <div style={{ 
-                background: '#fcfcfc', 
+              <div style={{
+                background: '#fcfcfc',
                 border: '1px solid #e8e8e8',
-                padding: '8px 18px', 
-                borderRadius: '8px', 
+                padding: '8px 18px',
+                borderRadius: '8px',
                 textAlign: 'right'
               }}>
-                <Text style={{ color: '#888', fontSize: '11px', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Gross Sales Volume</Text>
-                <Text style={{ color: '#444', fontSize: '16px', fontWeight: 'bold' }}>{calculateTotalSalesLive().toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB</Text>
+                <Text style={{ color: '#888', fontSize: '11px', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>{t('dailySession.grossSalesLabel')}</Text>
+                <Text style={{ color: '#444', fontSize: '16px', fontWeight: 'bold' }}>{calculateTotalSalesLive().toLocaleString('en-US', { minimumFractionDigits: 2 })} {t('common:units.etb')}</Text>
               </div>
 
-              <div style={{ 
-                background: isNetNegative ? '#fff1f0' : '#f6ffed', 
+              <div style={{
+                background: isNetNegative ? '#fff1f0' : '#f6ffed',
                 border: isNetNegative ? '1px solid #ffa39e' : '1px solid #b7eb8f',
-                padding: '10px 24px', 
-                borderRadius: '10px', 
+                padding: '10px 24px',
+                borderRadius: '10px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                 textAlign: 'right',
                 transition: 'all 0.3s ease'
               }}>
                 <Text style={{ color: isNetNegative ? '#cf1322' : '#389e0d', fontSize: '12px', display: 'block', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Unallocated Cash Variance (Live)
+                  {t('dailySession.netCashLabel')}
                 </Text>
                 <Text style={{ color: isNetNegative ? '#cf1322' : '#389e0d', fontSize: '22px', fontWeight: 'bold' }}>
-                  {netCashValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB
+                  {netCashValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} {t('common:units.etb')}
                 </Text>
               </div>
             </Space>
           </div>
           <Divider />
-          
+
           <div style={{ background: '#fcfcfc', border: '1px solid #f0f0f0', padding: '25px', borderRadius: '12px', marginBottom: 35 }}>
               <Row gutter={24} align="bottom">
                   <Col span={9}>
-                      <Text strong style={{ fontSize: '13px', color: '#888' }}><EnvironmentOutlined /> Branch</Text>
+                      <Text strong style={{ fontSize: '13px', color: '#888' }}><EnvironmentOutlined /> {t('common:fields.branch')}</Text>
                       {assignedBranches.length > 1 ? (
                           <Select
                             value={selectedBranch}
                             style={{ width: '100%' }}
                             size="large"
-                            placeholder="Select Target Location"
+                            placeholder={t('dailySession.selectBranchPlaceholder')}
                             onChange={(val) => setSelectedBranch(val)}
                           >
                             {assignedBranches.map(b => (
@@ -503,24 +505,24 @@ const DailySessionWorksheet: React.FC = () => {
                       ) : (
                           <div style={{ padding: '10px 15px', background: '#fff', border: '1px solid #d9d9d9', borderRadius: '8px', fontWeight: 'bold', color: '#714B67' }}>
                               <SafetyCertificateOutlined style={{ marginRight: 8 }} />
-                              {assignedBranches[0]?.name || 'Assigned Branch'}
+                              {assignedBranches[0]?.name || t('dailySession.assignedBranchFallback')}
                           </div>
                       )}
                   </Col>
                   <Col span={7}>
-                      <Text strong style={{ fontSize: '13px', color: '#888' }}>Date</Text>
+                      <Text strong style={{ fontSize: '13px', color: '#888' }}>{t('common:fields.date')}</Text>
                       <DatePicker value={selectedDate} size="large" onChange={(d) => d && setSelectedDate(d)} style={{ width: '100%' }} />
                   </Col>
                   <Col span={8}>
                       <Button type="primary" icon={<ReloadOutlined />} onClick={loadWorksheet} loading={loading} size="large" block style={{ background: '#714B67', border: 'none', height: '44px' }}>
-                          Generate Worksheet
+                          {t('dailySession.generateWorksheetBtn')}
                       </Button>
                   </Col>
               </Row>
           </div>
 
           <Tabs defaultActiveKey="1" type="card" size="large">
-            <Tabs.TabPane tab={<span><ShoppingOutlined /> 1. Stock Count</span>} key="1">
+            <Tabs.TabPane tab={<span><ShoppingOutlined /> {t('dailySession.tabs.stockCount')}</span>} key="1">
               <div style={scrollBoxStyle}>
                   <Table
                     dataSource={worksheetData}
@@ -528,11 +530,11 @@ const DailySessionWorksheet: React.FC = () => {
                     rowKey="product_id"
                     bordered
                     scroll={{ x: 'max-content' }}
-                    locale={{ emptyText: "Generate the active worksheet statement to list products." }}
+                    locale={{ emptyText: t('dailySession.stockCount.emptyText') }}
                     columns={[
-                      { title: 'Product catalog profile', dataIndex: 'product_name', render: (t) => <Text strong style={{ color: '#714B67' }}>{t}</Text> },
-                      { title: 'A.M Balance (Open)', dataIndex: 'opening_balance', render: (v) => <Text code>{v} Pcs</Text> },
-                      { title: 'P.M Count (Actual Items Left)', render: (_, rec) => (
+                      { title: t('dailySession.stockCount.columns.product'), dataIndex: 'product_name', render: (val) => <Text strong style={{ color: '#714B67' }}>{val}</Text> },
+                      { title: t('dailySession.stockCount.columns.openingBalance'), dataIndex: 'opening_balance', render: (v) => <Text code>{v} {t('common:units.pieces')}</Text> },
+                      { title: t('dailySession.stockCount.columns.closingCount'), render: (_, rec) => (
                           <InputNumber min={0} max={rec.opening_balance} size="large" value={rec.closing_balance} style={{ width: '100%' }} onChange={(v) => {
                               const newData = [...worksheetData];
                               const idx = newData.findIndex(i => i.product_id === rec.product_id);
@@ -542,26 +544,26 @@ const DailySessionWorksheet: React.FC = () => {
                               }
                           }} />
                       )},
-                      { 
-                        title: 'Pieces Sold (Live)', 
-                        key: 'sold_live_delta', 
-                        align: 'center', 
+                      {
+                        title: t('dailySession.stockCount.columns.piecesSold'),
+                        key: 'sold_live_delta',
+                        align: 'center',
                         render: (_, rec) => {
                           if (rec.closing_balance === null || rec.closing_balance === undefined) {
-                            return <Text type="secondary" italic>Awaiting input</Text>;
+                            return <Text type="secondary" italic>{t('dailySession.awaitingInput')}</Text>;
                           }
                           const liveDeltaSold = rec.opening_balance - rec.closing_balance;
                           if (liveDeltaSold < 0) {
-                            return <Badge count="Overflow" status="error" />;
+                            return <Badge count={t('dailySession.stockCount.overflow')} status="error" />;
                           }
                           return (
                             <Space direction="vertical" size={0}>
                               <Text strong style={{ color: liveDeltaSold > 0 ? '#52c41a' : '#999', fontSize: '15px' }}>
-                                {liveDeltaSold} Pcs
+                                {liveDeltaSold} {t('common:units.pieces')}
                               </Text>
                               {liveDeltaSold > 0 && (
                                 <Text type="secondary" style={{ fontSize: '11px' }}>
-                                  +{(liveDeltaSold * (rec.unit_price || 0)).toFixed(2)} ETB
+                                  +{(liveDeltaSold * (rec.unit_price || 0)).toFixed(2)} {t('common:units.etb')}
                                 </Text>
                               )}
                             </Space>
@@ -572,15 +574,15 @@ const DailySessionWorksheet: React.FC = () => {
               </div>
             </Tabs.TabPane>
 
-            <Tabs.TabPane tab={<span><WalletOutlined /> 2. Expenses</span>} key="2">
-              <Button icon={<PlusOutlined />} onClick={addExpense} block size="large" style={{ marginBottom: 15 }}>Add Expense Line</Button>
+            <Tabs.TabPane tab={<span><WalletOutlined /> {t('dailySession.tabs.expenses')}</span>} key="2">
+              <Button icon={<PlusOutlined />} onClick={addExpense} block size="large" style={{ marginBottom: 15 }}>{t('dailySession.expenses.addLine')}</Button>
               <div style={scrollBoxStyle}>
-                  {expenses.length === 0 ? <Empty description="No expense rows allocated." /> : expenses.map((exp, idx) => (
+                  {expenses.length === 0 ? <Empty description={t('dailySession.expenses.emptyText')} /> : expenses.map((exp, idx) => (
                       <Row key={idx} gutter={15} style={{ marginBottom: 12 }}>
-                          <Col span={14}><Input placeholder="Reason" size="large" value={exp.reason} onChange={e => {
+                          <Col span={14}><Input placeholder={t('common:fields.reason')} size="large" value={exp.reason} onChange={e => {
                               const n = [...expenses]; n[idx].reason = e.target.value; setExpenses(n);
                           }}/></Col>
-                          <Col span={8}><InputNumber placeholder="Amount" size="large" style={{width:'100%'}} value={exp.amount} onChange={v => {
+                          <Col span={8}><InputNumber placeholder={t('common:fields.amount')} size="large" style={{width:'100%'}} value={exp.amount} onChange={v => {
                               const n = [...expenses]; n[idx].amount = v === null ? 0 : Number(v); setExpenses(n);
                           }}/></Col>
                           <Col span={2}><Button danger icon={<DeleteOutlined />} onClick={() => removeExpense(idx)}/></Col>
@@ -589,15 +591,15 @@ const DailySessionWorksheet: React.FC = () => {
               </div>
             </Tabs.TabPane>
 
-            <Tabs.TabPane tab={<span><UserAddOutlined /> 3. New Debts</span>} key="3">
-              <Button icon={<PlusOutlined />} onClick={addCreditIssued} block size="large" style={{ marginBottom: 15 }}>Register Debt Invoice</Button>
+            <Tabs.TabPane tab={<span><UserAddOutlined /> {t('dailySession.tabs.newDebts')}</span>} key="3">
+              <Button icon={<PlusOutlined />} onClick={addCreditIssued} block size="large" style={{ marginBottom: 15 }}>{t('dailySession.newDebts.addLine')}</Button>
               <div style={scrollBoxStyle}>
-                  {creditsIssued.length === 0 ? <Empty description="No ledger allocations recorded." /> : creditsIssued.map((crd, idx) => (
+                  {creditsIssued.length === 0 ? <Empty description={t('dailySession.newDebts.emptyText')} /> : creditsIssued.map((crd, idx) => (
                       <Row key={idx} gutter={15} style={{ marginBottom: 12 }}>
                           <Col span={14}>
                               <Select
                                   showSearch
-                                  placeholder="Select or Create Customer profile"
+                                  placeholder={t('dailySession.newDebts.selectCustomerPlaceholder')}
                                   size="large"
                                   style={{ width: '100%' }}
                                   filterOption={false}
@@ -611,31 +613,31 @@ const DailySessionWorksheet: React.FC = () => {
                                       {menu}
                                       <Divider style={{ margin: '4px 0' }} />
                                       <div style={{ display: 'flex', flexWrap: 'nowrap', padding: 8 }}>
-                                        <Input 
-                                          style={{ flex: 'auto' }} 
+                                        <Input
+                                          style={{ flex: 'auto' }}
                                           size="middle"
-                                          placeholder="Type New Customer Name..."
+                                          placeholder={t('dailySession.newDebts.newCustomerNamePlaceholder')}
                                           value={newCustomerName}
                                           onChange={e => setNewCustomerName(e.target.value)}
                                         />
-                                        <Button 
-                                          type="link" 
-                                          icon={<PlusOutlined />} 
+                                        <Button
+                                          type="link"
+                                          icon={<PlusOutlined />}
                                           loading={creatingCustomer}
                                           onClick={handleInlineCustomerCreate}
                                         >
-                                          Create
+                                          {t('common:actions.create')}
                                         </Button>
                                       </div>
                                     </div>
                                   )}
                               >
                                   {availableCustomers.map(c => (
-                                    <Select.Option key={c.id} value={c.id}>{c.customer_name} (Bal: {Number(c.total_balance).toFixed(0)} ETB)</Select.Option>
+                                    <Select.Option key={c.id} value={c.id}>{c.customer_name} {t('dailySession.newDebts.balanceSuffix', { amount: Number(c.total_balance).toFixed(0), unit: t('common:units.etb') })}</Select.Option>
                                   ))}
                               </Select>
                           </Col>
-                          <Col span={8}><InputNumber placeholder="Amount" size="large" style={{width:'100%'}} value={crd.amount} onChange={v => {
+                          <Col span={8}><InputNumber placeholder={t('common:fields.amount')} size="large" style={{width:'100%'}} value={crd.amount} onChange={v => {
                               const n = [...creditsIssued]; n[idx].amount = v === null ? 0 : Number(v); setCreditsIssued(n);
                           }}/></Col>
                           <Col span={2}><Button danger icon={<DeleteOutlined />} onClick={() => removeCreditIssued(idx)}/></Col>
@@ -644,15 +646,15 @@ const DailySessionWorksheet: React.FC = () => {
               </div>
             </Tabs.TabPane>
 
-            <Tabs.TabPane tab={<span><DollarOutlined /> 4. Credit Recovery</span>} key="4">
-              <Button icon={<PlusOutlined />} onClick={addCreditPayment} block size="large" style={{ marginBottom: 15, borderColor: '#52c41a', color: '#52c41a' }}>Record Debt Payment</Button>
+            <Tabs.TabPane tab={<span><DollarOutlined /> {t('dailySession.tabs.creditRecovery')}</span>} key="4">
+              <Button icon={<PlusOutlined />} onClick={addCreditPayment} block size="large" style={{ marginBottom: 15, borderColor: '#52c41a', color: '#52c41a' }}>{t('dailySession.creditRecovery.addLine')}</Button>
               <div style={scrollBoxStyle}>
-                  {creditPayments.length === 0 ? <Empty description="No collection profiles declared." /> : creditPayments.map((pay, idx) => (
+                  {creditPayments.length === 0 ? <Empty description={t('dailySession.creditRecovery.emptyText')} /> : creditPayments.map((pay, idx) => (
                       <Row key={idx} gutter={15} style={{ marginBottom: 12 }}>
                           <Col span={14}>
                               <Select
                                   showSearch
-                                  placeholder="Select profile paying back debt"
+                                  placeholder={t('dailySession.creditRecovery.selectCustomerPlaceholder')}
                                   size="large"
                                   style={{ width: '100%' }}
                                   filterOption={false}
@@ -663,11 +665,11 @@ const DailySessionWorksheet: React.FC = () => {
                                   }}
                               >
                                   {availableCustomers.map(c => (
-                                    <Select.Option key={c.id} value={c.id}>{c.customer_name} (Owes: {Number(c.total_balance).toFixed(0)} ETB)</Select.Option>
+                                    <Select.Option key={c.id} value={c.id}>{c.customer_name} {t('dailySession.creditRecovery.owesSuffix', { amount: Number(c.total_balance).toFixed(0), unit: t('common:units.etb') })}</Select.Option>
                                   ))}
                               </Select>
                           </Col>
-                          <Col span={8}><InputNumber placeholder="Amount Paid" size="large" style={{width:'100%'}} value={pay.amount} onChange={v => {
+                          <Col span={8}><InputNumber placeholder={t('dailySession.creditRecovery.amountPaidPlaceholder')} size="large" style={{width:'100%'}} value={pay.amount} onChange={v => {
                               const n = [...creditPayments]; n[idx].amount = v === null ? 0 : Number(v); setCreditPayments(n);
                           }}/></Col>
                           <Col span={2}><Button danger icon={<DeleteOutlined />} onClick={() => removeCreditPayment(idx)}/></Col>
@@ -676,12 +678,12 @@ const DailySessionWorksheet: React.FC = () => {
               </div>
             </Tabs.TabPane>
 
-            <Tabs.TabPane tab={<span><BankOutlined /> 5. Final Handover</span>} key="5">
+            <Tabs.TabPane tab={<span><BankOutlined /> {t('dailySession.tabs.finalHandover')}</span>} key="5">
               <div style={scrollBoxStyle}>
                   <Row gutter={[20, 20]}>
                     <Col span={24}>
-                        <Card title={<Space><MobileOutlined /> Digital (Bank/Telebirr) Balances Statement</Space>} headStyle={{ background: '#f0f5ff' }}>
-                            <Button icon={<PlusOutlined />} onClick={addDigital} style={{ marginBottom: 15 }} block>Add Verified Account Balance Entry</Button>
+                        <Card title={<Space><MobileOutlined /> {t('dailySession.finalHandover.digitalBalancesTitle')}</Space>} headStyle={{ background: '#f0f5ff' }}>
+                            <Button icon={<PlusOutlined />} onClick={addDigital} style={{ marginBottom: 15 }} block>{t('dailySession.finalHandover.addDigitalEntry')}</Button>
                             {digitalBalances.map((d, idx) => {
                                 const matchedAccountMaster = availableAccounts.find(acc => acc.id === d.account_id);
                                 const yesterdayBaseBalance = matchedAccountMaster ? (matchedAccountMaster.last_closing_balance ?? 0) : 0;
@@ -692,9 +694,9 @@ const DailySessionWorksheet: React.FC = () => {
                                     <div key={idx} style={{ marginBottom: 15, paddingBottom: 15, borderBottom: '1px dashed #f0f0f0' }}>
                                         <Row gutter={12} align="middle">
                                             <Col span={9}>
-                                                <Select 
-                                                    placeholder="Select Target App Wallet" 
-                                                    style={{ width: '100%' }} 
+                                                <Select
+                                                    placeholder={t('dailySession.finalHandover.selectWalletPlaceholder')}
+                                                    style={{ width: '100%' }}
                                                     size="large" 
                                                     value={d.account_id || undefined}
                                                     onChange={(val) => { 
@@ -709,9 +711,9 @@ const DailySessionWorksheet: React.FC = () => {
                                                 </Select>
                                             </Col>
                                             <Col span={8}>
-                                                <InputNumber 
-                                                  placeholder="Current Ending App Balance" 
-                                                  size="large" 
+                                                <InputNumber
+                                                  placeholder={t('dailySession.finalHandover.currentBalancePlaceholder')}
+                                                  size="large"
                                                   style={{ width: '100%' }} 
                                                   value={d.balance || undefined} 
                                                   onChange={v => { 
@@ -725,16 +727,16 @@ const DailySessionWorksheet: React.FC = () => {
                                             <Col span={5} style={{ textAlign: 'center' }}>
                                                 {d.account_id && d.balance ? (
                                                   <Space direction="vertical" size={0}>
-                                                    <Text type="secondary" style={{ fontSize: '11px' }}>Expected Base: {yesterdayBaseBalance.toLocaleString()} ETB</Text>
-                                                    <Text strong style={{ 
+                                                    <Text type="secondary" style={{ fontSize: '11px' }}>{t('dailySession.finalHandover.expectedBase', { amount: yesterdayBaseBalance.toLocaleString(), unit: t('common:units.etb') })}</Text>
+                                                    <Text strong style={{
                                                       color: liveWalletShiftDelta >= 0 ? '#52c41a' : '#f5222d',
-                                                      fontSize: '14px' 
+                                                      fontSize: '14px'
                                                     }}>
-                                                      {liveWalletShiftDelta >= 0 ? '+' : ''}{liveWalletShiftDelta.toLocaleString(undefined, {minimumFractionDigits: 2})} ETB
+                                                      {liveWalletShiftDelta >= 0 ? '+' : ''}{liveWalletShiftDelta.toLocaleString(undefined, {minimumFractionDigits: 2})} {t('common:units.etb')}
                                                     </Text>
                                                   </Space>
                                                 ) : (
-                                                  <Text type="secondary" italic style={{ fontSize: '12px' }}>Awaiting input</Text>
+                                                  <Text type="secondary" italic style={{ fontSize: '12px' }}>{t('dailySession.awaitingInput')}</Text>
                                                 )}
                                             </Col>
                                             
@@ -746,7 +748,7 @@ const DailySessionWorksheet: React.FC = () => {
                                           <div style={{ marginTop: '8px', background: '#fffbe6', padding: '6px 14px', borderRadius: '6px', border: '1px solid #ffe58f' }}>
                                             <Text type="warning" style={{ fontSize: '11px' }}>
                                               <CalculatorOutlined style={{ marginRight: 4 }} />
-                                              <b>Admin Adjustments Logged Since Last Session Close:</b> {adjustmentNotes}
+                                              <b>{t('dailySession.finalHandover.adminAdjustmentsLabel')}</b> {adjustmentNotes}
                                             </Text>
                                           </div>
                                         )}
@@ -757,16 +759,16 @@ const DailySessionWorksheet: React.FC = () => {
                     </Col>
 
                       <Col span={24}>
-                          <Card title={<Space><WalletOutlined /> Liquid Physical Cash Registers Drawer</Space>} headStyle={{ background: '#f6ffed' }}>
+                          <Card title={<Space><WalletOutlined /> {t('dailySession.finalHandover.physicalCashTitle')}</Space>} headStyle={{ background: '#f6ffed' }}>
                               {openingCashFloat > 0 && (
                                 <div style={{ marginBottom: '15px' }}>
-                                  <Alert 
+                                  <Alert
                                     message={
                                       <Text strong style={{ color: '#389e0d' }}>
-                                        <RiseOutlined /> Roll-Forward Active: A.M. Cash Float Baseline Loaded
+                                        <RiseOutlined /> {t('dailySession.finalHandover.rollForwardTitle')}
                                       </Text>
                                     }
-                                    description={`The register drawer opened today with a verified baseline change float of ${openingCashFloat.toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB forwarded from the last settlement closure row.`}
+                                    description={t('dailySession.finalHandover.rollForwardDesc', { amount: openingCashFloat.toLocaleString('en-US', { minimumFractionDigits: 2 }), unit: t('common:units.etb') })}
                                     type="success"
                                     showIcon
                                   />
@@ -774,20 +776,20 @@ const DailySessionWorksheet: React.FC = () => {
                               )}
                               <Row gutter={20}>
                                   <Col span={12}>
-                                      <Text strong>Total Clean Handover Cash for Admin/Courier:</Text>
-                                      <InputNumber 
-                                        style={{width:'100%', marginTop: 8}} 
-                                        size="large" 
-                                        value={cashToAdmin || undefined} 
+                                      <Text strong>{t('dailySession.finalHandover.cashToAdminLabel')}</Text>
+                                      <InputNumber
+                                        style={{width:'100%', marginTop: 8}}
+                                        size="large"
+                                        value={cashToAdmin || undefined}
                                         onChange={v => setCashToAdmin(v === null ? 0 : Number(v))}
                                       />
                                   </Col>
                                   <Col span={12}>
-                                      <Text strong>Float Retained in Register Drawer for Change:</Text>
-                                      <InputNumber 
-                                        style={{width:'100%', marginTop: 8}} 
-                                        size="large" 
-                                        value={cashForChange || undefined} 
+                                      <Text strong>{t('dailySession.finalHandover.cashForChangeLabel')}</Text>
+                                      <InputNumber
+                                        style={{width:'100%', marginTop: 8}}
+                                        size="large"
+                                        value={cashForChange || undefined}
                                         onChange={v => setCashForChange(v === null ? 0 : Number(v))}
                                       />
                                   </Col>
@@ -796,39 +798,39 @@ const DailySessionWorksheet: React.FC = () => {
                       </Col>
 
                       <Col span={24}>
-                          <Card title={<Space><PlusOutlined /> Manual Physical Bank Deposits (Slips / Receipts)</Space>} headStyle={{ background: '#fff7e6' }}>
-                              <Button icon={<PlusOutlined />} onClick={addDeposit} style={{ marginBottom: 15 }} block>Attach Manual Bank Deposit Slip Statement</Button>
+                          <Card title={<Space><PlusOutlined /> {t('dailySession.finalHandover.manualDepositsTitle')}</Space>} headStyle={{ background: '#fff7e6' }}>
+                              <Button icon={<PlusOutlined />} onClick={addDeposit} style={{ marginBottom: 15 }} block>{t('dailySession.finalHandover.addDepositBtn')}</Button>
                               {manualDeposits.map((m, idx) => (
                                   <Row key={idx} gutter={10} style={{ marginBottom: 10 }}>
-                                      <Col span={6}><InputNumber placeholder="Slip Receipt Amount" size="large" style={{width:'100%'}} value={m.amount} onChange={v => { const n = [...manualDeposits]; n[idx].amount = v === null ? 0 : Number(v); setManualDeposits(n); }}/></Col>
-                                      <Col span={8}><Input placeholder="Bank Name (e.g. CBE, Awash)" size="large" value={m.bank} onChange={e => { const n = [...manualDeposits]; n[idx].bank = e.target.value; setManualDeposits(n); }}/></Col>
-                                      <Col span={8}><Input placeholder="Beneficiary Account Holder Name" size="large" value={m.account_name} onChange={e => { const n = [...manualDeposits]; n[idx].account_name = e.target.value; setManualDeposits(n); }}/></Col>
+                                      <Col span={6}><InputNumber placeholder={t('dailySession.finalHandover.slipAmountPlaceholder')} size="large" style={{width:'100%'}} value={m.amount} onChange={v => { const n = [...manualDeposits]; n[idx].amount = v === null ? 0 : Number(v); setManualDeposits(n); }}/></Col>
+                                      <Col span={8}><Input placeholder={t('dailySession.finalHandover.bankNamePlaceholder')} size="large" value={m.bank} onChange={e => { const n = [...manualDeposits]; n[idx].bank = e.target.value; setManualDeposits(n); }}/></Col>
+                                      <Col span={8}><Input placeholder={t('dailySession.finalHandover.beneficiaryNamePlaceholder')} size="large" value={m.account_name} onChange={e => { const n = [...manualDeposits]; n[idx].account_name = e.target.value; setManualDeposits(n); }}/></Col>
                                       <Col span={2}><Button danger icon={<DeleteOutlined />} size="large" onClick={() => setManualDeposits(manualDeposits.filter((_, i) => i !== idx))}/></Col>
                                   </Row>
                               ))}
                           </Card>
                       </Col>
                   </Row>
-                                
+
                   <div style={{ display: 'flex', justifyContent: 'center', marginTop: 30, marginBottom: 10 }}>
-                    <Button 
-                      type="primary" 
-                      size="large" 
-                      icon={<CheckCircleOutlined />} 
-                      style={{ 
-                        height: '48px', 
-                        padding: '0 32px', 
-                        background: '#714B67', 
-                        border: 'none', 
-                        fontSize: '16px', 
-                        borderRadius: '8px', 
+                    <Button
+                      type="primary"
+                      size="large"
+                      icon={<CheckCircleOutlined />}
+                      style={{
+                        height: '48px',
+                        padding: '0 32px',
+                        background: '#714B67',
+                        border: 'none',
+                        fontSize: '16px',
+                        borderRadius: '8px',
                         fontWeight: 'bold',
-                        boxShadow: '0 4px 10px rgba(113, 75, 103, 0.2)' 
-                      }} 
-                      onClick={submitAll} 
+                        boxShadow: '0 4px 10px rgba(113, 75, 103, 0.2)'
+                      }}
+                      onClick={submitAll}
                       loading={loading}
                     >
-                      FINALIZE SETTLEMENT & SYNC ALL DATA
+                      {t('dailySession.finalHandover.finalizeBtn')}
                     </Button>
                   </div>
               
@@ -839,16 +841,16 @@ const DailySessionWorksheet: React.FC = () => {
       )}
 
       <Modal
-        title="Session Finalized"
+        title={t('dailySession.sessionModal.title')}
         open={showSessionModal}
         onCancel={handleCloseSessionModal}
         width={900}
         footer={[
           <Button key="done" type="primary" onClick={handleCloseSessionModal} style={{ background: '#714B67', borderColor: '#714B67' }}>
-            Done
+            {t('dailySession.sessionModal.doneBtn')}
           </Button>,
           <Button key="print" icon={<PrinterOutlined />} onClick={() => handlePrintSession()}>
-            Print Report
+            {t('dailySession.sessionModal.printBtn')}
           </Button>
         ]}
       >

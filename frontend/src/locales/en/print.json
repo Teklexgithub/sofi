@@ -1,0 +1,86 @@
+{
+  "layout": {
+    "subtitle": "Sofia ERP System",
+    "printedOn": "Printed: {{timestamp}}"
+  },
+  "shared": {
+    "unitPrice": "Unit Price",
+    "subtotal": "Subtotal"
+  },
+  "vendorVoucher": {
+    "title": "Vendor Payment Voucher",
+    "dateFinalized": "Date Finalized",
+    "bankAccount": "Bank Account",
+    "itemizedDeliveries": "Itemized Deliveries Settled",
+    "totalBatchCost": "Total Batch Cost",
+    "cashHandedOver": "Cash Handed Over",
+    "advanceUsedFromPast": "Advance Used From Past",
+    "newAdvanceSurplus": "New Advance Surplus Created",
+    "amountPaidTotal": "Amount Paid (Total)",
+    "remainingDebt": "Remaining Debt",
+    "paymentStatus": "Payment Status",
+    "receivedByVendorAgent": "Received By (Vendor / Agent)",
+    "paidByAdmin": "Paid By (Admin)"
+  },
+  "payslip": {
+    "title": "Employee Payslip",
+    "runDate": "Run Date",
+    "payPeriod": "Pay Period",
+    "payPeriodRange": "{{start}} to {{end}} ({{days}} days)",
+    "earningsAndDeductions": "Earnings & Deductions",
+    "monthlySalaryRate": "Monthly Salary Rate",
+    "accruedGrossSalary": "Accrued Gross Salary",
+    "advanceDeductions": "Advance / Fine Deductions",
+    "shortageDeductions": "Cash Shortage Deductions",
+    "totalDeductions": "Total Deductions",
+    "finalNetCashPayout": "Final Net Cash Payout",
+    "auditRemarks": "Audit Remarks",
+    "employeeSignature": "Employee Signature",
+    "issuedBy": "Issued By"
+  },
+  "dailySessionReport": {
+    "title": "Daily Session End-of-Day Report",
+    "grossSales": "Gross Sales",
+    "totalExpenses": "Total Expenses",
+    "newCreditIssued": "New Credit Issued",
+    "creditRecovered": "Credit Recovered",
+    "cashHandedToAdmin": "Cash Handed to Admin",
+    "cashRetainedForChange": "Cash Retained for Change",
+    "section1Title": "1. Stock Count",
+    "section2Title": "2. Expenses",
+    "section3Title": "3. Digital Account Balances",
+    "section4Title": "4. New Debts Issued",
+    "section5Title": "5. Credit Recoveries",
+    "section6Title": "6. Manual Bank Deposits",
+    "open": "Open",
+    "close": "Close",
+    "sold": "Sold",
+    "account": "Account",
+    "closingBalance": "Closing Balance",
+    "revenueDelta": "Revenue Delta",
+    "amountRecovered": "Amount Recovered",
+    "bank": "Bank",
+    "accountHolder": "Account Holder",
+    "noneRecorded": "None recorded.",
+    "branchAdminHandover": "Branch Admin (Handover)",
+    "receivedByAdminCourier": "Received By (Admin / Courier)"
+  },
+  "advanceVoucher": {
+    "title": "Staff Advance / Fine Voucher",
+    "transactionType": "Transaction Type",
+    "settledOnPayroll": "Settled on Payroll Run",
+    "outstandingLiability": "Outstanding Liability",
+    "reasonNarrative": "Reason / Narrative",
+    "noDescription": "No description provided.",
+    "employeeAcknowledgment": "Employee Acknowledgment",
+    "issuedBy": "Issued By"
+  },
+  "deliveryReport": {
+    "title": "Vendor Delivery Report",
+    "subtitle": "{{vendor}} — {{dateFrom}} to {{dateTo}}",
+    "branchSubtotal": "Branch Subtotal",
+    "grandTotalPacks": "Grand Total Packs",
+    "grandTotalCost": "Grand Total Cost",
+    "noDeliveries": "No deliveries found for this vendor in the selected date range."
+  }
+}

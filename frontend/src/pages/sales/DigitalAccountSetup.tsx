@@ -8,6 +8,7 @@ import {
   SafetyCertificateOutlined, EnvironmentOutlined, CloseOutlined, SaveOutlined,
   SearchOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { salesService } from '../../services/salesService';
 import { inventoryService } from '../../services/inventoryService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,6 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const { Title, Text } = Typography;
 
 const DigitalAccountSetup: React.FC = () => {
+  const { t } = useTranslation('sales');
   const { user } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -31,11 +33,11 @@ const DigitalAccountSetup: React.FC = () => {
   if (user?.role !== 'ADMIN') {
     return (
       <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
-        <Alert 
-          message="Security Restriction Active" 
-          description="Access Denied: Admin level security clearance is required to interact with system wallet configuration matrices." 
-          type="error" 
-          showIcon 
+        <Alert
+          message={t('digitalAccountSetup.accessDenied.title')}
+          description={t('digitalAccountSetup.accessDenied.desc')}
+          type="error"
+          showIcon
         />
       </div>
     );
@@ -54,7 +56,7 @@ const DigitalAccountSetup: React.FC = () => {
       const accRes = await salesService.getGlobalDigitalAccounts();
       setAccounts(Array.isArray(accRes.data) ? accRes.data : []);
     } catch (e) {
-      message.error("Data Sync Exception: Master account profiles could not be loaded.");
+      message.error(t('digitalAccountSetup.messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -92,18 +94,18 @@ const DigitalAccountSetup: React.FC = () => {
       if (editingAccountId) {
         // Run update path
         await salesService.updateDigitalAccount(editingAccountId, payload);
-        message.success(`Wallet profile updated successfully!`);
+        message.success(t('digitalAccountSetup.messages.updateSuccess'));
         setEditingAccountId(null);
       } else {
         // Run standard generation path
         await salesService.createDigitalAccount(payload);
-        message.success(`Wallet profile for "${values.name}" registered successfully!`);
+        message.success(t('digitalAccountSetup.messages.createSuccess', { name: values.name }));
       }
-      
+
       form.resetFields();
       loadSystemContextData();
     } catch (err) {
-      message.error("Submission Denied: Verify fields are valid and the account name identifier is distinct.");
+      message.error(t('digitalAccountSetup.messages.submitFailed'));
     } finally {
       setLoading(false);
     }
@@ -113,14 +115,14 @@ const DigitalAccountSetup: React.FC = () => {
     setLoading(true);
     try {
       await salesService.deleteDigitalAccount(id);
-      message.success("Account profile successfully removed from system registries.");
+      message.success(t('digitalAccountSetup.messages.deleteSuccess'));
       // Safeguard: If the item currently being edited is deleted, close edit mode
       if (editingAccountId === id) {
         cancelEditingMode();
       }
       loadSystemContextData();
     } catch (err) {
-      message.error("Action Blocked: Cannot delete accounts containing active daily statement dependencies.");
+      message.error(t('digitalAccountSetup.messages.deleteFailed'));
     } finally {
       setLoading(false);
     }
@@ -133,46 +135,46 @@ const DigitalAccountSetup: React.FC = () => {
         style={{ borderRadius: '15px', boxShadow: '0 12px 40px rgba(113, 75, 103, 0.1)' }}
       >
         <Title level={2} style={{ color: '#714B67', marginBottom: 4 }}>
-          <BankOutlined /> Master Digital Accounts Registry
+          <BankOutlined /> {t('digitalAccountSetup.title')}
         </Title>
         <Text type="secondary">
-          Configure and edit branch-linked wallet nodes (CBE, Telebirr, Awash) to initialize automatic delta revenue tracking workflows.
+          {t('digitalAccountSetup.subtitle')}
         </Text>
         <Divider style={{ margin: '15px 0 25px 0' }} />
 
         {/* ACCOUNT GENERATOR / EDITOR CONTROL FORM CONTAINER */}
-        <Form 
-          form={form} 
-          layout="vertical" 
+        <Form
+          form={form}
+          layout="vertical"
           onFinish={onFormSubmitFinish}
-          style={{ 
+          style={{
             background: editingAccountId ? '#f9f6f8' : '#fcfcfc', // Subtly shift background color when editing
-            padding: '25px', 
-            borderRadius: '12px', 
-            border: editingAccountId ? '1px dashed #714B67' : '1px solid #f0f0f0', 
+            padding: '25px',
+            borderRadius: '12px',
+            border: editingAccountId ? '1px dashed #714B67' : '1px solid #f0f0f0',
             marginBottom: '30px',
             transition: 'all 0.3s ease'
           }}
         >
           {editingAccountId && (
             <div style={{ marginBottom: '15px' }}>
-              <Alert 
-                message="Modifying Wallet Profile" 
-                description="You are currently updating an existing configurations context. Changes will alter calculations on subsequent submissions."
-                type="warning" 
+              <Alert
+                message={t('digitalAccountSetup.editAlert.title')}
+                description={t('digitalAccountSetup.editAlert.desc')}
+                type="warning"
                 showIcon
               />
             </div>
           )}
-          
+
           <Row gutter={20} align="bottom">
             <Col span={6}>
-              <Form.Item 
-                name="branch" 
-                label={<Text strong style={{ color: '#555' }}><EnvironmentOutlined /> Target Branch Node</Text>}
-                rules={[{ required: true, message: 'Please select a deployment location branch' }]}
+              <Form.Item
+                name="branch"
+                label={<Text strong style={{ color: '#555' }}><EnvironmentOutlined /> {t('digitalAccountSetup.form.branchLabel')}</Text>}
+                rules={[{ required: true, message: t('digitalAccountSetup.form.branchRequired') }]}
               >
-                <Select placeholder="Deploy to location..." size="large" style={{ width: '100%' }}>
+                <Select placeholder={t('digitalAccountSetup.form.branchPlaceholder')} size="large" style={{ width: '100%' }}>
                   {branches.map(b => (
                     <Select.Option key={b.id} value={b.id}>{b.name}</Select.Option>
                   ))}
@@ -180,20 +182,20 @@ const DigitalAccountSetup: React.FC = () => {
               </Form.Item>
             </Col>
             <Col span={7}>
-              <Form.Item 
-                name="name" 
-                label={<Text strong style={{ color: '#555' }}>Unique Wallet/Account Name Identifier</Text>}
-                rules={[{ required: true, message: 'Please enter a name identifier descriptor' }]}
+              <Form.Item
+                name="name"
+                label={<Text strong style={{ color: '#555' }}>{t('digitalAccountSetup.form.nameLabel')}</Text>}
+                rules={[{ required: true, message: t('digitalAccountSetup.form.nameRequired') }]}
               >
-                <Input placeholder="e.g. CBE Main (0911...) or Telebirr Shop" size="large" />
+                <Input placeholder={t('digitalAccountSetup.form.namePlaceholder')} size="large" />
               </Form.Item>
             </Col>
             <Col span={5}>
-              <Form.Item 
-                name="initial_balance" 
-                label={<Text strong style={{ color: '#555' }}>Initial Balance (ETB)</Text>}
+              <Form.Item
+                name="initial_balance"
+                label={<Text strong style={{ color: '#555' }}>{t('digitalAccountSetup.form.initialBalanceLabel', { unit: t('common:units.etb') })}</Text>}
                 initialValue={0}
-                rules={[{ required: true, message: 'Please enter starting balance' }]}
+                rules={[{ required: true, message: t('digitalAccountSetup.form.balanceRequired') }]}
               >
                 <InputNumber style={{ width: '100%' }} min={0} size="large" placeholder="0.00" precision={2} />
               </Form.Item>
@@ -201,32 +203,32 @@ const DigitalAccountSetup: React.FC = () => {
             <Col span={6}>
               <Form.Item>
                 <Space style={{ width: '100%' }} direction="vertical">
-                  <Button 
-                    type="primary" 
-                    htmlType="submit" 
-                    icon={editingAccountId ? <SaveOutlined /> : <PlusOutlined />} 
-                    size="large" 
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    icon={editingAccountId ? <SaveOutlined /> : <PlusOutlined />}
+                    size="large"
                     loading={loading}
                     block
-                    style={{ 
-                      background: editingAccountId ? '#52c41a' : '#714B67', 
-                      borderColor: editingAccountId ? '#52c41a' : '#714B67', 
-                      height: '40px', 
-                      fontWeight: 'bold' 
+                    style={{
+                      background: editingAccountId ? '#52c41a' : '#714B67',
+                      borderColor: editingAccountId ? '#52c41a' : '#714B67',
+                      height: '40px',
+                      fontWeight: 'bold'
                     }}
                   >
-                    {editingAccountId ? 'Update Wallet' : 'Register Wallet'}
+                    {editingAccountId ? t('digitalAccountSetup.form.updateBtn') : t('digitalAccountSetup.form.registerBtn')}
                   </Button>
-                  
+
                   {editingAccountId && (
-                    <Button 
-                      icon={<CloseOutlined />} 
-                      size="large" 
-                      block 
+                    <Button
+                      icon={<CloseOutlined />}
+                      size="large"
+                      block
                       danger
                       onClick={cancelEditingMode}
                     >
-                      Cancel Edit
+                      {t('digitalAccountSetup.form.cancelEditBtn')}
                     </Button>
                   )}
                 </Space>
@@ -238,7 +240,7 @@ const DigitalAccountSetup: React.FC = () => {
         {/* DATA LEDGER TABLE RENDER */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
           <Input
-            placeholder="Search by branch or account name..."
+            placeholder={t('digitalAccountSetup.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -255,51 +257,51 @@ const DigitalAccountSetup: React.FC = () => {
           loading={loading}
           bordered
           scroll={{ x: 'max-content' }}
-          locale={{ emptyText: <Empty description="No configured digital accounts found." /> }}
+          locale={{ emptyText: <Empty description={t('digitalAccountSetup.emptyText')} /> }}
           columns={[
-            { 
-              title: 'Assigned Physical Branch Hub', 
-              dataIndex: 'branch_name', 
+            {
+              title: t('digitalAccountSetup.columns.branch'),
+              dataIndex: 'branch_name',
               key: 'branch_name',
               render: (txt, rec) => (
                 <Text strong style={{ color: '#714B67' }}>
                   <SafetyCertificateOutlined style={{ marginRight: 8 }} />
-                  {txt || rec.branch || 'Global'}
+                  {txt || rec.branch || t('digitalAccountSetup.globalFallback')}
                 </Text>
               )
             },
-            { 
-              title: 'System Account Reference Descriptor Name', 
-              dataIndex: 'name', 
+            {
+              title: t('digitalAccountSetup.columns.name'),
+              dataIndex: 'name',
               key: 'name',
-              render: (t) => <Text style={{ fontSize: '15px' }}>{t}</Text>
+              render: (val) => <Text style={{ fontSize: '15px' }}>{val}</Text>
             },
             {
-              title: 'Seeded Initial Balance',
+              title: t('digitalAccountSetup.columns.initialBalance'),
               dataIndex: 'initial_balance',
               key: 'initial_balance',
-              render: (val) => <Text code>{Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB</Text>
+              render: (val) => <Text code>{Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} {t('common:units.etb')}</Text>
             },
-            { 
-              title: 'Management Actions', 
-              key: 'actions', 
-              width: 180, 
+            {
+              title: t('digitalAccountSetup.columns.actions'),
+              key: 'actions',
+              width: 180,
               align: 'center',
               render: (_, rec) => (
                 <Space size="middle">
-                  <Button 
-                    type="text" 
-                    icon={<EditOutlined />} 
-                    size="large" 
+                  <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    size="large"
                     style={{ color: '#1890ff' }}
                     onClick={() => startEditingMode(rec)}
                   />
                   <Popconfirm
-                    title="Purge Profile Entry"
-                    description="Are you sure you want to permanently remove this configuration profile? This action cannot be reversed."
+                    title={t('digitalAccountSetup.deleteConfirm.title')}
+                    description={t('digitalAccountSetup.deleteConfirm.desc')}
                     onConfirm={() => executeProfilePurge(rec.id)}
-                    okText="Purge"
-                    cancelText="Abort"
+                    okText={t('digitalAccountSetup.deleteConfirm.okText')}
+                    cancelText={t('digitalAccountSetup.deleteConfirm.cancelText')}
                     okButtonProps={{ danger: true }}
                   >
                     <Button type="text" danger icon={<DeleteOutlined />} size="large" />

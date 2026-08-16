@@ -1,0 +1,398 @@
+{
+  "dailySession": {
+    "subNav": {
+      "worksheet": "የቀን ስራ ሉህ ዝግጅት",
+      "debts": "ተጨማሪ: የዕዳ መዝገብ"
+    },
+    "title": "የቀን ቅርንጫፍ ማጠቃለያ",
+    "grossSalesLabel": "ጠቅላላ የሽያጭ መጠን",
+    "netCashLabel": "ያልተመደበ የገንዘብ ልዩነት (ቀጥታ)",
+    "selectBranchPlaceholder": "ዒላማ ቦታ ይምረጡ",
+    "assignedBranchFallback": "የተመደበ ቅርንጫፍ",
+    "generateWorksheetBtn": "ሉህ አመንጭ",
+    "awaitingInput": "ግብዓት በመጠበቅ ላይ",
+    "tabs": {
+      "stockCount": "1. የክምችት ቆጠራ",
+      "expenses": "2. ወጪዎች",
+      "newDebts": "3. አዲስ ዕዳዎች",
+      "creditRecovery": "4. የዕዳ መልሶ ማግኛ",
+      "finalHandover": "5. የመጨረሻ ርክክብ"
+    },
+    "stockCount": {
+      "emptyText": "ምርቶችን ለመዘርዘር ንቁ የስራ ሉህን ያመንጩ።",
+      "overflow": "ትርፍ",
+      "columns": {
+        "product": "የምርት ካታሎግ መገለጫ",
+        "openingBalance": "የጠዋት ቀሪ (መክፈቻ)",
+        "closingCount": "የማታ ቆጠራ (ትክክለኛ የቀሩ እቃዎች)",
+        "piecesSold": "የተሸጡ ቁርጥራጮች (ቀጥታ)"
+      }
+    },
+    "expenses": {
+      "addLine": "የወጪ መስመር ጨምር",
+      "emptyText": "ምንም የወጪ መስመሮች አልተመደቡም።"
+    },
+    "newDebts": {
+      "addLine": "የዕዳ ደረሰኝ መዝግብ",
+      "emptyText": "ምንም የመዝገብ ምደባዎች አልተመዘገቡም።",
+      "selectCustomerPlaceholder": "ደንበኛ ይምረጡ ወይም ይፍጠሩ",
+      "newCustomerNamePlaceholder": "አዲስ የደንበኛ ስም ይተይቡ...",
+      "balanceSuffix": "(ቀሪ: {{amount}} {{unit}})"
+    },
+    "creditRecovery": {
+      "addLine": "የዕዳ ክፍያ መዝግብ",
+      "emptyText": "ምንም የመሰብሰቢያ መገለጫዎች አልተገለጹም።",
+      "selectCustomerPlaceholder": "ዕዳ የሚከፍል መገለጫ ይምረጡ",
+      "owesSuffix": "(ዕዳ: {{amount}} {{unit}})",
+      "amountPaidPlaceholder": "የተከፈለ መጠን"
+    },
+    "finalHandover": {
+      "digitalBalancesTitle": "የዲጂታል (ባንክ/ቴሌብር) ቀሪ ሂሳብ መግለጫ",
+      "addDigitalEntry": "የተረጋገጠ የአካውንት ቀሪ ሂሳብ ጨምር",
+      "selectWalletPlaceholder": "ዒላማ የመተግበሪያ ዋሌት ይምረጡ",
+      "currentBalancePlaceholder": "የአሁኑ የመጨረሻ የመተግበሪያ ቀሪ ሂሳብ",
+      "expectedBase": "የሚጠበቅ መነሻ: {{amount}} {{unit}}",
+      "adminAdjustmentsLabel": "ካለፈው ክፍለ ጊዜ መዘጋት ጀምሮ የተመዘገቡ የአስተዳዳሪ ማስተካከያዎች:",
+      "physicalCashTitle": "የገንዘብ ማስቀመጫ ካዝና (ፊዚካል ገንዘብ)",
+      "rollForwardTitle": "ወደፊት ማሸጋገሪያ ንቁ ነው: የጠዋት የገንዘብ ካዝና መነሻ ተጭኗል",
+      "rollForwardDesc": "የገንዘብ ካዝናው ዛሬ የተከፈተው ካለፈው ማጠቃለያ የተላለፈ የተረጋገጠ {{amount}} {{unit}} መነሻ ለውጥ ካዝና ነው።",
+      "cashToAdminLabel": "ለአስተዳዳሪ/አጓጓዥ የሚሰጥ ጠቅላላ ንፁህ ገንዘብ:",
+      "cashForChangeLabel": "ለለውጥ በካዝና ውስጥ የሚቀር ገንዘብ:",
+      "manualDepositsTitle": "በእጅ የተደረጉ የባንክ ተቀማጭ ገንዘቦች (ደረሰኞች)",
+      "addDepositBtn": "የባንክ ተቀማጭ ደረሰኝ መግለጫ አያይዝ",
+      "slipAmountPlaceholder": "የደረሰኝ መጠን",
+      "bankNamePlaceholder": "የባንክ ስም (ለምሳሌ CBE, Awash)",
+      "beneficiaryNamePlaceholder": "የተጠቃሚ አካውንት ስም",
+      "finalizeBtn": "ማጠቃለያ ጨርስ እና ሁሉንም መረጃ አስማማ"
+    },
+    "debtsLedger": {
+      "cardTitle": "ተጨማሪ መከታተያ: የደንበኞች ዕዳ ታሪክ መዝገብ",
+      "alertMessage": "በዚህ የቅርንጫፍ ስብስብ ውስጥ ካሉ ንቁ ተዘዋዋሪ ስራዎች ጋር የሚዛመዱ ንቁ የዕዳ ክትትል ሰንጠረዦችን ያሳያል።",
+      "searchPlaceholder": "የደንበኛ መገለጫ በስም ይፈልጉ...",
+      "adjustBalance": "ቀሪ ሂሳብ አስተካክል",
+      "columns": {
+        "customerName": "የደንበኛ ስም መለያ",
+        "outstandingDebt": "ያልተከፈለ የዕዳ መገለጫ ({{unit}})",
+        "lastUpdate": "የመጨረሻ ኦዲት ማዘመኛ ጊዜ",
+        "adminOptions": "የአስተዳደር አማራጮች"
+      },
+      "editModal": {
+        "title": "በእጅ የታሪክ ዕዳ ማስተካከያ",
+        "okText": "የታሪክ ቀሪ ሂሳብ ደርብ",
+        "warningTitle": "ወሳኝ የፋይናንስ ማስተካከያ ተግባር",
+        "warningDesc": "ይህ ተግባር የታሪክ ዕዳ ቀሪ ሂሳቦችን በቀጥታ ያስተካክላል። የድርጅት ማረጋገጫ ሰነዶች ከዚህ ጊዜያዊ ማስተካከያ ጋር መዛመዳቸውን ያረጋግጡ።",
+        "customerLabel": "ዒላማ የደንበኛ አካውንት:",
+        "newBalanceLabel": "አዲስ ጠቅላላ ያልተከፈለ ቀሪ ሂሳብ ({{unit}}):"
+      }
+    },
+    "creditsView": {
+      "cardTitle": "ተጨማሪ መከታተያ: የዕዳ ሽያጭ እና መልሶ ማግኛ ሪፖርቶች ክትትል",
+      "alertMessage": "ወርሃዊ የተጠቃለለ የመረጃ ምዝግቦች መዋቅራዊ የንብረት ስርጭት ክትትል ታሪኮችን ያሳያሉ።",
+      "emptyDescription": "ለአሁኑ ንቁ ሩብ ዓመት ምንም የወርሃዊ ታሪክ ምዝግቦች አልተገኙም።"
+    },
+    "sessionModal": {
+      "title": "ክፍለ ጊዜ ተጠናቋል",
+      "doneBtn": "ተጠናቋል",
+      "printBtn": "ሪፖርት አትም"
+    },
+    "messages": {
+      "nameRequired": "እባክዎ ትክክለኛ ስም ያስገቡ።",
+      "branchRequired": "እባክዎ መጀመሪያ ቅርንጫፍ ይምረጡ።",
+      "customerRegistered": "የ\"{{name}}\" መገለጫ በተሳካ ሁኔታ ተመዝግቧል!",
+      "customerRegisterFailed": "አዲስ መገለጫ መመዝገብ አልተሳካም። ስሙ ልዩ መሆኑን ያረጋግጡ።",
+      "balanceUpdated": "የ{{name}} የታሪክ ዕዳ መዝገብ ወደ {{amount}} {{unit}} ተዘምኗል።",
+      "balanceUpdateFailed": "የፍቃድ ስህተት: የቀሪ ሂሳብ ማሻሻያ ውድቅ ተደርጓል።",
+      "selectBranchFirst": "እባክዎ ንቁ ቅርንጫፍ ይምረጡ።",
+      "worksheetCompiled": "ሉህ ተጠናቅሯል! ደረጃዎቹን ይቀጥሉ።",
+      "worksheetLoadFailed": "የማመሳሰል ስህተት: ለዚህ ቅርንጫፍ የክምችት እሴቶች መኖራቸውን ያረጋግጡ።",
+      "noActiveSession": "ተግባሩ ተቋርጧል: ምንም ንቁ ክፍለ ጊዜ የለም።",
+      "countsRequired": "የማረጋገጫ ስህተት: እባክዎ ለተዘረዘሩት ሁሉም ምርቶች የአሁኑን ቆጠራ ያስመዝግቡ።",
+      "submitSuccess": "ተሳክቷል: የቀን ቅርንጫፍ ማጠቃለያ በደህና ገብቷል!",
+      "submitFailed": "ግብይቱ በቀጥታ ማመዛዘኛ ሂደት ወቅት አልተሳካም።"
+    }
+  },
+  "salesHistory": {
+    "title": "የተዘጉ የሽያጭ ታሪክ የኦዲት መዝገብ",
+    "subtitle": "የተዘጉ ንዑስ ቅርንጫፎችን የቀን ማጠቃለያ ሉሆች ይገምግሙ። አስተዳዳሪዎች ሙሉ ዝርዝሮችን ማየት፣ ግቤቶችን ማርትዕ ወይም መዝገቦችን ማጥፋት ይችላሉ ሙሉ በሙሉ ዳግም ለማስገባት።",
+    "searchPlaceholder": "በቅርንጫፍ አካባቢ ወይም ቀን ይፈልጉ...",
+    "detailsBtn": "ዝርዝሮች",
+    "lockedTag": "ተጠናቅቋል እና ተቆልፏል",
+    "unknownLocation": "ያልታወቀ ቦታ",
+    "columns": {
+      "tradingDate": "የግብይት ቀን",
+      "branch": "አካላዊ የቅርንጫፍ ቦታ",
+      "grossRevenue": "ጠቅላላ የገቢ መጠን",
+      "expenses": "የተመዘገቡ ወጪዎች",
+      "newCredits": "አዲስ የተሰጡ ዕዳዎች",
+      "actions": "የስራ ማስተካከያ መዝገቦች"
+    },
+    "deleteConfirm": {
+      "title": "ክፍለ ጊዜውን በቋሚነት ማጥፋት?",
+      "desc": "ይህ ተግባር የዚህን ቀን የፋይናንስ መረጃዎች እና ተያያዥ ጉድለቶች ከስርዓቱ ሙሉ በሙሉ ያስወግዳል። ይህ ወደ ኋላ ሊመለስ አይችልም። ይቀጥሉ?",
+      "okText": "አዎ፣ መዝገቡን አጥፋ"
+    },
+    "messages": {
+      "loadFailed": "የማመሳሰል ስህተት: ያለፉትን የቀን ክፍለ ጊዜዎች መዝገብ መጫን አልተቻለም።",
+      "deleteSuccess": "ክፍለ ጊዜው ሙሉ በሙሉ ተጠርጓል። የቅርንጫፍ አስተዳዳሪው ለዚህ ቀን እንደገና ማስገባት ይችላል።",
+      "deleteFailed": "ተግባሩ ውድቅ ተደርጓል: የዳታቤዝ መፍቀጃ ፍቃድ ያስፈልጋል።",
+      "editRedirectInfo": "የዝግጅት መለኪያዎች ለ{{branch}} ተጭነዋል። ለመቀጠል 'ሉህ አመንጭ'ን ይጫኑ።"
+    },
+    "detailsModal": {
+      "title": "ሙሉ የኦዲት ማጠቃለያ ዝርዝር",
+      "printBtn": "ሪፖርት አትም",
+      "closeBtn": "የኦዲት እይታ ዝጋ",
+      "coreSummaryTitle": "ዋና የማጠቃለያ መለያዎች",
+      "branchCluster": "የቅርንጫፍ ስብስብ",
+      "tradingSheetDate": "የግብይት ሉህ ቀን",
+      "cashSubmitted": "የቀረበ ፊዚካል ገንዘብ",
+      "floatLeft": "በካዝና ውስጥ የቀረ ገንዘብ",
+      "summaryMetricsTitle": "የተጠቃለሉ ማጠቃለያ መለኪያዎች",
+      "grossSales": "ጠቅላላ የምርት ሽያጭ መጠን",
+      "totalExpenses": "ጠቅላላ የፈረቃ ወጪዎች",
+      "totalNewDebts": "ጠቅላላ አዲስ የተሰጡ ዕዳዎች",
+      "totalCreditRecovered": "ጠቅላላ የተመለሰ የደንበኛ ዕዳ",
+      "na": "የለም",
+      "unknownCustomer": "ያልታወቀ ደንበኛ",
+      "unknownAccount": "ያልታወቀ አካውንት",
+      "sections": {
+        "stockCount": "1. የክምችት ቆጠራ ዝርዝሮች",
+        "expenses": "2. የስራ ወጪዎች",
+        "newDebts": "3. በዕዳ የተወሰዱ እቃዎች (አዲስ ዕዳዎች)",
+        "creditRecoveries": "4. የዕዳ መልሶ ማግኛዎች (ክፍያዎች)",
+        "digitalChannels": "5. የዲጂታል መስመሮች ገቢ ቀሪ ሂሳብ",
+        "manualDeposits": "6. በእጅ የተደረጉ የባንክ ተቀማጭ ገንዘቦች (ደረሰኞች)"
+      },
+      "stockCountEmpty": "ምንም የተለየ የክምችት ለውጥ አልተመዘገበም።",
+      "expensesEmpty": "በዚህ ፈረቃ ምንም የድርጅት ወጪ አልተመዘገበም።",
+      "digitalEmpty": "ምንም የባንክ ወይም የሞባይል ገንዘብ መስመር አልተረጋገጠም።",
+      "newDebtsEmpty": "ዛሬ ምንም የደንበኛ ደረሰኝ አልተከናወነም።",
+      "recoveriesEmpty": "ምንም ያልተከፈለ የመሰብሰቢያ ክፍያ አልተገኘም።",
+      "manualDepositsEmpty": "ለዚህ ክፍለ ጊዜ መዝገብ ምንም በእጅ የተደረገ የባንክ ተቀማጭ ደረሰኝ አልተያያዘም።",
+      "columns": {
+        "product": "የምርት ካታሎግ መገለጫ",
+        "opening": "የጠዋት ቀሪ (መክፈቻ)",
+        "closing": "የማታ ቆጠራ (መዝጊያ)",
+        "piecesSold": "የተሸጡ ቁርጥራጮች",
+        "priceAtSale": "በሽያጭ ጊዜ ዋጋ",
+        "subtotalRevenue": "ንዑስ ድምር ገቢ",
+        "expenseReason": "የወጪ ምክንያት/ማብራሪያ",
+        "amountExpended": "የወጣ መጠን",
+        "accountHandle": "የአካውንት መለያ",
+        "endingBalance": "የመጨረሻ ቀሪ ሂሳብ",
+        "revenueDelta": "የፈረቃ ገቢ ለውጥ",
+        "debtorProfile": "የባለ ዕዳ ደንበኛ መገለጫ",
+        "amountOwed": "የተያዘ ዕዳ መጠን",
+        "payerProfile": "የከፋይ ደንበኛ መገለጫ",
+        "cashRecovered": "የተመለሰ ገንዘብ",
+        "bankName": "የባንክ ስም",
+        "accountHolder": "የተመዘገበ አካውንት ስም ባለቤት",
+        "totalDeposited": "ጠቅላላ የተቀማጭ መጠን"
+      }
+    }
+  },
+  "digitalAccountSetup": {
+    "title": "ዋና የዲጂታል አካውንቶች መዝገብ",
+    "subtitle": "ራስ-ሰር የገቢ ልዩነት ክትትል ስራዎችን ለማስጀመር ከቅርንጫፍ ጋር የተያያዙ የዋሌት መስመሮችን (CBE, Telebirr, Awash) ያዋቅሩ እና ያርትዑ።",
+    "searchPlaceholder": "በቅርንጫፍ ወይም በአካውንት ስም ይፈልጉ...",
+    "emptyText": "ምንም የተዋቀረ ዲጂታል አካውንት አልተገኘም።",
+    "globalFallback": "ሁሉንም",
+    "accessDenied": {
+      "title": "የደህንነት ገደብ ንቁ ነው",
+      "desc": "መዳረሻ ተከልክሏል: ከዋሌት ውቅር ሰንጠረዦች ጋር ለመስራት የአስተዳዳሪ ደረጃ የደህንነት ፈቃድ ያስፈልጋል።"
+    },
+    "editAlert": {
+      "title": "የዋሌት መገለጫ በማስተካከል ላይ",
+      "desc": "በአሁኑ ጊዜ ነባር ውቅር እያሻሻሉ ነው። ለውጦች በሚቀጥሉት ማስገባቶች ላይ ስሌቶችን ይቀይራሉ።"
+    },
+    "form": {
+      "branchLabel": "ዒላማ ቅርንጫፍ",
+      "branchRequired": "እባክዎ የማሰማሪያ ቦታ ቅርንጫፍ ይምረጡ",
+      "branchPlaceholder": "ወደ ቦታ አሰማራ...",
+      "nameLabel": "ልዩ የዋሌት/አካውንት ስም መለያ",
+      "nameRequired": "እባክዎ የስም መለያ ያስገቡ",
+      "namePlaceholder": "ለምሳሌ CBE Main (0911...) ወይም Telebirr Shop",
+      "initialBalanceLabel": "የመነሻ ቀሪ ሂሳብ ({{unit}})",
+      "balanceRequired": "እባክዎ የመነሻ ቀሪ ሂሳብ ያስገቡ",
+      "updateBtn": "ዋሌት አዘምን",
+      "registerBtn": "ዋሌት መዝግብ",
+      "cancelEditBtn": "አርትዖት ይቅር"
+    },
+    "columns": {
+      "branch": "የተመደበ አካላዊ ቅርንጫፍ",
+      "name": "የስርዓት አካውንት መለያ ስም",
+      "initialBalance": "የተቀመጠ የመነሻ ቀሪ ሂሳብ",
+      "actions": "የአስተዳደር ተግባራት"
+    },
+    "deleteConfirm": {
+      "title": "የመገለጫ ግቤት አጥፋ",
+      "desc": "ይህን የውቅር መገለጫ በቋሚነት ማስወገድ ይፈልጋሉ? ይህ ተግባር ወደ ኋላ ሊመለስ አይችልም።",
+      "okText": "አጥፋ",
+      "cancelText": "ተወው"
+    },
+    "messages": {
+      "loadFailed": "የመረጃ ማመሳሰል ስህተት: ዋና የአካውንት መገለጫዎች መጫን አልተቻለም።",
+      "updateSuccess": "የዋሌት መገለጫ በተሳካ ሁኔታ ተዘምኗል!",
+      "createSuccess": "የ\"{{name}}\" ዋሌት መገለጫ በተሳካ ሁኔታ ተመዝግቧል!",
+      "submitFailed": "ማስገባት ውድቅ ተደርጓል: መስኮች ትክክለኛ መሆናቸውን እና የአካውንት ስም ልዩ መሆኑን ያረጋግጡ።",
+      "deleteSuccess": "የአካውንት መገለጫ ከስርዓት መዝገቦች በተሳካ ሁኔታ ተወግዷል።",
+      "deleteFailed": "ተግባሩ ተከልክሏል: ንቁ የቀን መግለጫ ጥገኝነት ያላቸውን አካውንቶች ማጥፋት አይቻልም።"
+    }
+  },
+  "digitalAccountAdjustments": {
+    "title": "የድርጅት አካውንቶች ማስተካከያ መዝገብ",
+    "subtitle": "በእጅ የባንክ ዝውውሮችን፣ ጭማሪዎችን ወይም ቀጥታ የአቅራቢ ክፍያዎችን ይመዝግቡ። እነዚህ ቀሪ ሂሳቦች በንቁ የቀን ስራ ቦታዎች ላይ የገንዘብ ፍሰት ፍላጎቶችን ያዘምናሉ።",
+    "searchPlaceholder": "በአካውንት፣ ቅርንጫፍ ወይም ምክንያት ይፈልጉ...",
+    "accessDenied": {
+      "title": "መዳረሻ ተከልክሏል",
+      "desc": "የአስተዳዳሪ ፈቃድ ያስፈልጋል።"
+    },
+    "form": {
+      "typeLabel": "የተግባር አይነት",
+      "payout": "ክፍያ",
+      "injection": "ጭማሪ",
+      "accountLabel": "ዒላማ ዋና አካውንት",
+      "accountRequired": "ዋሌት ይምረጡ",
+      "accountPlaceholder": "የአካውንት መስመር ይምረጡ...",
+      "amountLabel": "የግብይት መጠን",
+      "amountRequired": "መጠን ያስገቡ",
+      "amountPlaceholder": "0.00 {{unit}}",
+      "reasonLabel": "የማጣቀሻ ምክንያት መግለጫ",
+      "reasonRequired": "የደረሰኝ ማስታወሻ ያክሉ",
+      "reasonPlaceholder": "ለምሳሌ ለጅምላ አቅራቢ ለክምችት የተከፈለ",
+      "submitBtn": "የመዝገብ ግቤት አስገባ"
+    },
+    "columns": {
+      "dateLogged": "የተመዘገበበት ቀን",
+      "branch": "የመነሻ ቅርንጫፍ",
+      "account": "ዒላማ አካውንት መስመር",
+      "reason": "የደረሰኝ ማስታወሻ ምክንያት",
+      "amount": "የግብይት ፍሰት ለውጥ ዋጋ"
+    },
+    "deleteConfirm": {
+      "title": "የማስተካከያ መስመር ግቤት ይሰረዝ?",
+      "desc": "ይህ የማስተካከያ ግብይት መዝገብን ያጠፋል።"
+    },
+    "messages": {
+      "loadFailed": "የማመሳሰል ስህተት: የግብይት ታሪክ ማውረድ አልተቻለም።",
+      "submitSuccess": "የመዝገብ ማስተካከያ በተሳካ ሁኔታ ገብቷል!",
+      "submitFailed": "ግብይቱ በማረጋገጫ ቁጥጥር ውድቅ ተደርጓል።",
+      "deleteSuccess": "የግብይት ግቤት ተሰርዟል።",
+      "deleteFailed": "ተግባሩ ተከልክሏል።"
+    }
+  },
+  "managerShortages": {
+    "title": "የድርጅት ጉድለቶች ምደባ መዝገብ",
+    "subtitle": "የቅርንጫፍ ጉድለቶችን ይገምግሙ። አስተዳዳሪ የፋይናንስ ተጠያቂነትን ለተለየ የቅርንጫፍ አስተዳዳሪ፣ ሻጭ ወይም አከፋፋይ እስኪመድብ ድረስ የራቁ ግቤቶች ነባሪ ላልተመደበ ይቀመጣሉ።",
+    "searchPlaceholder": "በቅርንጫፍ ስም ወይም ሰራተኛ ይፈልጉ...",
+    "assignPlaceholder": "ተጠያቂነትን ለሰራተኛ መድብ...",
+    "deductFromSalary": "ከደመወዝ ቀንስ",
+    "selectedStaffFallback": "የተመረጠ ሰራተኛ",
+    "accessDenied": {
+      "title": "የደህንነት ገደብ ንቁ ነው",
+      "desc": "መዳረሻ ተከልክሏል: የአስተዳደር ደረጃ ፈቃድ ያስፈልጋል።"
+    },
+    "columns": {
+      "dateLogged": "የተመዘገበበት ቀን",
+      "branch": "የቅርንጫፍ ቦታ",
+      "shortageAmount": "ያልተመደበ የኪሳራ መጠን",
+      "staffAssignment": "የተጠያቂ ሰራተኛ ምደባ",
+      "deductionStatus": "የቅናሽ ሁኔታ",
+      "payrollAction": "የደመወዝ ክፍያ ማስተካከያ"
+    },
+    "tags": {
+      "awaitingAssignment": "ምደባ በመጠባበቅ ላይ",
+      "salaryDeducted": "ከደመወዝ ተቀንሷል",
+      "unsettledAccount": "ያልተጠናቀቀ አካውንት"
+    },
+    "confirmModal": {
+      "title": "የተጠያቂነት ምደባ አረጋግጥ",
+      "okText": "አረጋግጥ እና አገናኝ",
+      "desc": "ለዚህ የገንዘብ ጉድለት መዝገብ ግቤት የፋይናንስ ተጠያቂነትን ለ<b>{{name}}</b> መስጠት ይፈልጋሉ?",
+      "note": "ከተገናኘ በኋላ ይህን ቀሪ ሂሳብ ከሚቀጥለው ወርሃዊ የደመወዝ ክፍያ ለመፍታት የደመወዝ ቅናሽ መለኪያዎችን መቀያየር ይችላሉ።"
+    },
+    "messages": {
+      "loadFailed": "የማመሳሰል ስህተት: የስራ ተጠያቂነት መዝገቦች መጫን አልተቻለም።",
+      "assignSuccess": "ተጠያቂ ሰራተኛ ለተጠያቂነት መስመር ግቤት በተሳካ ሁኔታ ተመድቧል።",
+      "assignFailed": "የምደባ ማዘመን አልተሳካም።",
+      "assignEmployeeFirst": "ተግባሩ ተከልክሏል: የደመወዝ ቅናሽ ከመተግበሩ በፊት ተጠያቂ ሰራተኛ ይመድቡ።",
+      "statusSyncSuccess": "የቅናሽ ሁኔታ በተሳካ ሁኔታ ተመሳስሏል።",
+      "statusSyncFailed": "የሁኔታ ማመሳሰል አልተሳካም።"
+    }
+  },
+  "vendorSettlements": {
+    "title": "የጅምላ አቅራቢዎች ክፍያ ማዕከል",
+    "tabs": {
+      "statement": "የአቅራቢ መግለጫ ስራ ቦታ",
+      "history": "የክፍያ ታሪክ መዝገብ",
+      "delivery": "የአቅርቦት ሪፖርት"
+    },
+    "selectVendorPlaceholder": "ዒላማ ቦታ / አቅራቢ ይምረጡ",
+    "dateSelectionWindowLabel": "የቀን ክልል ምርጫ",
+    "generateWorksheetBtn": "ሉህ አመንጭ",
+    "unpaidDeliveriesTitle": "ያልተከፈሉ የአቅርቦት መዝገብ ረድፎች",
+    "reconciliationTitle": "የክፍያ ማስተካከያ",
+    "actualCashHandedLabel": "ትክክለኛ የተላለፈ ገንዘብ ({{unit}}):",
+    "advanceCreditNotice": "ተጨማሪ <b>{{amount}} {{unit}}</b> ለወደፊት አቅርቦት ዑደቶች እንደ ቅድሚያ ክፍያ ይመደባል።",
+    "postSettlementBtn": "ክፍያ አስመዝግብ እና አስቀምጥ",
+    "emptyStatement": "ንቁ የመግለጫ ሉህን ለመጫን አቅራቢ እና የቀን ክልል ይምረጡ።",
+    "selectVendorProfileLabel": "ዒላማ አቅራቢ መገለጫ ይምረጡ",
+    "chooseVendorPlaceholder": "የጅምላ አቅራቢ ይምረጡ...",
+    "lifecycleVolumeLabel": "የጠቅላላ ጊዜ መጠን:",
+    "totalUnresolvedDebtLabel": "ጠቅላላ ያልተፈታ ዕዳ:",
+    "historicalBatchesTitle": "የተዘጉ የክፍያ ስብስቦች ታሪክ",
+    "searchSettlementPlaceholder": "በክፍያ መለያ ቁጥር ይፈልጉ...",
+    "filterAll": "ሁሉም",
+    "emptyHistory": "ያለፉትን የገንዘብ ክፍያ መግለጫዎች ለማምጣት ከዝርዝሩ ውስጥ ዒላማ አቅራቢ ይምረጡ።",
+    "selectVendorSimplePlaceholder": "አቅራቢ ይምረጡ",
+    "dateRangeLabel": "የቀን ክልል",
+    "generateReportBtn": "ሪፖርት አመንጭ",
+    "deliveriesAcrossBranchesTitle": "በሁሉም ቅርንጫፎች የተደረጉ አቅርቦቶች",
+    "searchDeliveryPlaceholder": "በቅርንጫፍ ወይም ምርት ይፈልጉ...",
+    "printReportBtn": "ሪፖርት አትም",
+    "unitPriceLabel": "የአሃድ ዋጋ",
+    "subtotalLabel": "ንዑስ ድምር",
+    "emptyDelivery": "የቅርንጫፎችን የአቅርቦት ሪፖርት ለማመንጨት አቅራቢ እና የቀን ክልል ይምረጡ።",
+    "columns": {
+      "dateReceived": "የደረሰበት ቀን",
+      "packsReceived": "የደረሱ ጥቅሎች",
+      "convertedPieces": "የተለወጡ ቁርጥራጮች",
+      "unitBuyPrice": "የግዢ አሃድ ዋጋ",
+      "subtotalCost": "ንዑስ ድምር ወጪ"
+    },
+    "historyColumns": {
+      "settlementId": "የክፍያ መለያ ቁጥር",
+      "dateFinalized": "የተጠናቀቀበት ቀን",
+      "totalBatchCost": "ጠቅላላ የስብስብ ወጪ",
+      "amountPaidTotal": "ጠቅላላ የተከፈለ መጠን",
+      "remainingDebt": "ቀሪ ዕዳ",
+      "voucher": "ደረሰኝ"
+    },
+    "installments": {
+      "title": "የክፍያ ክፍልፋይ ኦዲት መከታተያ መዝገብ",
+      "paidAt": "የተከፈለበት ጊዜ",
+      "cashHandedOver": "የተላለፈ ፊዚካል ገንዘብ",
+      "advanceCreated": "የተፈጠረ ትርፍ ቅድሚያ ክፍያ",
+      "advanceSpent": "ካለፈው የተወሰደ ቅድሚያ ክፍያ"
+    },
+    "stats": {
+      "grossBatchCost": "የተሰላ ጠቅላላ የስብስብ ወጪ",
+      "pastAdvance": "የተተገበረ ያለፈ ቅድሚያ ክፍያ",
+      "netBalanceDue": "አሁን የሚከፈል ተጣራ ቀሪ ሂሳብ"
+    },
+    "postedModal": {
+      "title": "ክፍያ ተመዝግቧል",
+      "printBtn": "ደረሰኝ አትም"
+    },
+    "messages": {
+      "loadVendorsFailed": "የአቅራቢዎች መዝገብ መጫን አልተቻለም",
+      "loadHistoryFailed": "የአቅራቢውን ዋና ታሪክ መዝገብ ማመሳሰል አልተቻለም",
+      "selectVendorAndRange": "እባክዎ አቅራቢ እና የቀን ክልል ውቅር ሁለቱንም ይምረጡ",
+      "statementCompiled": "የመግለጫ ሉህ መለኪያዎች በተሳካ ሁኔታ ተጠናቅረዋል።",
+      "statementFailed": "የመግለጫ ሉህ መገለጫዎችን ማስላት ላይ ስህተት ተፈጥሯል።",
+      "settlementSuccess": "የአቅራቢ ክፍያ በተሳካ ሁኔታ ተከናውኗል እና ተመዝግቧል!",
+      "settlementFailed": "የክፍያ ግቤት ማረጋገጫ ማስገባት አልተቻለም",
+      "selectVendorAndRangeShort": "እባክዎ አቅራቢ እና የቀን ክልል ሁለቱንም ይምረጡ",
+      "deliveryReportFailed": "የአቅራቢ አቅርቦት ሪፖርት መጫን አልተቻለም"
+    }
+  }
+}

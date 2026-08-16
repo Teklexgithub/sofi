@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Typography, Card, Space, Input, message } from 'antd';
 import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom'; // Added for navigation
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import { useTheme } from '../../contexts/ThemeContext';
 import type { Vendor } from '../../types/inventory';
@@ -16,6 +17,7 @@ const Vendors: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { isDark } = useTheme();
   const navigate = useNavigate(); // Initialize the navigate function
+  const { t } = useTranslation('inventory');
 
   const fetchVendors = async () => {
     setLoading(true);
@@ -23,7 +25,7 @@ const Vendors: React.FC = () => {
       const response = await inventoryService.getVendors();
       setVendors(response.data);
     } catch (error) {
-      message.error("Failed to load vendors");
+      message.error(t('vendors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -37,32 +39,32 @@ const Vendors: React.FC = () => {
   });
 
   const columns = [
-    { 
-      title: 'Vendor Name', 
-      dataIndex: 'name', 
-      key: 'name', 
+    {
+      title: t('vendors.columns.name'),
+      dataIndex: 'name',
+      key: 'name',
       render: (text: string, record: Vendor) => (
         /* Making the name clickable to go to the Detail View */
-        <Button 
-          type="link" 
-          onClick={() => navigate(`/inventory/vendors/${record.id}`)} 
+        <Button
+          type="link"
+          onClick={() => navigate(`/inventory/vendors/${record.id}`)}
           style={{ padding: 0, fontWeight: 'bold' }}
         >
           {text}
         </Button>
       )
     },
-    { title: 'Contact Person', dataIndex: 'contact_person', key: 'contact' },
+    { title: t('common:fields.contactPerson'), dataIndex: 'contact_person', key: 'contact' },
     {
-      title: 'Action',
+      title: t('common:fields.action'),
       key: 'action',
       render: (record: Vendor) => (
         /* View History button now directs to a filtered Supply Log view */
-        <Button 
-          type="link" 
+        <Button
+          type="link"
           onClick={() => navigate(`/inventory/supply-logs?vendor=${record.id}`)}
         >
-          View History
+          {t('vendors.viewHistory')}
         </Button>
       ),
     },
@@ -71,10 +73,10 @@ const Vendors: React.FC = () => {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
-        <Title level={3} style={{ margin: 0 }}>Vendors</Title>
+        <Title level={3} style={{ margin: 0 }}>{t('vendors.title')}</Title>
         <Space>
           <Input
-            placeholder="Search by vendor or contact..."
+            placeholder={t('vendors.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -88,7 +90,7 @@ const Vendors: React.FC = () => {
             onClick={() => setIsModalVisible(true)}
             style={{ background: '#714B67', border: 'none', borderRadius: '4px' }}
           >
-            Create
+            {t('common:actions.create')}
           </Button>
         </Space>
       </div>

@@ -7,6 +7,7 @@ import {
 } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { salesService } from '../../services/salesService';
 import { useAuth } from '../../contexts/AuthContext';
 import DailySessionReport from '../../components/print/DailySessionReport';
@@ -14,6 +15,7 @@ import DailySessionReport from '../../components/print/DailySessionReport';
 const { Text, Title } = Typography;
 
 const SalesHistoryLog: React.FC = () => {
+  const { t } = useTranslation('sales');
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,7 @@ const SalesHistoryLog: React.FC = () => {
       const res = await salesService.getDailySessions();
       setSessionsList(Array.isArray(res.data) ? res.data : (res.data.results || []));
     } catch (e) {
-      message.error("Sync Failure: Could not load historical daily sessions registry.");
+      message.error(t('salesHistory.messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -44,17 +46,17 @@ const SalesHistoryLog: React.FC = () => {
   const handleDeleteSessionExecution = async (id: string) => {
     try {
       await salesService.deleteDailySession(id);
-      message.success("Session completely wiped. The branch admin can now re-submit for this date.");
-      loadSessionsFromDatabase(); 
+      message.success(t('salesHistory.messages.deleteSuccess'));
+      loadSessionsFromDatabase();
     } catch (err) {
-      message.error("Action Rejected: Database clearance permissions required.");
+      message.error(t('salesHistory.messages.deleteFailed'));
     }
   };
 
   const handleEditRedirect = (record: any) => {
     // REDIRECT TARGET FIX: Routes explicitly to your workstation panel node URL path parameter bundle
     navigate(`/sales/daily-session?branch=${record.branch}&date=${record.trading_date}`);
-    message.info(`Staging parameters loaded for ${record.branch_name}. Hit 'Generate Worksheet' to proceed.`);
+    message.info(t('salesHistory.messages.editRedirectInfo', { branch: record.branch_name }));
   };
 
   const openDetailsModalInspection = (record: any) => {
@@ -74,17 +76,17 @@ const SalesHistoryLog: React.FC = () => {
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       <Card bordered={false} style={{ borderRadius: '15px', boxShadow: '0 12px 40px rgba(0,0,0,0.04)' }}>
         <Title level={2} style={{ color: '#714B67', marginBottom: 4 }}>
-          <HistoryOutlined /> Closed Sales History Audit Journal
+          <HistoryOutlined /> {t('salesHistory.title')}
         </Title>
         <Text type="secondary">
-          Review closed sub-branch daily settlement worksheets. Admins can view complete breakdowns, edit entries, or delete records to allow full re-submissions.
+          {t('salesHistory.subtitle')}
         </Text>
         <Divider style={{ margin: '15px 0 25px 0' }} />
 
         <div style={{ marginBottom: '20px', maxWidth: '400px' }}>
           <Input
             size="large"
-            placeholder="Search by branch location or date..."
+            placeholder={t('salesHistory.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchQuery}
             allowClear
@@ -100,84 +102,84 @@ const SalesHistoryLog: React.FC = () => {
           scroll={{ x: 'max-content' }}
           columns={[
             {
-              title: 'Trading Date',
+              title: t('salesHistory.columns.tradingDate'),
               dataIndex: 'trading_date',
               key: 'trading_date',
               width: 130,
               render: (d) => <Text><CalendarOutlined /> {d}</Text>
             },
             {
-              title: 'Physical Branch Location Node',
+              title: t('salesHistory.columns.branch'),
               dataIndex: 'branch_name',
               key: 'branch_name',
               render: (txt) => (
                 <Text strong style={{ color: '#714B67' }}>
-                  <SafetyCertificateOutlined style={{ marginRight: 6 }} /> {txt || 'Unknown Location'}
+                  <SafetyCertificateOutlined style={{ marginRight: 6 }} /> {txt || t('salesHistory.unknownLocation')}
                 </Text>
               )
             },
             {
-              title: 'Gross Revenue Volume',
+              title: t('salesHistory.columns.grossRevenue'),
               dataIndex: 'total_sales',
               key: 'total_sales',
               align: 'right',
-              render: (val) => <Text strong>{Number(val).toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB</Text>
+              render: (val) => <Text strong>{Number(val).toLocaleString('en-US', { minimumFractionDigits: 2 })} {t('common:units.etb')}</Text>
             },
             {
-              title: 'Recorded Expenses',
+              title: t('salesHistory.columns.expenses'),
               dataIndex: 'total_expenses',
               key: 'total_expenses',
               align: 'right',
-              render: (val) => <Text type="danger">{Number(val).toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB</Text>
+              render: (val) => <Text type="danger">{Number(val).toLocaleString('en-US', { minimumFractionDigits: 2 })} {t('common:units.etb')}</Text>
             },
             {
-              title: 'New Credits Issued',
+              title: t('salesHistory.columns.newCredits'),
               dataIndex: 'total_new_credit',
               key: 'total_new_credit',
               align: 'right',
-              render: (val) => <Text type="warning">{Number(val).toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB</Text>
+              render: (val) => <Text type="warning">{Number(val).toLocaleString('en-US', { minimumFractionDigits: 2 })} {t('common:units.etb')}</Text>
             },
             {
-              title: 'Operational Adjustments Logs',
+              title: t('salesHistory.columns.actions'),
               key: 'actions_panel_override',
               align: 'center',
               width: 320,
               render: (_, rec) => (
                 <Space size="small">
                   {/* Read-only details inspection action tool accessible by everyone */}
-                  <Button 
-                    type="default" 
-                    icon={<EyeOutlined />} 
+                  <Button
+                    type="default"
+                    icon={<EyeOutlined />}
                     onClick={() => openDetailsModalInspection(rec)}
                   >
-                    Details
+                    {t('salesHistory.detailsBtn')}
                   </Button>
 
                   {user?.role === 'ADMIN' ? (
                     <>
-                      <Button 
-                        type="primary" 
-                        ghost 
-                        icon={<EditOutlined />} 
+                      <Button
+                        type="primary"
+                        ghost
+                        icon={<EditOutlined />}
                         onClick={() => handleEditRedirect(rec)}
                       >
-                        Edit
+                        {t('common:actions.edit')}
                       </Button>
                       <Popconfirm
-                        title="Permanently Delete Session?"
-                        description="This operation entirely drops this day's financial metrics and linked shortages out of the system. This cannot be undone. Proceed?"
+                        title={t('salesHistory.deleteConfirm.title')}
+                        description={t('salesHistory.deleteConfirm.desc')}
                         onConfirm={() => handleDeleteSessionExecution(rec.id)}
-                        okText="Yes, Delete Record"
-                        cancelText="Cancel"
+                        okText={t('salesHistory.deleteConfirm.okText')}
+                        cancelText={t('common:actions.cancel')}
                         okButtonProps={{ danger: true }}
                       >
                         <Button type="primary" danger icon={<DeleteOutlined />}>
-                          Delete
+                          {t('common:actions.delete')}
                         </Button>
                       </Popconfirm>
                     </>
                   ) : (
-                    <Tag color="blue" style={{ fontWeight: 'bold' }}>FINALIZED & LOCKED</Tag>
+                    <Tag color="blue" style={{ fontWeight: 'bold' }}>{t('salesHistory.lockedTag')}</Tag>
                   )}
                 </Space>
               )
@@ -188,15 +190,15 @@ const SalesHistoryLog: React.FC = () => {
 
       {/* --- INLINE COMPREHENSIVE BREAKDOWN INSPECTION MODAL PANEL --- */}
       <Modal
-        title={<span><HistoryOutlined style={{ marginRight: 8, color: '#714B67' }} /> Complete Audit Settlement Breakdown</span>}
+        title={<span><HistoryOutlined style={{ marginRight: 8, color: '#714B67' }} /> {t('salesHistory.detailsModal.title')}</span>}
         open={isDetailsModalOpen}
         onCancel={() => setIsDetailsModalOpen(false)}
         footer={[
           <Button key="print_btn" icon={<PrinterOutlined />} onClick={() => handlePrintSession()}>
-            Print Report
+            {t('salesHistory.detailsModal.printBtn')}
           </Button>,
           <Button key="close_btn" type="primary" style={{ background: '#714B67', borderColor: '#714B67' }} onClick={() => setIsDetailsModalOpen(false)}>
-            Close Audit View
+            {t('salesHistory.detailsModal.closeBtn')}
           </Button>
         ]}
         width={950}
@@ -207,42 +209,42 @@ const SalesHistoryLog: React.FC = () => {
           <div style={{ padding: '10px 0', maxHeight: '72vh', overflowY: 'auto', overflowX: 'hidden' }}>
             
             {/* CORE HEAD MASTER PARAMETERS */}
-            <Descriptions title="Core Summary Identifiers" bordered column={2} size="small" style={{ marginBottom: 20 }}>
-              <Descriptions.Item label="Branch Cluster">{activeInspectionRecord.branch_name}</Descriptions.Item>
-              <Descriptions.Item label="Trading Sheet Date">{activeInspectionRecord.trading_date}</Descriptions.Item>
-              <Descriptions.Item label="Physical Cash Submitted"><Text strong style={{ color: '#714B67' }}>{Number(activeInspectionRecord.cash_handed_to_admin).toFixed(2)} ETB</Text></Descriptions.Item>
-              <Descriptions.Item label="Float Left in Drawer">{Number(activeInspectionRecord.cash_retained_for_change).toFixed(2)} ETB</Descriptions.Item>
+            <Descriptions title={t('salesHistory.detailsModal.coreSummaryTitle')} bordered column={2} size="small" style={{ marginBottom: 20 }}>
+              <Descriptions.Item label={t('salesHistory.detailsModal.branchCluster')}>{activeInspectionRecord.branch_name}</Descriptions.Item>
+              <Descriptions.Item label={t('salesHistory.detailsModal.tradingSheetDate')}>{activeInspectionRecord.trading_date}</Descriptions.Item>
+              <Descriptions.Item label={t('salesHistory.detailsModal.cashSubmitted')}><Text strong style={{ color: '#714B67' }}>{Number(activeInspectionRecord.cash_handed_to_admin).toFixed(2)} {t('common:units.etb')}</Text></Descriptions.Item>
+              <Descriptions.Item label={t('salesHistory.detailsModal.floatLeft')}>{Number(activeInspectionRecord.cash_retained_for_change).toFixed(2)} {t('common:units.etb')}</Descriptions.Item>
             </Descriptions>
 
             {/* FINANCIAL SUMMARY MATRICES CONTROLLER BOX */}
-            <Descriptions title="Aggregated Summary Metrics Matrices" bordered column={2} size="small" style={{ marginBottom: 25 }}>
-              <Descriptions.Item label="Gross Product Sales Volume" span={2}>
-                <Text strong style={{ color: '#52c41a', fontSize: '15px' }}>{Number(activeInspectionRecord.total_sales).toLocaleString(undefined, {minimumFractionDigits: 2})} ETB</Text>
+            <Descriptions title={t('salesHistory.detailsModal.summaryMetricsTitle')} bordered column={2} size="small" style={{ marginBottom: 25 }}>
+              <Descriptions.Item label={t('salesHistory.detailsModal.grossSales')} span={2}>
+                <Text strong style={{ color: '#52c41a', fontSize: '15px' }}>{Number(activeInspectionRecord.total_sales).toLocaleString(undefined, {minimumFractionDigits: 2})} {t('common:units.etb')}</Text>
               </Descriptions.Item>
-              <Descriptions.Item label="Total Shift Store Expenses"><Text type="danger">{Number(activeInspectionRecord.total_expenses).toLocaleString(undefined, {minimumFractionDigits: 2})} ETB</Text></Descriptions.Item>
-              <Descriptions.Item label="Total New Debts Granted"><Text type="warning">{Number(activeInspectionRecord.total_new_credit).toLocaleString(undefined, {minimumFractionDigits: 2})} ETB</Text></Descriptions.Item>
-              <Descriptions.Item label="Total Customer Credit Recovered" span={2}><Text type="success" strong>{Number(activeInspectionRecord.total_credit_recovered).toLocaleString(undefined, {minimumFractionDigits: 2})} ETB</Text></Descriptions.Item>
+              <Descriptions.Item label={t('salesHistory.detailsModal.totalExpenses')}><Text type="danger">{Number(activeInspectionRecord.total_expenses).toLocaleString(undefined, {minimumFractionDigits: 2})} {t('common:units.etb')}</Text></Descriptions.Item>
+              <Descriptions.Item label={t('salesHistory.detailsModal.totalNewDebts')}><Text type="warning">{Number(activeInspectionRecord.total_new_credit).toLocaleString(undefined, {minimumFractionDigits: 2})} {t('common:units.etb')}</Text></Descriptions.Item>
+              <Descriptions.Item label={t('salesHistory.detailsModal.totalCreditRecovered')} span={2}><Text type="success" strong>{Number(activeInspectionRecord.total_credit_recovered).toLocaleString(undefined, {minimumFractionDigits: 2})} {t('common:units.etb')}</Text></Descriptions.Item>
             </Descriptions>
 
             {/* INLINE 1: STOCK COUNT INLINE DATA TABLE */}
-            <Divider style={{ color: '#714B67', fontSize: '14px', margin: '15px 0' }}>1. Stock Count Inventory Inlines</Divider>
+            <Divider style={{ color: '#714B67', fontSize: '14px', margin: '15px 0' }}>{t('salesHistory.detailsModal.sections.stockCount')}</Divider>
             <Table
               dataSource={activeInspectionRecord.products_sold || []}
               rowKey={(rec: any) => rec.id || rec.product_name || Math.random().toString()}
               pagination={false}
               size="small"
               bordered
-              locale={{ emptyText: "No specific inventory modifications logged." }}
+              locale={{ emptyText: t('salesHistory.detailsModal.stockCountEmpty') }}
               columns={[
-                { title: 'Product catalog profile', dataIndex: 'product_name', render: (t) => <Text strong style={{ color: '#714B67' }}>{t}</Text> },
-                { title: 'A.M Balance (Open)', dataIndex: 'opening', align: 'center', render: (v) => `${v} Pcs` },
-                { title: 'P.M Count (Closing)', dataIndex: 'closing', align: 'center', render: (v) => `${v} Pcs` },
-                { title: 'Pieces Sold', dataIndex: 'sold', align: 'center', render: (v) => <Text strong style={{ color: v > 0 ? '#52c41a' : '#999' }}>{v} Pcs</Text> },
-                { title: 'Price at Sale', dataIndex: 'price_at_sale', align: 'right', render: (v) => `${Number(v).toFixed(2)} ETB` },
-                { 
-                  title: 'Subtotal Revenue', 
-                  align: 'right', 
-                  render: (_: any, rec: any) => <Text strong>{(Number(rec.sold) * Number(rec.price_at_sale)).toLocaleString(undefined, {minimumFractionDigits: 2})} ETB</Text> 
+                { title: t('salesHistory.detailsModal.columns.product'), dataIndex: 'product_name', render: (val) => <Text strong style={{ color: '#714B67' }}>{val}</Text> },
+                { title: t('salesHistory.detailsModal.columns.opening'), dataIndex: 'opening', align: 'center', render: (v) => `${v} ${t('common:units.pieces')}` },
+                { title: t('salesHistory.detailsModal.columns.closing'), dataIndex: 'closing', align: 'center', render: (v) => `${v} ${t('common:units.pieces')}` },
+                { title: t('salesHistory.detailsModal.columns.piecesSold'), dataIndex: 'sold', align: 'center', render: (v) => <Text strong style={{ color: v > 0 ? '#52c41a' : '#999' }}>{v} {t('common:units.pieces')}</Text> },
+                { title: t('salesHistory.detailsModal.columns.priceAtSale'), dataIndex: 'price_at_sale', align: 'right', render: (v) => `${Number(v).toFixed(2)} ${t('common:units.etb')}` },
+                {
+                  title: t('salesHistory.detailsModal.columns.subtotalRevenue'),
+                  align: 'right',
+                  render: (_: any, rec: any) => <Text strong>{(Number(rec.sold) * Number(rec.price_at_sale)).toLocaleString(undefined, {minimumFractionDigits: 2})} {t('common:units.etb')}</Text>
                 }
               ]}
             />
@@ -250,34 +252,34 @@ const SalesHistoryLog: React.FC = () => {
             {/* INLINE 2 & 5: EXPENSES AND DIGITAL WALLETS GRID CONTAINER */}
             <Row gutter={16} style={{ marginTop: 25 }}>
               <Col span={12}>
-                <Divider style={{ color: '#714B67', fontSize: '14px', margin: '10px 0' }}>2. Operational Store Expenses</Divider>
+                <Divider style={{ color: '#714B67', fontSize: '14px', margin: '10px 0' }}>{t('salesHistory.detailsModal.sections.expenses')}</Divider>
                 <Table
                   dataSource={activeInspectionRecord.expenses_logged || []}
                   rowKey={(_, index) => index !== undefined ? index.toString() : Math.random().toString()}
                   pagination={false}
                   size="small"
                   bordered
-                  locale={{ emptyText: "No company expenses recorded during this shift." }}
+                  locale={{ emptyText: t('salesHistory.detailsModal.expensesEmpty') }}
                   columns={[
-                    { title: 'Expense Reason/Justification', dataIndex: 'reason', render: (t) => <Text code>{t}</Text> },
-                    { title: 'Amount Expended', dataIndex: 'amount', align: 'right' as const, render: (v) => <Text type="danger">{Number(v).toFixed(2)} ETB</Text> }
+                    { title: t('salesHistory.detailsModal.columns.expenseReason'), dataIndex: 'reason', render: (val) => <Text code>{val}</Text> },
+                    { title: t('salesHistory.detailsModal.columns.amountExpended'), dataIndex: 'amount', align: 'right' as const, render: (v) => <Text type="danger">{Number(v).toFixed(2)} {t('common:units.etb')}</Text> }
                   ]}
                 />
               </Col>
-              
+
               <Col span={12}>
-                <Divider style={{ color: '#714B67', fontSize: '14px', margin: '10px 0' }}>5. Digital Channels Revenue Balances</Divider>
+                <Divider style={{ color: '#714B67', fontSize: '14px', margin: '10px 0' }}>{t('salesHistory.detailsModal.sections.digitalChannels')}</Divider>
                 <Table
                   dataSource={activeInspectionRecord.digital_balances || []}
                   rowKey={(rec: any) => rec.id || rec.account_name || Math.random().toString()}
                   pagination={false}
                   size="small"
                   bordered
-                  locale={{ emptyText: "No bank or mobile money endpoints verified." }}
+                  locale={{ emptyText: t('salesHistory.detailsModal.digitalEmpty') }}
                   columns={[
-                    { title: 'Account Handle', dataIndex: 'account_name' },
-                    { title: 'Ending Balance', dataIndex: 'closing_balance', align: 'right' as const, render: (v) => `${Number(v).toFixed(2)} ETB` },
-                    { title: 'Shift Revenue Delta', dataIndex: 'revenue_delta', align: 'right' as const, render: (v) => <Text type={v >= 0 ? "success" : "danger"} strong>{v >= 0 ? '+' : ''}{Number(v).toFixed(2)} ETB</Text> }
+                    { title: t('salesHistory.detailsModal.columns.accountHandle'), dataIndex: 'account_name' },
+                    { title: t('salesHistory.detailsModal.columns.endingBalance'), dataIndex: 'closing_balance', align: 'right' as const, render: (v) => `${Number(v).toFixed(2)} ${t('common:units.etb')}` },
+                    { title: t('salesHistory.detailsModal.columns.revenueDelta'), dataIndex: 'revenue_delta', align: 'right' as const, render: (v) => <Text type={v >= 0 ? "success" : "danger"} strong>{v >= 0 ? '+' : ''}{Number(v).toFixed(2)} {t('common:units.etb')}</Text> }
                   ]}
                 />
               </Col>
@@ -286,7 +288,7 @@ const SalesHistoryLog: React.FC = () => {
             {/* INLINE 3 & 4: DEBT ENTRIES AND CREDIT RECOVERIES GRID CONTAINER */}
             <Row gutter={16} style={{ marginTop: 25 }}>
               <Col span={12}>
-                <Divider style={{ color: '#714B67', fontSize: '14px', margin: '10px 0' }}>3. Items Taken on Credit (New Debts)</Divider>
+                <Divider style={{ color: '#714B67', fontSize: '14px', margin: '10px 0' }}>{t('salesHistory.detailsModal.sections.newDebts')}</Divider>
                   <Table
                     // --- DIRECT & UNFLATTENED DATASOURCE LINK ---
                     dataSource={activeInspectionRecord.credits_issued || []}
@@ -294,53 +296,53 @@ const SalesHistoryLog: React.FC = () => {
                     pagination={false}
                     size="small"
                     bordered
-                    locale={{ emptyText: "No debtor invoices processed today." }}
+                    locale={{ emptyText: t('salesHistory.detailsModal.newDebtsEmpty') }}
                     columns={[
-                      { 
-                        title: 'Debtor Customer Profile', 
+                      {
+                        title: t('salesHistory.detailsModal.columns.debtorProfile'),
                         render: (_, rec: any) => (
                           <Text strong>
                             <UserOutlined style={{ marginRight: 4 }} />
-                            {rec.customer_name || "Unknown Customer"}
+                            {rec.customer_name || t('salesHistory.detailsModal.unknownCustomer')}
                           </Text>
                         )
                       },
-                      { 
-                        title: 'Amount Owed', 
-                        align: 'right' as const, 
+                      {
+                        title: t('salesHistory.detailsModal.columns.amountOwed'),
+                        align: 'right' as const,
                         render: (_, rec: any) => (
-                          <Text type="warning" strong>{Number(rec.amount || 0).toFixed(2)} ETB</Text>
+                          <Text type="warning" strong>{Number(rec.amount || 0).toFixed(2)} {t('common:units.etb')}</Text>
                         )
                       }
                     ]}
                   />
               </Col>
-              
+
               <Col span={12}>
-                <Divider style={{ color: '#714B67', fontSize: '14px', margin: '10px 0' }}>4. Credit Recoveries (Repayments)</Divider>
+                <Divider style={{ color: '#714B67', fontSize: '14px', margin: '10px 0' }}>{t('salesHistory.detailsModal.sections.creditRecoveries')}</Divider>
                 <Table
                   dataSource={activeInspectionRecord.credit_payments || []}
                   rowKey={(_, index) => index !== undefined ? index.toString() : Math.random().toString()}
                   pagination={false}
                   size="small"
                   bordered
-                  locale={{ emptyText: "No outstanding collection repayments retrieved." }}
+                  locale={{ emptyText: t('salesHistory.detailsModal.recoveriesEmpty') }}
                   columns={[
-                    { 
-                      title: 'Payer Customer Profile', 
+                    {
+                      title: t('salesHistory.detailsModal.columns.payerProfile'),
                       render: (_: any, rec: any) => (
                         <Text strong>
                           <CheckCircleOutlined style={{ marginRight: 4, color: '#52c41a' }} />
-                          {rec.customer_name || rec.customer || "Unknown Account"}
+                          {rec.customer_name || rec.customer || t('salesHistory.detailsModal.unknownAccount')}
                         </Text>
                       )
                     },
-                    { 
-                      title: 'Cash Recovered', 
-                      align: 'right' as const, 
+                    {
+                      title: t('salesHistory.detailsModal.columns.cashRecovered'),
+                      align: 'right' as const,
                       render: (_: any, rec: any) => {
                         const recoveryValue = rec.amount_paid !== undefined ? rec.amount_paid : (rec.amount !== undefined ? rec.amount : 0);
-                        return <Text style={{ color: '#52c41a' }} strong>{Number(recoveryValue).toFixed(2)} ETB</Text>;
+                        return <Text style={{ color: '#52c41a' }} strong>{Number(recoveryValue).toFixed(2)} {t('common:units.etb')}</Text>;
                       }
                     }
                   ]}
@@ -349,33 +351,33 @@ const SalesHistoryLog: React.FC = () => {
             </Row>
 
             {/* --- ADDED SECTION 6: MANUAL PHYSICAL BANK DEPOSITS INLINE DATA ROW --- */}
-            <Divider style={{ color: '#714B67', fontSize: '14px', margin: '25px 0 15px 0' }}>6. Manual Physical Bank Deposits (Slips / Receipts)</Divider>
+            <Divider style={{ color: '#714B67', fontSize: '14px', margin: '25px 0 15px 0' }}>{t('salesHistory.detailsModal.sections.manualDeposits')}</Divider>
             <Table
               dataSource={activeInspectionRecord.manual_deposits || []}
               rowKey={(rec: any) => rec.id || Math.random().toString()}
               pagination={false}
               size="small"
               bordered
-              locale={{ emptyText: "No manual physical bank deposit slips attached to this session ledger." }}
+              locale={{ emptyText: t('salesHistory.detailsModal.manualDepositsEmpty') }}
               columns={[
-                { 
-                  title: 'Bank Name', 
-                  dataIndex: 'bank_name', 
+                {
+                  title: t('salesHistory.detailsModal.columns.bankName'),
+                  dataIndex: 'bank_name',
                   key: 'bank_name',
-                  render: (text) => <Text strong style={{ color: '#714B67' }}>{text || 'N/A'}</Text>
+                  render: (text) => <Text strong style={{ color: '#714B67' }}>{text || t('salesHistory.detailsModal.na')}</Text>
                 },
-                { 
-                  title: 'Account Registered Name Holder', 
-                  dataIndex: 'account_name', 
+                {
+                  title: t('salesHistory.detailsModal.columns.accountHolder'),
+                  dataIndex: 'account_name',
                   key: 'account_name',
-                  render: (text) => <Text type="secondary">{text || 'N/A'}</Text>
+                  render: (text) => <Text type="secondary">{text || t('salesHistory.detailsModal.na')}</Text>
                 },
-                { 
-                  title: 'Total Value Deposited', 
-                  dataIndex: 'amount', 
+                {
+                  title: t('salesHistory.detailsModal.columns.totalDeposited'),
+                  dataIndex: 'amount',
                   key: 'amount',
                   align: 'right' as const,
-                  render: (val) => <Text strong style={{ color: '#52c41a' }}>{Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB</Text>
+                  render: (val) => <Text strong style={{ color: '#52c41a' }}>{Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} {t('common:units.etb')}</Text>
                 }
               ]}
             />

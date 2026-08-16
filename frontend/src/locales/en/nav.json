@@ -1,0 +1,57 @@
+{
+  "apps": {
+    "inventory": "Inventory",
+    "sales": "Sales",
+    "employee": "Employee",
+    "dashboard": "Dashboard",
+    "settings": "Settings"
+  },
+  "headerTitle": {
+    "inventory": "Inventory",
+    "sales": "Sales",
+    "employee": "Employee",
+    "settings": "Settings",
+    "analytics": "Analytics Dashboard",
+    "default": "Sofia ERP"
+  },
+  "inventory": {
+    "stockLevels": "Stock Levels",
+    "storeStock": "Store Stock (Packs)",
+    "shopStock": "Shop Stock (Pieces)",
+    "masterData": "Master Data",
+    "products": "Products",
+    "vendors": "Vendors",
+    "operations": "Operations",
+    "vendorDeliveries": "Vendor Deliveries",
+    "storeToShopRefills": "Store to Shop Refills"
+  },
+  "sales": {
+    "dailySessions": "Daily Sessions",
+    "dailyWorksheet": "Daily Worksheet",
+    "salesHistory": "Sales History",
+    "vendorSettlements": "Vendor Settlements",
+    "digitalAccounts": "Digital Accounts",
+    "bankAccounts": "Bank Accounts",
+    "journalAdjustments": "Journal Adjustments",
+    "shortagesLedger": "Shortages Ledger"
+  },
+  "employee": {
+    "employees": "Employees",
+    "advancesFines": "Advances & Fines",
+    "issueAdvanceFine": "Issue Advance/Fine",
+    "ledgerHistory": "Ledger History Log",
+    "payslipsRun": "Payslips Run",
+    "executePayout": "Execute Payout Run",
+    "payslipHistory": "Payslip History Log"
+  },
+  "settings": {
+    "configuration": "Configuration",
+    "users": "Users",
+    "branches": "Branches"
+  },
+  "user": {
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "logout": "Logout"
+  }
+}

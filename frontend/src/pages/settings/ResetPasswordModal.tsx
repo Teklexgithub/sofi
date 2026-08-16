@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, message, Alert } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { settingsService } from '../../services/settingsService';
 
 interface ResetProps {
@@ -10,6 +11,7 @@ interface ResetProps {
 }
 
 const ResetPasswordModal: React.FC<ResetProps> = ({ visible, userId, userEmail, onCancel }) => {
+  const { t } = useTranslation('settings');
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -18,10 +20,10 @@ const ResetPasswordModal: React.FC<ResetProps> = ({ visible, userId, userEmail, 
     try {
         // We send 'values.password' because the backend looks for the key "password"
         await settingsService.resetUserPassword(userId, values.password);
-        message.success("Password updated successfully");
+        message.success(t('resetPasswordModal.success'));
         onCancel();
     } catch (e) {
-        message.error("Update failed. Check if you are an Admin.");
+        message.error(t('resetPasswordModal.failure'));
     } finally {
         setLoading(false);
     }
@@ -29,36 +31,36 @@ const ResetPasswordModal: React.FC<ResetProps> = ({ visible, userId, userEmail, 
 
   return (
     <Modal
-      title="Admin Password Override"
+      title={t('resetPasswordModal.title')}
       open={visible}
       onOk={() => form.submit()}
       onCancel={onCancel}
       confirmLoading={loading}
-      okText="Apply New Password"
+      okText={t('resetPasswordModal.okText')}
       okButtonProps={{ danger: true }}
     >
-      <Alert 
-        message="Security Warning"
-        description="You are manually overriding this user's password. They will be logged out of other sessions."
+      <Alert
+        message={t('resetPasswordModal.warningTitle')}
+        description={t('resetPasswordModal.warningDesc')}
         type="warning"
         showIcon
         style={{ marginBottom: 16 }}
       />
-      <p>Target User: <strong>{userEmail}</strong></p>
+      <p>{t('resetPasswordModal.targetUserLabel')}: <strong>{userEmail}</strong></p>
       <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item name="password" label="New Secure Password" rules={[{ required: true, min: 8 }]}>
+        <Form.Item name="password" label={t('resetPasswordModal.newPasswordLabel')} rules={[{ required: true, min: 8 }]}>
           <Input.Password />
         </Form.Item>
-        <Form.Item 
-          name="confirm" 
-          label="Confirm Password" 
+        <Form.Item
+          name="confirm"
+          label={t('common:fields.confirmPassword')}
           dependencies={['password']}
           rules={[
             { required: true },
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (!value || getFieldValue('password') === value) return Promise.resolve();
-                return Promise.reject(new Error('Passwords match error'));
+                return Promise.reject(new Error(t('createUserModal.passwordMismatch')));
               },
             }),
           ]}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Typography, Tag, Space, message, Input } from 'antd'; // Added Input to imports
 import { PlusOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons'; // Added SearchOutlined
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBranch } from '../../contexts/BranchContext';
@@ -16,6 +17,7 @@ const SupplyLogs: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState(''); // Added state to track search query
+  const { t } = useTranslation('inventory');
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -23,7 +25,7 @@ const SupplyLogs: React.FC = () => {
       const res = await inventoryService.getSupplyLogs();
       setLogs(res.data);
     } catch (e) {
-      message.error("Failed to load delivery history");
+      message.error(t('supplyLogs.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -43,35 +45,35 @@ const SupplyLogs: React.FC = () => {
 
   const columns = [
     {
-      title: 'Date Received',
+      title: t('supplyLogs.columns.dateReceived'),
       dataIndex: 'date_received',
       render: (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm'),
     },
     {
-      title: 'Branch',
-      dataIndex: 'branch_name', 
-      render: (name: string) => <Tag color="blue">{name || 'N/A'}</Tag>
+      title: t('common:fields.branch'),
+      dataIndex: 'branch_name',
+      render: (name: string) => <Tag color="blue">{name || t('vendorDetail.notAvailable')}</Tag>
     },
     {
-      title: 'Product',
+      title: t('common:fields.product'),
       dataIndex: 'product_name',
       key: 'product_name',
     },
     {
-      title: 'Quantity',
+      title: t('common:fields.quantity'),
       dataIndex: 'packs_received',
-      render: (qty: number) => <strong>{qty} Packs</strong>,
+      render: (qty: number) => <strong>{t('supplyLogs.columns.quantity', { count: qty })}</strong>,
     },
     {
-      title: 'Vendor',
+      title: t('common:fields.vendor'),
       dataIndex: 'vendor_name',
     },
     {
-      title: 'Payment',
+      title: t('supplyLogs.columns.payment'),
       dataIndex: 'is_paid_to_vendor',
       render: (paid: boolean) => (
-        <Tag color={paid ? 'green' : 'volcano'}>
-          {paid ? 'PAID' : 'UNPAID'}
+        <Tag color={paid ? 'green' : 'volcano'} style={{ textTransform: 'uppercase' }}>
+          {paid ? t('common:status.paid') : t('common:status.unpaid')}
         </Tag>
       ),
     },
@@ -83,11 +85,11 @@ const SupplyLogs: React.FC = () => {
         <Space size="large" style={{ flex: 1 }}>
           <Space>
             <HistoryOutlined style={{ fontSize: '24px', color: '#714B67' }} />
-            <Title level={3} style={{ margin: 0 }}>Vendor Deliveries</Title>
+            <Title level={3} style={{ margin: 0 }}>{t('supplyLogs.title')}</Title>
           </Space>
           {/* 🌟 ADDED: Smooth Search Bar Filter */}
           <Input
-            placeholder="Search by product, vendor, or branch..."
+            placeholder={t('supplyLogs.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -95,13 +97,13 @@ const SupplyLogs: React.FC = () => {
             style={{ width: '320px', borderRadius: '6px' }}
           />
         </Space>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
           onClick={() => setModalVisible(true)}
           style={{ background: '#714B67', border: 'none' }}
         >
-          Log New Delivery
+          {t('supplyLogs.logNewDelivery')}
         </Button>
       </div>
 

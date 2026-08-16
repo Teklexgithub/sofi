@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Card, Button, Input, Row, Col, Avatar, Tag, Form, Select,
   Typography, Divider, Space, message, Empty, DatePicker, Upload, Descriptions
 } from 'antd';
-import { 
+import {
   UserOutlined, SearchOutlined, PlusOutlined, ArrowLeftOutlined,
   PhoneOutlined, EnvironmentOutlined, SaveOutlined, IdcardOutlined,
   UploadOutlined, FilePdfOutlined, ContainerOutlined, SafetyOutlined,
   CalendarOutlined, DollarOutlined, InfoCircleOutlined, EditOutlined, CloseOutlined
 } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { employeeService } from '../../services/employeeService';
 import { AdvanceRegistration } from './AdvanceRegistration';
 import { AdvanceHistory } from './AdvanceHistory';
 import { PayslipExecution } from './PayslipExecution';
 import { PayslipHistory } from './PayslipHistory';
-import { api } from '../../contexts/AuthContext'; 
+import { api } from '../../contexts/AuthContext';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
 export const EmployeeHub: React.FC = () => {
+  const { t } = useTranslation('employee');
   const location = useLocation();
   const navigate = useNavigate();
   const [form] = Form.useForm();
@@ -61,7 +63,7 @@ export const EmployeeHub: React.FC = () => {
         }
       }
     } catch (err) {
-      message.error("Failed to load corporate database initialization records.");
+      message.error(t('hub.messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -96,11 +98,11 @@ export const EmployeeHub: React.FC = () => {
 
     try {
       await employeeService.createProfile(formData);
-      message.success("New employee profile generated successfully.");
+      message.success(t('hub.messages.createSuccess'));
       form.resetFields();
       navigate('/employees');
     } catch (err) {
-      message.error("Failed to save employee profile. Verify constraints.");
+      message.error(t('hub.messages.createFailed'));
     } finally {
       setLoading(false);
     }
@@ -130,11 +132,11 @@ export const EmployeeHub: React.FC = () => {
 
     try {
       await employeeService.updateProfile(selectedEmp.id, formData);
-      message.success("Employee profile updated successfully.");
+      message.success(t('hub.messages.updateSuccess'));
       setIsEditMode(false);
       loadInitialConfiguration(); // Refresh details with new data sheet
     } catch (err) {
-      message.error("Failed to update employee details. Verify form fields.");
+      message.error(t('hub.messages.updateFailed'));
     } finally {
       setLoading(false);
     }
@@ -146,7 +148,7 @@ export const EmployeeHub: React.FC = () => {
   );
 
   const DocumentLink: React.FC<{ url: string | null; label: string }> = ({ url, label }) => {
-    if (!url) return <Text type="secondary">Not Provided</Text>;
+    if (!url) return <Text type="secondary">{t('hub.detail.notProvided')}</Text>;
     return (
       <Button type="link" icon={<FilePdfOutlined />} href={url} target="_blank" style={{ padding: 0, height: 'auto' }}>
         {label}
@@ -164,28 +166,28 @@ export const EmployeeHub: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <Input
                 size="large"
-                placeholder="Search Employees by Name or Position..."
+                placeholder={t('hub.directory.searchPlaceholder')}
                 prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
                 style={{ maxWidth: '400px', borderRadius: '6px' }}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 allowClear
               />
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 size="large"
                 icon={<PlusOutlined />}
                 style={{ backgroundColor: '#714B67', borderColor: '#714B67', borderRadius: '6px' }}
                 onClick={() => navigate('/employees?tab=create_employee')}
               >
-                New Employee
+                {t('hub.directory.newEmployee')}
               </Button>
             </div>
 
             <Divider style={{ margin: '12px 0 24px 0' }} />
 
             {filteredEmployees.length === 0 ? (
-              <Empty description="No employee profiles found matching your query parameters." />
+              <Empty description={t('hub.directory.emptyState')} />
             ) : (
               <Row gutter={[16, 16]}>
                 {filteredEmployees.map(emp => (
@@ -205,7 +207,7 @@ export const EmployeeHub: React.FC = () => {
                             <Tag color="purple" style={{ margin: 0, fontSize: '11px' }}>{emp.job_role_display}</Tag>
                           </div>
                           <Space direction="vertical" size={2} style={{ display: 'flex', fontSize: '12px', color: '#8c8c8c' }}>
-                            <span><PhoneOutlined /> {emp.phone_number || 'N/A'}</span>
+                            <span><PhoneOutlined /> {emp.phone_number || t('hub.detail.notAvailable')}</span>
                             <span><EnvironmentOutlined /> {emp.branch_name}</span>
                           </Space>
                         </div>
@@ -225,18 +227,18 @@ export const EmployeeHub: React.FC = () => {
               <Space size="middle">
                 <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/employees')} />
                 <Title level={3} style={{ margin: 0, color: '#714B67' }}>
-                  <InfoCircleOutlined /> {isEditMode ? "Modify Employee Particulars" : "Employee Corporate Master Sheet"}
+                  <InfoCircleOutlined /> {isEditMode ? t('hub.detail.editTitle') : t('hub.detail.viewTitle')}
                 </Title>
               </Space>
-              
+
               {/* Toggle controls to dynamically switch modes */}
               {!isEditMode ? (
                 <Button type="primary" icon={<EditOutlined />} onClick={() => setIsEditMode(true)} style={{ backgroundColor: '#714B67', borderColor: '#714B67' }}>
-                  Edit Profile
+                  {t('hub.detail.editProfile')}
                 </Button>
               ) : (
                 <Button icon={<CloseOutlined />} onClick={() => setIsEditMode(false)}>
-                  Cancel Edit
+                  {t('hub.detail.cancelEdit')}
                 </Button>
               )}
             </div>
@@ -254,40 +256,40 @@ export const EmployeeHub: React.FC = () => {
                   </Col>
 
                   <Col xs={24} md={12}>
-                    <Descriptions title="Employment Particulars" bordered column={1} size="small">
-                      <Descriptions.Item label={<span><IdcardOutlined /> Job Position Role</span>}><Text strong style={{ color: '#714B67' }}>{selectedEmp.job_role_display}</Text></Descriptions.Item>
-                      <Descriptions.Item label={<span><EnvironmentOutlined /> Station Assignment</span>}>{selectedEmp.branch_name}</Descriptions.Item>
-                      <Descriptions.Item label={<span><DollarOutlined /> Base Net Compensation</span>}>{Number(selectedEmp.monthly_salary).toLocaleString()} ETB / Month</Descriptions.Item>
-                      <Descriptions.Item label={<span><CalendarOutlined /> Job Entry Execution Date</span>}>{dayjs(selectedEmp.job_start_date).format('MMMM DD, YYYY')}</Descriptions.Item>
-                      <Descriptions.Item label={<span><PhoneOutlined /> Primary Contact</span>}>{selectedEmp.phone_number || 'Not provided'}</Descriptions.Item>
-                      <Descriptions.Item label="Family Home Address">{selectedEmp.family_address}</Descriptions.Item>
+                    <Descriptions title={t('hub.detail.employmentParticulars')} bordered column={1} size="small">
+                      <Descriptions.Item label={<span><IdcardOutlined /> {t('hub.detail.jobPositionRole')}</span>}><Text strong style={{ color: '#714B67' }}>{selectedEmp.job_role_display}</Text></Descriptions.Item>
+                      <Descriptions.Item label={<span><EnvironmentOutlined /> {t('hub.detail.stationAssignment')}</span>}>{selectedEmp.branch_name}</Descriptions.Item>
+                      <Descriptions.Item label={<span><DollarOutlined /> {t('hub.detail.baseCompensation')}</span>}>{Number(selectedEmp.monthly_salary).toLocaleString()} {t('common:units.etb')} {t('hub.detail.perMonth')}</Descriptions.Item>
+                      <Descriptions.Item label={<span><CalendarOutlined /> {t('hub.detail.jobEntryDate')}</span>}>{dayjs(selectedEmp.job_start_date).format('MMMM DD, YYYY')}</Descriptions.Item>
+                      <Descriptions.Item label={<span><PhoneOutlined /> {t('hub.detail.primaryContact')}</span>}>{selectedEmp.phone_number || t('hub.detail.notProvided')}</Descriptions.Item>
+                      <Descriptions.Item label={t('hub.detail.familyHomeAddress')}>{selectedEmp.family_address}</Descriptions.Item>
                     </Descriptions>
                   </Col>
                 </Row>
 
                 <Row gutter={[24, 24]}>
                   <Col xs={24} md={12}>
-                    <Card title={<span><SafetyOutlined style={{ color: '#714B67' }} /> Legal Verification Documents</span>} size="small" type="inner">
+                    <Card title={<span><SafetyOutlined style={{ color: '#714B67' }} /> {t('hub.detail.legalDocuments')}</span>} size="small" type="inner">
                       <Space direction="vertical" style={{ width: '100%' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Text type="secondary">Employee ID Photo / Card:</Text>
-                          <DocumentLink url={selectedEmp.employee_id_document} label="View ID Document" />
+                          <Text type="secondary">{t('hub.detail.employeeIdPhoto')}</Text>
+                          <DocumentLink url={selectedEmp.employee_id_document} label={t('hub.detail.viewIdDocument')} />
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Text type="secondary">Signed Service Contract File:</Text>
-                          <DocumentLink url={selectedEmp.signed_contract_document} label="View Contract PDF" />
+                          <Text type="secondary">{t('hub.detail.signedContractFile')}</Text>
+                          <DocumentLink url={selectedEmp.signed_contract_document} label={t('hub.detail.viewContractPdf')} />
                         </div>
                       </Space>
                     </Card>
                   </Col>
 
                   <Col xs={24} md={12}>
-                    <Card title={<span><ContainerOutlined style={{ color: '#714B67' }} /> Emergency Contact & Guarantor Backup</span>} size="small" type="inner">
+                    <Card title={<span><ContainerOutlined style={{ color: '#714B67' }} /> {t('hub.detail.emergencyContact')}</span>} size="small" type="inner">
                       <Descriptions column={1} size="small" layout="horizontal">
-                        <Descriptions.Item label="Guarantor Legal Name">{selectedEmp.emergency_contact_name || 'N/A'}</Descriptions.Item>
-                        <Descriptions.Item label="Guarantor Contact Phone">{selectedEmp.emergency_contact_phone || 'N/A'}</Descriptions.Item>
-                        <Descriptions.Item label="Guarantor ID File Document">
-                          <DocumentLink url={selectedEmp.emergency_contact_id_document} label="View Guarantor ID" />
+                        <Descriptions.Item label={t('hub.detail.guarantorName')}>{selectedEmp.emergency_contact_name || t('hub.detail.notAvailable')}</Descriptions.Item>
+                        <Descriptions.Item label={t('hub.detail.guarantorPhone')}>{selectedEmp.emergency_contact_phone || t('hub.detail.notAvailable')}</Descriptions.Item>
+                        <Descriptions.Item label={t('hub.detail.guarantorIdFile')}>
+                          <DocumentLink url={selectedEmp.emergency_contact_id_document} label={t('hub.detail.viewGuarantorId')} />
                         </Descriptions.Item>
                       </Descriptions>
                     </Card>
@@ -300,46 +302,46 @@ export const EmployeeHub: React.FC = () => {
                 <Form form={editForm} layout="vertical" onFinish={handleUpdateEmployee} requiredMark={false}>
                   <Row gutter={24}>
                     <Col xs={24} md={12}>
-                      <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>1. Personal Profile Identity</Title>
-                      <Form.Item name="full_name" label="Full Legal Name" rules={[{ required: true, message: 'Input legal name' }]}>
+                      <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>{t('hub.sections.personalProfile')}</Title>
+                      <Form.Item name="full_name" label={t('hub.editForm.fullName')} rules={[{ required: true, message: t('hub.editForm.fullNameRequired') }]}>
                         <Input size="large" />
                       </Form.Item>
-                      <Form.Item name="phone_number" label="Primary Phone Number">
+                      <Form.Item name="phone_number" label={t('hub.editForm.phoneNumber')}>
                         <Input size="large" />
                       </Form.Item>
-                      <Form.Item name="family_address" label="Residential Family Address" rules={[{ required: true }]}>
+                      <Form.Item name="family_address" label={t('hub.editForm.familyAddress')} rules={[{ required: true }]}>
                         <Input.TextArea rows={3} />
                       </Form.Item>
-                      <Form.Item name="status" label="Employment Operations Status" rules={[{ required: true }]}>
+                      <Form.Item name="status" label={t('hub.editForm.statusLabel')} rules={[{ required: true }]}>
                         <Select size="large">
-                          <Select.Option value="ACTIVE">Active Deployment</Select.Option>
-                          <Select.Option value="TERMINATED">Inactive / Suspended</Select.Option>
+                          <Select.Option value="ACTIVE">{t('hub.editForm.statusActive')}</Select.Option>
+                          <Select.Option value="TERMINATED">{t('hub.editForm.statusInactive')}</Select.Option>
                         </Select>
                       </Form.Item>
                     </Col>
 
                     <Col xs={24} md={12}>
-                      <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>2. Organizational Operations Setup</Title>
-                      <Form.Item name="branch" label="Assigned Operations Base Branch" rules={[{ required: true }]}>
+                      <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>{t('hub.sections.organizationalSetup')}</Title>
+                      <Form.Item name="branch" label={t('hub.editForm.branch')} rules={[{ required: true }]}>
                         <Select size="large">
                           {branches.map(b => (
                             <Select.Option key={b.id} value={b.id}>{b.name}</Select.Option>
                           ))}
                         </Select>
                       </Form.Item>
-                      <Form.Item name="job_role" label="Staff Job Role Designation" rules={[{ required: true }]}>
+                      <Form.Item name="job_role" label={t('hub.editForm.jobRole')} rules={[{ required: true }]}>
                         <Select size="large">
-                          <Select.Option value="SALES">Sales Person</Select.Option>
-                          <Select.Option value="CASHIER">Cashier</Select.Option>
-                          <Select.Option value="DELIVERY">Delivery Driver</Select.Option>
-                          <Select.Option value="CLEANER">Cleaner</Select.Option>
-                          <Select.Option value="BRANCH_ADMIN">Branch Admin</Select.Option>
+                          <Select.Option value="SALES">{t('jobRoles.SALES')}</Select.Option>
+                          <Select.Option value="CASHIER">{t('jobRoles.CASHIER')}</Select.Option>
+                          <Select.Option value="DELIVERY">{t('jobRoles.DELIVERY')}</Select.Option>
+                          <Select.Option value="CLEANER">{t('jobRoles.CLEANER')}</Select.Option>
+                          <Select.Option value="BRANCH_ADMIN">{t('jobRoles.BRANCH_ADMIN')}</Select.Option>
                         </Select>
                       </Form.Item>
-                      <Form.Item name="monthly_salary" label="Gross Monthly Contract Salary (ETB)" rules={[{ required: true }]}>
+                      <Form.Item name="monthly_salary" label={t('hub.editForm.monthlySalary')} rules={[{ required: true }]}>
                         <Input type="number" size="large" />
                       </Form.Item>
-                      <Form.Item name="job_start_date" label="Official Job Execution Start Date">
+                      <Form.Item name="job_start_date" label={t('hub.editForm.jobStartDate')}>
                         <DatePicker size="large" style={{ width: '100%' }} />
                       </Form.Item>
                     </Col>
@@ -349,34 +351,34 @@ export const EmployeeHub: React.FC = () => {
 
                   <Row gutter={24}>
                     <Col xs={24} md={12}>
-                      <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>3. Legal Documentation Files (Leave blank to keep existing files)</Title>
-                      <Form.Item name="employee_id_document" label="Update Employee Identification File">
-                        <Upload beforeUpload={() => false} maxCount={1} listType="picture"><Button size="large" icon={<UploadOutlined />}>Select New Photo</Button></Upload>
+                      <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>{t('hub.editForm.sectionDocsNote')}</Title>
+                      <Form.Item name="employee_id_document" label={t('hub.editForm.employeeIdDoc')}>
+                        <Upload beforeUpload={() => false} maxCount={1} listType="picture"><Button size="large" icon={<UploadOutlined />}>{t('hub.editForm.selectNewPhoto')}</Button></Upload>
                       </Form.Item>
-                      <Form.Item name="signed_contract_document" label="Update Signed Employment Contract PDF">
-                        <Upload beforeUpload={() => false} maxCount={1}><Button size="large" icon={<UploadOutlined />}>Select New Contract</Button></Upload>
+                      <Form.Item name="signed_contract_document" label={t('hub.editForm.signedContract')}>
+                        <Upload beforeUpload={() => false} maxCount={1}><Button size="large" icon={<UploadOutlined />}>{t('hub.editForm.selectNewContract')}</Button></Upload>
                       </Form.Item>
                     </Col>
 
                     <Col xs={24} md={12}>
-                      <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>4. Emergency Guarantor Backstop Info</Title>
-                      <Form.Item name="emergency_contact_name" label="Guarantor Emergency Contact Full Name">
+                      <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>{t('hub.sections.emergencyGuarantor')}</Title>
+                      <Form.Item name="emergency_contact_name" label={t('hub.editForm.emergencyName')}>
                         <Input size="large" />
                       </Form.Item>
-                      <Form.Item name="emergency_contact_phone" label="Guarantor Emergency Contact Phone Number">
+                      <Form.Item name="emergency_contact_phone" label={t('hub.editForm.emergencyPhone')}>
                         <Input size="large" />
                       </Form.Item>
-                      <Form.Item name="emergency_contact_id_document" label="Update Guarantor Legal Identification card File">
-                        <Upload beforeUpload={() => false} maxCount={1}><Button size="large" icon={<UploadOutlined />}>Select New ID File</Button></Upload>
+                      <Form.Item name="emergency_contact_id_document" label={t('hub.editForm.emergencyIdDoc')}>
+                        <Upload beforeUpload={() => false} maxCount={1}><Button size="large" icon={<UploadOutlined />}>{t('hub.editForm.selectNewIdFile')}</Button></Upload>
                       </Form.Item>
                     </Col>
                   </Row>
 
                   <div style={{ marginTop: '24px', textAlign: 'right', paddingBottom: '12px' }}>
                     <Space size="middle">
-                      <Button size="large" onClick={() => setIsEditMode(false)}>Cancel</Button>
+                      <Button size="large" onClick={() => setIsEditMode(false)}>{t('hub.editForm.cancel')}</Button>
                       <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={loading} style={{ backgroundColor: '#714B67', borderColor: '#714B67' }}>
-                        Save Changes
+                        {t('hub.editForm.saveChanges')}
                       </Button>
                     </Space>
                   </div>
@@ -391,9 +393,9 @@ export const EmployeeHub: React.FC = () => {
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/employees')} />
-              <Title level={3} style={{ margin: 0, color: '#714B67' }}><IdcardOutlined /> Onboard New Corporate Employee</Title>
+              <Title level={3} style={{ margin: 0, color: '#714B67' }}><IdcardOutlined /> {t('hub.createForm.title')}</Title>
             </div>
-            
+
             <Divider style={{ margin: '12px 0 24px 0' }} />
 
             <div style={{
@@ -403,46 +405,46 @@ export const EmployeeHub: React.FC = () => {
             <Form form={form} layout="vertical" onFinish={handleCreateEmployee} requiredMark={false} initialValues={{ job_start_date: dayjs(), status: 'ACTIVE' }}>
                 <Row gutter={24}>
                 <Col xs={24} md={12}>
-                    <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>1. Personal Profile Identity</Title>
-                    <Form.Item name="full_name" label="Full Legal Name" rules={[{ required: true, message: 'Input legal name' }]}>
-                      <Input size="large" placeholder="First Father Grandfather Name" />
+                    <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>{t('hub.sections.personalProfile')}</Title>
+                    <Form.Item name="full_name" label={t('hub.createForm.fullName')} rules={[{ required: true, message: t('hub.createForm.fullNameRequired') }]}>
+                      <Input size="large" placeholder={t('hub.createForm.fullNamePlaceholder')} />
                     </Form.Item>
-                    <Form.Item name="phone_number" label="Primary Phone Number">
-                      <Input size="large" placeholder="+2519..." />
+                    <Form.Item name="phone_number" label={t('hub.createForm.phoneNumber')}>
+                      <Input size="large" placeholder={t('hub.createForm.phonePlaceholder')} />
                     </Form.Item>
-                    <Form.Item name="family_address" label="Residential Family Address" rules={[{ required: true, message: 'Input residential details' }]}>
-                      <Input.TextArea rows={3} placeholder="Subcity, Wereda, House Number..." />
+                    <Form.Item name="family_address" label={t('hub.createForm.familyAddress')} rules={[{ required: true, message: t('hub.createForm.familyAddressRequired') }]}>
+                      <Input.TextArea rows={3} placeholder={t('hub.createForm.familyAddressPlaceholder')} />
                     </Form.Item>
-                    <Form.Item name="status" label="Onboarding Status State Parameters" rules={[{ required: true }]}>
+                    <Form.Item name="status" label={t('hub.createForm.statusLabel')} rules={[{ required: true }]}>
                       <Select size="large">
-                        <Select.Option value="ACTIVE">Active Deployment</Select.Option>
-                        <Select.Option value="TERMINATED">Inactive / Suspended</Select.Option>
+                        <Select.Option value="ACTIVE">{t('hub.createForm.statusActive')}</Select.Option>
+                        <Select.Option value="TERMINATED">{t('hub.createForm.statusInactive')}</Select.Option>
                       </Select>
                     </Form.Item>
                 </Col>
 
                 <Col xs={24} md={12}>
-                    <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>2. Organizational Operations Setup</Title>
-                    <Form.Item name="branch" label="Assigned Base Operations Location Branch" rules={[{ required: true, message: 'Select base branch' }]}>
-                      <Select size="large" placeholder="Select Targeted Physical Branch">
+                    <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>{t('hub.sections.organizationalSetup')}</Title>
+                    <Form.Item name="branch" label={t('hub.createForm.branch')} rules={[{ required: true, message: t('hub.createForm.branchRequired') }]}>
+                      <Select size="large" placeholder={t('hub.createForm.branchPlaceholder')}>
                         {branches.map(b => (
                           <Select.Option key={b.id} value={b.id}>{b.name}</Select.Option>
                         ))}
                       </Select>
                     </Form.Item>
-                    <Form.Item name="job_role" label="Staff Job Role Designation" rules={[{ required: true, message: 'Select role' }]}>
-                      <Select size="large" placeholder="Select Structural Position">
-                        <Select.Option value="SALES">Sales Person</Select.Option>
-                        <Select.Option value="CASHIER">Cashier</Select.Option>
-                        <Select.Option value="DELIVERY">Delivery Driver</Select.Option>
-                        <Select.Option value="CLEANER">Cleaner</Select.Option>
-                        <Select.Option value="BRANCH_ADMIN">Branch Admin</Select.Option>
+                    <Form.Item name="job_role" label={t('hub.createForm.jobRole')} rules={[{ required: true, message: t('hub.createForm.jobRoleRequired') }]}>
+                      <Select size="large" placeholder={t('hub.createForm.jobRolePlaceholder')}>
+                        <Select.Option value="SALES">{t('jobRoles.SALES')}</Select.Option>
+                        <Select.Option value="CASHIER">{t('jobRoles.CASHIER')}</Select.Option>
+                        <Select.Option value="DELIVERY">{t('jobRoles.DELIVERY')}</Select.Option>
+                        <Select.Option value="CLEANER">{t('jobRoles.CLEANER')}</Select.Option>
+                        <Select.Option value="BRANCH_ADMIN">{t('jobRoles.BRANCH_ADMIN')}</Select.Option>
                       </Select>
                     </Form.Item>
-                    <Form.Item name="monthly_salary" label="Structural Gross Monthly Salary (ETB)" rules={[{ required: true, message: 'Input base compensation' }]}>
-                      <Input type="number" size="large" placeholder="Base Monthly Net Earnings Contract Rate" />
+                    <Form.Item name="monthly_salary" label={t('hub.createForm.monthlySalary')} rules={[{ required: true, message: t('hub.createForm.monthlySalaryRequired') }]}>
+                      <Input type="number" size="large" placeholder={t('hub.createForm.monthlySalaryPlaceholder')} />
                     </Form.Item>
-                    <Form.Item name="job_start_date" label="Official Job Execution Start Date">
+                    <Form.Item name="job_start_date" label={t('hub.createForm.jobStartDate')}>
                       <DatePicker size="large" style={{ width: '100%' }} />
                     </Form.Item>
                 </Col>
@@ -452,34 +454,34 @@ export const EmployeeHub: React.FC = () => {
 
                 <Row gutter={24}>
                 <Col xs={24} md={12}>
-                    <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>3. Legal Documentation Files Attachment</Title>
-                    <Form.Item name="employee_id_document" label="Employee Identification Document Snapshot File">
-                      <Upload beforeUpload={() => false} maxCount={1} listType="picture"><Button size="large" icon={<UploadOutlined />}>Select Photo / File</Button></Upload>
+                    <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>{t('hub.createForm.sectionDocs')}</Title>
+                    <Form.Item name="employee_id_document" label={t('hub.createForm.employeeIdDoc')}>
+                      <Upload beforeUpload={() => false} maxCount={1} listType="picture"><Button size="large" icon={<UploadOutlined />}>{t('hub.createForm.selectPhoto')}</Button></Upload>
                     </Form.Item>
-                    <Form.Item name="signed_contract_document" label="Signed Employment Contract Document Asset (PDF/Image)">
-                      <Upload beforeUpload={() => false} maxCount={1}><Button size="large" icon={<UploadOutlined />}>Select Contract Document</Button></Upload>
+                    <Form.Item name="signed_contract_document" label={t('hub.createForm.signedContract')}>
+                      <Upload beforeUpload={() => false} maxCount={1}><Button size="large" icon={<UploadOutlined />}>{t('hub.createForm.selectContract')}</Button></Upload>
                     </Form.Item>
                 </Col>
 
                 <Col xs={24} md={12}>
-                    <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>4. Emergency Guarantor Backstop Info</Title>
-                    <Form.Item name="emergency_contact_name" label="Guarantor Emergency Contact Full Name">
-                      <Input size="large" placeholder="Guarantor Full Legal Name" />
+                    <Title level={5} style={{ color: '#714B67', marginBottom: '16px' }}>{t('hub.sections.emergencyGuarantor')}</Title>
+                    <Form.Item name="emergency_contact_name" label={t('hub.createForm.emergencyName')}>
+                      <Input size="large" placeholder={t('hub.createForm.emergencyNamePlaceholder')} />
                     </Form.Item>
-                    <Form.Item name="emergency_contact_phone" label="Guarantor Emergency Contact Phone Number">
-                      <Input size="large" placeholder="+2519..." />
+                    <Form.Item name="emergency_contact_phone" label={t('hub.createForm.emergencyPhone')}>
+                      <Input size="large" placeholder={t('hub.createForm.emergencyPhonePlaceholder')} />
                     </Form.Item>
-                    <Form.Item name="emergency_contact_id_document" label="Guarantor Legal Identification Card File Attachment">
-                      <Upload beforeUpload={() => false} maxCount={1}><Button size="large" icon={<UploadOutlined />}>Select Guarantor ID File</Button></Upload>
+                    <Form.Item name="emergency_contact_id_document" label={t('hub.createForm.emergencyIdDoc')}>
+                      <Upload beforeUpload={() => false} maxCount={1}><Button size="large" icon={<UploadOutlined />}>{t('hub.createForm.selectIdFile')}</Button></Upload>
                     </Form.Item>
                 </Col>
                 </Row>
 
                 <div style={{ marginTop: '24px', textAlign: 'right', paddingBottom: '12px' }}>
                 <Space size="middle">
-                    <Button size="large" onClick={() => navigate('/employees')}>Cancel</Button>
+                    <Button size="large" onClick={() => navigate('/employees')}>{t('hub.createForm.cancel')}</Button>
                     <Button type="primary" size="large" htmlType="submit" icon={<SaveOutlined />} loading={loading} style={{ backgroundColor: '#714B67', borderColor: '#714B67' }}>
-                      Commit & Register Employee
+                      {t('hub.createForm.submit')}
                     </Button>
                 </Space>
                 </div>

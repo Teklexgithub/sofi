@@ -1,0 +1,86 @@
+{
+  "layout": {
+    "subtitle": "የሶፊያ ERP ስርዓት",
+    "printedOn": "ታትሟል፦ {{timestamp}}"
+  },
+  "shared": {
+    "unitPrice": "የአሃድ ዋጋ",
+    "subtotal": "ንዑስ ድምር"
+  },
+  "vendorVoucher": {
+    "title": "የአቅራቢ ክፍያ ማረጋገጫ",
+    "dateFinalized": "የተጠናቀቀበት ቀን",
+    "bankAccount": "የባንክ ሂሳብ",
+    "itemizedDeliveries": "የተወራረዱ አቅርቦቶች ዝርዝር",
+    "totalBatchCost": "ጠቅላላ የጭነት ዋጋ",
+    "cashHandedOver": "የተላለፈ ጥሬ ገንዘብ",
+    "advanceUsedFromPast": "ካለፈው የተጠቀመ ቅድሚያ ክፍያ",
+    "newAdvanceSurplus": "አዲስ የቅድሚያ ክፍያ ትርፍ",
+    "amountPaidTotal": "የተከፈለ መጠን (ጠቅላላ)",
+    "remainingDebt": "የቀረ ዕዳ",
+    "paymentStatus": "የክፍያ ሁኔታ",
+    "receivedByVendorAgent": "ተቀባይ (አቅራቢ / ወኪል)",
+    "paidByAdmin": "ከፋይ (አስተዳዳሪ)"
+  },
+  "payslip": {
+    "title": "የሰራተኛ ደመወዝ ደረሰኝ",
+    "runDate": "የተሰራበት ቀን",
+    "payPeriod": "የክፍያ ጊዜ",
+    "payPeriodRange": "ከ{{start}} እስከ {{end}} ({{days}} ቀናት)",
+    "earningsAndDeductions": "ገቢና ቅናሽ",
+    "monthlySalaryRate": "ወርሃዊ የደመወዝ መጠን",
+    "accruedGrossSalary": "የተጠራቀመ ጠቅላላ ደመወዝ",
+    "advanceDeductions": "የቅድሚያ ክፍያ / የቅጣት ቅናሽ",
+    "shortageDeductions": "የገንዘብ ጉድለት ቅናሽ",
+    "totalDeductions": "ጠቅላላ ቅናሽ",
+    "finalNetCashPayout": "የመጨረሻ ተጣራ ክፍያ",
+    "auditRemarks": "የኦዲት አስተያየት",
+    "employeeSignature": "የሰራተኛ ፊርማ",
+    "issuedBy": "አውጪ"
+  },
+  "dailySessionReport": {
+    "title": "የዕለታዊ ክፍለ ጊዜ የመዝጊያ ሪፖርት",
+    "grossSales": "ጠቅላላ ሽያጭ",
+    "totalExpenses": "ጠቅላላ ወጪ",
+    "newCreditIssued": "አዲስ የተሰጠ ዕዳ",
+    "creditRecovered": "የተመለሰ ዕዳ",
+    "cashHandedToAdmin": "ለአስተዳዳሪ የተላለፈ ጥሬ ገንዘብ",
+    "cashRetainedForChange": "ለመልስ ገንዘብ የተያዘ ጥሬ ገንዘብ",
+    "section1Title": "1. የእቃ ቆጠራ",
+    "section2Title": "2. ወጪዎች",
+    "section3Title": "3. የዲጂታል ሂሳቦች ቀሪ ሂሳብ",
+    "section4Title": "4. አዲስ የተሰጡ ዕዳዎች",
+    "section5Title": "5. የተመለሱ ዕዳዎች",
+    "section6Title": "6. በእጅ የተደረጉ የባንክ ተቀማጭ ገንዘቦች",
+    "open": "መክፈቻ",
+    "close": "መዝጊያ",
+    "sold": "የተሸጠ",
+    "account": "ሂሳብ",
+    "closingBalance": "የመዝጊያ ቀሪ ሂሳብ",
+    "revenueDelta": "የገቢ ለውጥ",
+    "amountRecovered": "የተመለሰ መጠን",
+    "bank": "ባንክ",
+    "accountHolder": "የሂሳብ ባለቤት",
+    "noneRecorded": "ምንም አልተመዘገበም።",
+    "branchAdminHandover": "የቅርንጫፍ አስተዳዳሪ (አረካቢ)",
+    "receivedByAdminCourier": "ተቀባይ (አስተዳዳሪ / አጓጓዥ)"
+  },
+  "advanceVoucher": {
+    "title": "የሰራተኛ ቅድሚያ ክፍያ / የቅጣት ሰነድ",
+    "transactionType": "የግብይት አይነት",
+    "settledOnPayroll": "በደመወዝ ክፍያ ወቅት ተወራርዷል",
+    "outstandingLiability": "ያልተከፈለ ዕዳ",
+    "reasonNarrative": "ምክንያት / ማብራሪያ",
+    "noDescription": "ምንም መግለጫ አልቀረበም።",
+    "employeeAcknowledgment": "የሰራተኛ ማረጋገጫ",
+    "issuedBy": "አውጪ"
+  },
+  "deliveryReport": {
+    "title": "የአቅራቢ አቅርቦት ሪፖርት",
+    "subtitle": "{{vendor}} — ከ{{dateFrom}} እስከ {{dateTo}}",
+    "branchSubtotal": "የቅርንጫፍ ንዑስ ድምር",
+    "grandTotalPacks": "ጠቅላላ የጥቅሎች ብዛት",
+    "grandTotalCost": "ጠቅላላ ወጪ",
+    "noDeliveries": "በተመረጠው የቀን ክልል ውስጥ ለዚህ አቅራቢ ምንም አቅርቦት አልተገኘም።"
+  }
+}

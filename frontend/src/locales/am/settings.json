@@ -1,0 +1,86 @@
+{
+  "userList": {
+    "title": "የስርዓት ተጠቃሚዎች",
+    "subtitle": "የሰራተኞችን መለያ እና የቅርንጫፍ ፈቃድ ያስተዳድሩ",
+    "searchPlaceholder": "በኢሜይል ወይም በሚና ይፈልጉ...",
+    "refreshTitle": "ሰንጠረዥ አድስ",
+    "createButton": "ተጠቃሚ ፍጠር",
+    "columns": {
+      "user": "ተጠቃሚ",
+      "branchAssignment": "የቅርንጫፍ ምደባ"
+    },
+    "globalAccess": "አጠቃላይ መዳረሻ",
+    "notAssigned": "አልተመደበም"
+  },
+  "userDetail": {
+    "usersBreadcrumb": "ተጠቃሚዎች",
+    "notFound": "ተጠቃሚ አልተገኘም",
+    "resetPasswordButton": "የይለፍ ቃል እንደገና አስጀምር",
+    "editProfileButton": "መገለጫ አርትዕ",
+    "deactivateConfirmTitle": "ይህን ተጠቃሚ ማቦዘን ይፈልጋሉ?",
+    "deactivateSuccess": "የተጠቃሚ መለያ ታግዷል",
+    "deactivateFailed": "ተጠቃሚ ማጥፋት አልተሳካም",
+    "sectionTitle": "የስርዓት መዳረሻ ዝርዝሮች",
+    "joinedDateLabel": "የተቀላቀለበት ቀን",
+    "notAvailable": "አይገኝም"
+  },
+  "createUserModal": {
+    "createTitle": "አዲስ ተጠቃሚ ፍጠር",
+    "editTitle": "የተጠቃሚ መለያ አርትዕ",
+    "rolePlaceholder": "ሚና ይምረጡ",
+    "branchPlaceholder": "ቅርንጫፍ(ፎች) ይምረጡ",
+    "securityDivider": "የደህንነት መረጃ",
+    "passwordMinLength": "የይለፍ ቃል ቢያንስ 8 ፊደላት ሊኖረው ይገባል",
+    "passwordPlaceholder": "የተጠቃሚ የይለፍ ቃል ያዘጋጁ",
+    "confirmPasswordRequired": "እባክዎ የይለፍ ቃሉን ያረጋግጡ",
+    "confirmPasswordPlaceholder": "የይለፍ ቃል ይድገሙ",
+    "passwordMismatch": "ሁለቱ የይለፍ ቃሎች አይመሳሰሉም!",
+    "createSuccess": "ተጠቃሚ በተሳካ ሁኔታ ተፈጥሯል",
+    "updateSuccess": "ተጠቃሚ በተሳካ ሁኔታ ዘምኗል",
+    "createFailed": "ተጠቃሚ መፍጠር አልተሳካም",
+    "updateFailed": "ተጠቃሚ ማዘመን አልተሳካም"
+  },
+  "branches": {
+    "title": "ቅርንጫፎች",
+    "searchPlaceholder": "በቅርንጫፍ ወይም በአድራሻ ይፈልጉ...",
+    "createButton": "ቅርንጫፍ ፍጠር",
+    "columns": {
+      "name": "የቅርንጫፍ ስም"
+    }
+  },
+  "branchDetail": {
+    "deleteSuccess": "ቅርንጫፍ ተሰርዟል",
+    "deleteFailed": "ንቁ ክምችት ካለው ቅርንጫፍ ማጥፋት አይቻልም",
+    "registeredBranchTag": "የተመዘገበ ቅርንጫፍ",
+    "branchInventoryButton": "የቅርንጫፍ ክምችት",
+    "deleteConfirmTitle": "ይህን ቅርንጫፍ ማጥፋት ይፈልጋሉ?",
+    "deleteConfirmDesc": "ሁሉም የቅርንጫፍ ውሂብ ይጠፋል።",
+    "sectionTitle": "የቅርንጫፍ ግንኙነት እና አድራሻ መረጃ",
+    "notSpecified": "አልተገለጸም",
+    "notAvailable": "አይገኝም",
+    "primaryPhoneLabel": "ዋና ስልክ",
+    "secondaryPhoneLabel": "ተጨማሪ ስልክ"
+  },
+  "createBranchModal": {
+    "createTitle": "አዲስ ቅርንጫፍ ፍጠር",
+    "editTitle": "ቅርንጫፍ አርትዕ",
+    "nameRequired": "እባክዎ የቅርንጫፍ ስም ያስገቡ",
+    "namePlaceholder": "ለምሳሌ. ቦሌ ቅርንጫፍ",
+    "locationPlaceholder": "ለምሳሌ. አዲስ አበባ፣ ኤድና ሞል አካባቢ",
+    "primaryPhonePlaceholder": "ለምሳሌ. +251 11...",
+    "secondaryPhonePlaceholder": "ለምሳሌ. +251 91...",
+    "createSuccess": "አዲስ ቅርንጫፍ ወደ ሶፊያ ERP ታክሏል",
+    "updateSuccess": "ቅርንጫፍ በተሳካ ሁኔታ ዘምኗል",
+    "saveFailed": "ቅርንጫፍ ማስቀመጥ አልተሳካም"
+  },
+  "resetPasswordModal": {
+    "title": "የአስተዳዳሪ የይለፍ ቃል ማስተካከያ",
+    "okText": "አዲስ የይለፍ ቃል ተግብር",
+    "warningTitle": "የደህንነት ማስጠንቀቂያ",
+    "warningDesc": "የዚህን ተጠቃሚ የይለፍ ቃል በእጅ እየቀየሩ ነው። ከሌሎች ክፍለ ጊዜዎች ይወጣሉ።",
+    "targetUserLabel": "ዒላማ ተጠቃሚ",
+    "newPasswordLabel": "አዲስ ደህንነቱ የተጠበቀ የይለፍ ቃል",
+    "success": "የይለፍ ቃል በተሳካ ሁኔታ ዘምኗል",
+    "failure": "ማዘመን አልተሳካም። አስተዳዳሪ መሆንዎን ያረጋግጡ።"
+  }
+}

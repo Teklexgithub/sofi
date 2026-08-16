@@ -2,6 +2,15 @@
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+}
+
+/* Ge'ez script needs a font that actually has those glyphs - falls back to
+   Noto Sans Ethiopic (loaded in index.html) whenever the page is in Amharic. */
+:lang(am) {
+  font-family: 'Noto Sans Ethiopic', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+:root {
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);

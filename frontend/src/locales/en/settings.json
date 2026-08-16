@@ -1,0 +1,86 @@
+{
+  "userList": {
+    "title": "System Users",
+    "subtitle": "Manage employee accounts and branch permissions",
+    "searchPlaceholder": "Search by email or role...",
+    "refreshTitle": "Refresh Table",
+    "createButton": "Create User",
+    "columns": {
+      "user": "User",
+      "branchAssignment": "Branch Assignment"
+    },
+    "globalAccess": "Global Access",
+    "notAssigned": "Not Assigned"
+  },
+  "userDetail": {
+    "usersBreadcrumb": "Users",
+    "notFound": "User not found",
+    "resetPasswordButton": "Reset Password",
+    "editProfileButton": "Edit Profile",
+    "deactivateConfirmTitle": "Deactivate this user?",
+    "deactivateSuccess": "User account deactivated",
+    "deactivateFailed": "Failed to delete user",
+    "sectionTitle": "System Access Details",
+    "joinedDateLabel": "Joined Date",
+    "notAvailable": "N/A"
+  },
+  "createUserModal": {
+    "createTitle": "Create New User",
+    "editTitle": "Edit User Account",
+    "rolePlaceholder": "Select Role",
+    "branchPlaceholder": "Select Branch(es)",
+    "securityDivider": "Security Credentials",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "passwordPlaceholder": "Set user password",
+    "confirmPasswordRequired": "Please confirm the password",
+    "confirmPasswordPlaceholder": "Repeat password",
+    "passwordMismatch": "The two passwords do not match!",
+    "createSuccess": "User created successfully",
+    "updateSuccess": "User updated successfully",
+    "createFailed": "Failed to create user",
+    "updateFailed": "Failed to update user"
+  },
+  "branches": {
+    "title": "Branches",
+    "searchPlaceholder": "Search by branch or location...",
+    "createButton": "Create Branch",
+    "columns": {
+      "name": "Branch Name"
+    }
+  },
+  "branchDetail": {
+    "deleteSuccess": "Branch removed",
+    "deleteFailed": "Cannot delete branch with active inventory",
+    "registeredBranchTag": "Registered Branch",
+    "branchInventoryButton": "Branch Inventory",
+    "deleteConfirmTitle": "Delete this branch?",
+    "deleteConfirmDesc": "All branch-specific data will be lost.",
+    "sectionTitle": "Branch Contact & Location Information",
+    "notSpecified": "Not Specified",
+    "notAvailable": "N/A",
+    "primaryPhoneLabel": "Primary Phone",
+    "secondaryPhoneLabel": "Secondary Phone"
+  },
+  "createBranchModal": {
+    "createTitle": "Create New Branch",
+    "editTitle": "Edit Branch",
+    "nameRequired": "Please enter branch name",
+    "namePlaceholder": "e.g. Bole Branch",
+    "locationPlaceholder": "e.g. Addis Ababa, Near Edna Mall",
+    "primaryPhonePlaceholder": "e.g. +251 11...",
+    "secondaryPhonePlaceholder": "e.g. +251 91...",
+    "createSuccess": "New branch added to Sofia ERP",
+    "updateSuccess": "Branch updated successfully",
+    "saveFailed": "Failed to save branch"
+  },
+  "resetPasswordModal": {
+    "title": "Admin Password Override",
+    "okText": "Apply New Password",
+    "warningTitle": "Security Warning",
+    "warningDesc": "You are manually overriding this user's password. They will be logged out of other sessions.",
+    "targetUserLabel": "Target User",
+    "newPasswordLabel": "New Secure Password",
+    "success": "Password updated successfully",
+    "failure": "Update failed. Check if you are an Admin."
+  }
+}

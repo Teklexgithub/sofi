@@ -1,5 +1,6 @@
 import { forwardRef, useMemo } from 'react';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import PrintLayout, { printTableStyle, printThStyle, printTdStyle } from './PrintLayout';
 
 interface DeliveryRow {
@@ -24,6 +25,8 @@ const fmt = (v: number) => Number(v || 0).toLocaleString('en-US', { minimumFract
 
 const VendorDeliveryReport = forwardRef<HTMLDivElement, VendorDeliveryReportProps>(
   ({ vendorName, dateFrom, dateTo, rows }, ref) => {
+    const { t } = useTranslation('print');
+    const etb = t('common:units.etb');
     const grouped = useMemo(() => {
       const byBranch = new Map<string, DeliveryRow[]>();
       [...rows]
@@ -42,8 +45,8 @@ const VendorDeliveryReport = forwardRef<HTMLDivElement, VendorDeliveryReportProp
     return (
       <PrintLayout
         ref={ref}
-        title="Vendor Delivery Report"
-        subtitle={`${vendorName} — ${dateFrom} to ${dateTo}`}
+        title={t('deliveryReport.title')}
+        subtitle={t('deliveryReport.subtitle', { vendor: vendorName, dateFrom, dateTo })}
       >
         {Array.from(grouped.entries()).map(([branchName, branchRows]) => {
           const branchTotal = branchRows.reduce((sum, r) => sum + Number(r.calculated_row_subtotal || 0), 0);
@@ -53,12 +56,12 @@ const VendorDeliveryReport = forwardRef<HTMLDivElement, VendorDeliveryReportProp
               <table style={printTableStyle}>
                 <thead>
                   <tr>
-                    <th style={printThStyle}>Date</th>
-                    <th style={printThStyle}>Product</th>
-                    <th style={{ ...printThStyle, textAlign: 'right' }}>Packs</th>
-                    <th style={{ ...printThStyle, textAlign: 'right' }}>Pieces</th>
-                    <th style={{ ...printThStyle, textAlign: 'right' }}>Unit Price</th>
-                    <th style={{ ...printThStyle, textAlign: 'right' }}>Subtotal</th>
+                    <th style={printThStyle}>{t('common:fields.date')}</th>
+                    <th style={printThStyle}>{t('common:fields.product')}</th>
+                    <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:units.packs')}</th>
+                    <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:units.pieces')}</th>
+                    <th style={{ ...printThStyle, textAlign: 'right' }}>{t('shared.unitPrice')}</th>
+                    <th style={{ ...printThStyle, textAlign: 'right' }}>{t('shared.subtotal')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -68,13 +71,13 @@ const VendorDeliveryReport = forwardRef<HTMLDivElement, VendorDeliveryReportProp
                       <td style={printTdStyle}>{row.product_name}</td>
                       <td style={{ ...printTdStyle, textAlign: 'right' }}>{row.packs_received}</td>
                       <td style={{ ...printTdStyle, textAlign: 'right' }}>{row.calculated_pieces_count}</td>
-                      <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(row.buying_price_unit)} ETB</td>
-                      <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(row.calculated_row_subtotal)} ETB</td>
+                      <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(row.buying_price_unit)} {etb}</td>
+                      <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(row.calculated_row_subtotal)} {etb}</td>
                     </tr>
                   ))}
                   <tr>
-                    <td style={{ ...printTdStyle, fontWeight: 700 }} colSpan={5}>Branch Subtotal</td>
-                    <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{fmt(branchTotal)} ETB</td>
+                    <td style={{ ...printTdStyle, fontWeight: 700 }} colSpan={5}>{t('deliveryReport.branchSubtotal')}</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{fmt(branchTotal)} {etb}</td>
                   </tr>
                 </tbody>
               </table>
@@ -84,20 +87,20 @@ const VendorDeliveryReport = forwardRef<HTMLDivElement, VendorDeliveryReportProp
 
         {rows.length === 0 && (
           <div style={{ fontSize: '12px', color: '#999', fontStyle: 'italic', marginBottom: '16px' }}>
-            No deliveries found for this vendor in the selected date range.
+            {t('deliveryReport.noDeliveries')}
           </div>
         )}
 
         <table style={{ ...printTableStyle, width: '60%', marginLeft: 'auto' }}>
           <tbody>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Grand Total Packs</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('deliveryReport.grandTotalPacks')}</td>
               <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{fmt(grandPacks)}</td>
             </tr>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 800, fontSize: '14px', background: '#f6ffed' }}>Grand Total Cost</td>
+              <td style={{ ...printTdStyle, fontWeight: 800, fontSize: '14px', background: '#f6ffed' }}>{t('deliveryReport.grandTotalCost')}</td>
               <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 800, fontSize: '14px', color: '#389e0d', background: '#f6ffed' }}>
-                {fmt(grandTotal)} ETB
+                {fmt(grandTotal)} {etb}
               </td>
             </tr>
           </tbody>

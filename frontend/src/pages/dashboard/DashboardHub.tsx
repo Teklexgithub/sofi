@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 import {
   LineChartOutlined,
   StockOutlined,
@@ -18,6 +19,7 @@ const { Sider, Content } = Layout;
 const { Title } = Typography;
 
 export const DashboardHub: React.FC = () => {
+  const { t } = useTranslation('dashboard');
   const [activeTab, setActiveTab] = useState<string>('sales');
   const { isDark } = useTheme();
   const theme = getChartTheme(isDark);
@@ -42,7 +44,7 @@ export const DashboardHub: React.FC = () => {
       >
         <div style={{ padding: '24px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <DashboardOutlined style={{ fontSize: '22px', color: '#714B67' }} />
-          <Title level={4} style={{ margin: 0, color: '#714B67', fontWeight: 700 }}>Sofia Analytics</Title>
+          <Title level={4} style={{ margin: 0, color: '#714B67', fontWeight: 700 }}>{t('hub.title')}</Title>
         </div>
 
         <Menu
@@ -55,17 +57,17 @@ export const DashboardHub: React.FC = () => {
             {
               key: 'sales',
               icon: <LineChartOutlined style={{ fontSize: '16px' }} />,
-              label: 'Sales',
+              label: t('nav:apps.sales'),
             },
             {
               key: 'inventory',
               icon: <StockOutlined style={{ fontSize: '16px' }} />,
-              label: 'Inventory',
+              label: t('nav:apps.inventory'),
             },
             {
               key: 'employee',
               icon: <TeamOutlined style={{ fontSize: '16px' }} />,
-              label: 'Employees',
+              label: t('nav:apps.employee'),
             },
           ]}
         />

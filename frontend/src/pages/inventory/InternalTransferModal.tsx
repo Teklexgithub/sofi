@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, InputNumber, Select, message, Statistic, Row, Col, Typography, Divider } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import { settingsService } from '../../services/settingsService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -21,6 +22,7 @@ const InternalTransferModal: React.FC<TransferModalProps> = ({ visible, onCancel
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation('inventory');
 
   const isAdmin = user?.role === 'ADMIN';
 
@@ -51,13 +53,13 @@ const InternalTransferModal: React.FC<TransferModalProps> = ({ visible, onCancel
         performed_by: user?.id
       };
       await inventoryService.transferStock(payload);
-      message.success('Refill completed: Store to Shop');
+      message.success(t('internalTransferModal.successMessage'));
       form.resetFields();
       setSelectedProduct(null);
       onSuccess();
     } catch (e: any) {
       // Improved error reporting
-      const errorMsg = e.response?.data?.error || 'Transfer failed. Ensure enough stock is available in the Store.';
+      const errorMsg = e.response?.data?.error || t('internalTransferModal.failedDefault');
       message.error(errorMsg);
     } finally {
       setLoading(false);
@@ -67,10 +69,10 @@ const InternalTransferModal: React.FC<TransferModalProps> = ({ visible, onCancel
   const packsMoved = Form.useWatch('packs_moved', form) || 0;
 
   return (
-    <Modal 
-      title="Store to Shop Refill" 
-      open={visible} 
-      onOk={() => form.submit()} 
+    <Modal
+      title={t('internalTransferModal.title')}
+      open={visible}
+      onOk={() => form.submit()}
       onCancel={() => {
         form.resetFields();
         onCancel();
@@ -81,37 +83,37 @@ const InternalTransferModal: React.FC<TransferModalProps> = ({ visible, onCancel
       destroyOnClose // Ensures the form is fresh every time
     >
       <Form form={form} layout="vertical" onFinish={onFinish}>
-        
+
         {/* BRANCH SECTION */}
         {isAdmin ? (
-          <Form.Item 
-            name="branch" 
-            label="Target Branch" 
-            rules={[{ required: true, message: 'Please select a branch' }]}
+          <Form.Item
+            name="branch"
+            label={t('internalTransferModal.targetBranch')}
+            rules={[{ required: true, message: t('internalTransferModal.branchRequired') }]}
           >
-            <Select placeholder="Select Branch to refill">
+            <Select placeholder={t('internalTransferModal.selectBranchPlaceholder')}>
               {branches.map(b => <Select.Option key={b.id} value={b.id}>{b.name}</Select.Option>)}
             </Select>
           </Form.Item>
         ) : (
           <div style={{ marginBottom: '20px', padding: '10px', background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: '4px' }}>
-             <Text strong>Refilling For: </Text> 
-             <Text type="secondary">Your Assigned Branch</Text>
+             <Text strong>{t('internalTransferModal.refillingFor')} </Text>
+             <Text type="secondary">{t('internalTransferModal.yourAssignedBranch')}</Text>
              {/* Hidden input keeps the branch ID in the form data for submission */}
              <Form.Item name="branch" hidden><Select /></Form.Item>
           </div>
         )}
 
-        <Form.Item name="product" label="Product" rules={[{ required: true }]}>
-          <Select 
+        <Form.Item name="product" label={t('common:fields.product')} rules={[{ required: true }]}>
+          <Select
             showSearch
             optionFilterProp="children"
-            placeholder="Search and select product" 
+            placeholder={t('internalTransferModal.selectProductPlaceholder')}
             onChange={(val) => setSelectedProduct(products.find(p => p.id === val))}
           >
             {products.map(p => (
               <Select.Option key={p.id} value={p.id}>
-                {p.name} <Text type="secondary" style={{ fontSize: '12px' }}>(1 Pack = {p.pieces_per_pack} pcs)</Text>
+                {p.name} <Text type="secondary" style={{ fontSize: '12px' }}>{t('internalTransferModal.packRatio', { count: p.pieces_per_pack })}</Text>
               </Select.Option>
             ))}
           </Select>
@@ -121,15 +123,15 @@ const InternalTransferModal: React.FC<TransferModalProps> = ({ visible, onCancel
 
         <Row gutter={24} align="middle">
           <Col span={12}>
-            <Form.Item name="packs_moved" label="Packs to Move (from Store)" rules={[{ required: true }]}>
-              <InputNumber style={{ width: '100%' }} min={0.1} step={1} placeholder="Enter quantity" />
+            <Form.Item name="packs_moved" label={t('internalTransferModal.packsToMove')} rules={[{ required: true }]}>
+              <InputNumber style={{ width: '100%' }} min={0.1} step={1} placeholder={t('internalTransferModal.enterQuantity')} />
             </Form.Item>
           </Col>
           <Col span={12}>
              <div style={{ padding: '20px', background: '#f0f5ff', borderRadius: '8px', textAlign: 'center', border: '1px dashed #adc6ff' }}>
-                <Statistic 
-                  title="Total Pieces to Add to Shop" 
-                  value={selectedProduct ? packsMoved * selectedProduct.pieces_per_pack : 0} 
+                <Statistic
+                  title={t('internalTransferModal.totalPiecesToAdd')}
+                  value={selectedProduct ? packsMoved * selectedProduct.pieces_per_pack : 0}
                   valueStyle={{ color: '#1d39c4', fontWeight: 'bold' }}
                 />
              </div>

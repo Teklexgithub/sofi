@@ -1,0 +1,228 @@
+{
+  "productList": {
+    "title": "ምርቶች",
+    "searchPlaceholder": "ምርቶችን ፈልግ...",
+    "syncFailed": "ከሰርቨር ጋር ማመሳሰል አልተሳካም",
+    "columns": {
+      "name": "የምርት ስም",
+      "packMultiplier": "የጥቅል ማባዣ",
+      "priceSingle": "ዋጋ (ነጠላ)"
+    }
+  },
+  "productDetail": {
+    "notFound": "ምርቱ አልተገኘም",
+    "loadFailed": "የምርት ዝርዝር መጫን አልተቻለም",
+    "deleteSuccess": "ምርቱ በተሳካ ሁኔታ ተሰርዟል",
+    "deleteFailed": "ምርቱን መሰረዝ አልተሳካም",
+    "checkStock": "ክምችት ይመልከቱ",
+    "deleteConfirmTitle": "ምርቱን ይሰርዙ?",
+    "directToShop": "በቀጥታ ወደ ሱቅ",
+    "goesToWarehouse": "ወደ መጋዘን ይሄዳል",
+    "fullSpecs": "ሙሉ የምርት ዝርዝር መግለጫ",
+    "productNameLabel": "የምርት ስም",
+    "primaryVendor": "ዋና አቅራቢ",
+    "notLinked": "አልተገናኘም",
+    "inventoryDestination": "የክምችት መድረሻ",
+    "destinationShopDesc": "ለዚህ ምርት የሚደርሱ የውጭ አቅርቦቶች መጋዘንን ሳያልፉ በቀጥታ ወደ ሱቅ ይሄዳሉ።",
+    "destinationStoreDesc": "ለዚህ ምርት የሚደርሱ የውጭ አቅርቦቶች ወደ ሱቅ ከመዘዋወራቸው በፊት በመጋዘን ውስጥ ይቀመጣሉ።",
+    "packMultiplier": "የጥቅል ማባዣ",
+    "piecesPerPack": "ቁርጥራጭ በአንድ ጥቅል",
+    "pricesPerPiece": "ዋጋዎች (በአንድ ቁርጥራጭ)",
+    "buy": "ግዢ",
+    "sell": "ሽያጭ"
+  },
+  "createProductModal": {
+    "editTitle": "ምርት አርትዕ",
+    "createTitle": "አዲስ ምርት ፍጠር",
+    "updateButton": "ምርት አዘምን",
+    "saveButton": "ምርት አስቀምጥ",
+    "updateSuccess": "ምርቱ በተሳካ ሁኔታ ታድሷል!",
+    "createSuccess": "ምርቱ በተሳካ ሁኔታ ተፈጥሯል!",
+    "operationFailed": "ተግባሩ አልተሳካም። እባክዎ ግንኙነትዎን ወይም ያስገቡትን መረጃ ያረጋግጡ።",
+    "nameLabel": "የምርት ስም",
+    "namePlaceholder": "ለምሳሌ ኮካ ኮላ 500ml",
+    "nameRequired": "ስም ያስፈልጋል",
+    "categoryPlaceholder": "ምድብ ይምረጡ",
+    "categories": {
+      "khat": "ጫት",
+      "drink": "ለስላሳ መጠጥ",
+      "water": "ውሃ",
+      "nuts": "ለውዝ",
+      "cigarette": "ሲጋራ"
+    },
+    "destinationLabel": "የክምችት ፍሰት (መድረሻ)",
+    "destinationExtra": "ይህ የት ይደርሳል?",
+    "destinationStore": "መጋዘን (ማከማቻ)",
+    "destinationShop": "ሱቅ (ቀጥታ/ጫት)",
+    "vendorLabel": "ዋና አቅራቢ",
+    "vendorPlaceholder": "አቅራቢ ይምረጡ",
+    "pricingDivider": "ዋጋ አወሳሰን እና ማሸጊያ",
+    "piecesPerPackLabel": "ቁርጥራጭ በአንድ ጥቅል",
+    "buyingPriceLabel": "የግዢ ዋጋ (ነጠላ ቁርጥራጭ)",
+    "sellingPriceLabel": "የሽያጭ ዋጋ (ነጠላ ቁርጥራጭ)"
+  },
+  "vendors": {
+    "title": "አቅራቢዎች",
+    "loadFailed": "አቅራቢዎችን መጫን አልተሳካም",
+    "searchPlaceholder": "በአቅራቢ ወይም አግኚ ሰው ይፈልጉ...",
+    "viewHistory": "ታሪክ ይመልከቱ",
+    "columns": {
+      "name": "የአቅራቢ ስም"
+    }
+  },
+  "vendorDetail": {
+    "notFound": "አቅራቢው አልተገኘም",
+    "loadFailed": "የአቅራቢ ዝርዝር መጫን አልተቻለም",
+    "deleteSuccess": "አቅራቢው ከሶፊያ ERP ተወግዷል",
+    "deleteFailed": "አቅራቢውን መሰረዝ አልተሳካም",
+    "verifiedVendor": "የተረጋገጠ አቅራቢ",
+    "deliveryHistory": "የአቅርቦት ታሪክ",
+    "deleteConfirmTitle": "አቅራቢውን ይሰርዙ?",
+    "businessContact": "የንግድ ግንኙነት እና ክፍያ",
+    "vendorNameLabel": "የአቅራቢ ስም",
+    "notAvailable": "አይገኝም",
+    "bankAccount": "የባንክ አካውንት"
+  },
+  "createVendorModal": {
+    "editTitle": "አቅራቢ አርትዕ",
+    "createTitle": "አዲስ አቅራቢ ጨምር",
+    "updateSuccess": "አቅራቢው በሶፊያ ERP ውስጥ ታድሷል",
+    "createSuccess": "አቅራቢው ወደ ሶፊያ ERP ታክሏል",
+    "updateFailed": "አቅራቢውን ማዘመን አልተሳካም",
+    "createFailed": "አቅራቢ መፍጠር አልተሳካም",
+    "nameLabel": "የአቅራቢ ስም",
+    "nameRequired": "ያስፈልጋል",
+    "namePlaceholder": "ለምሳሌ BGI ኢትዮጵያ",
+    "contactPlaceholder": "ለምሳሌ አቶ አበበ",
+    "phonePlaceholder": "ለምሳሌ +251 911...",
+    "bankAccountLabel": "የባንክ አካውንት ቁጥር",
+    "bankAccountPlaceholder": "ለምሳሌ CBE 1000123456789"
+  },
+  "storeStock": {
+    "title": "የመጋዘን ክምችት (ጅምላ)",
+    "subtitle": "የመጋዘን ክምችት መጠን በሙሉ ጥቅል እና ካርቶን ይከታተላል።",
+    "loadFailed": "የመጋዘን ክምችት መጫን አልተሳካም",
+    "searchPlaceholder": "በቅርንጫፍ ይፈልጉ...",
+    "refreshLevels": "መጠን አድስ",
+    "viewAndAdjust": "ይመልከቱ እና ያስተካክሉ",
+    "manageItems": "የመጋዘን ዕቃዎችን ያስተዳድሩ",
+    "footerPrefix": "በመጋዘን ውስጥ ያሉ ዕቃዎች በጅምላ ማሸጊያ የተቀመጡ ሲሆን በሱቅ ክምችት ውስጥ ለመታየት",
+    "footerBold": "በውስጥ መተላለፍ",
+    "footerSuffix": "መደረግ አለባቸው።",
+    "columns": {
+      "productName": "የምርት ስም",
+      "currentInventory": "አሁን ያለው ክምችት",
+      "fullPacks": "{{count}} ሙሉ ጥቅሎች",
+      "lastActivity": "የመጨረሻ እንቅስቃሴ",
+      "warehouseLocation": "የመጋዘን አድራሻ",
+      "warehouseSuffix": "{{name}} መጋዘን",
+      "totalCategories": "ጠቅላላ ምድቦች",
+      "productTypes": "{{count}} የምርት አይነቶች"
+    }
+  },
+  "shopStock": {
+    "title": "የቀን ሱቅ ክምችት",
+    "subtitle": "በአሁኑ ጊዜ በሱቅ ወለል ላይ ያለው ሁሉም ነገር፣ በመድረሻ ቀን እና አድራሻ የተደራጀ።",
+    "loadFailed": "የክምችት ቡድኖችን መጫን አልተሳካም",
+    "searchPlaceholder": "በቅርንጫፍ ይፈልጉ...",
+    "viewAndAdjust": "ይመልከቱ እና ያስተካክሉ",
+    "directDelivery": "ቀጥታ አቅርቦት",
+    "storeRefill": "ከመጋዘን ማሟያ",
+    "expandToView": "ለማየት ይክፈቱ",
+    "columns": {
+      "productName": "የምርት ስም",
+      "source": "ምንጭ",
+      "currentQuantity": "አሁን ያለው ብዛት",
+      "pieces": "{{count}} ቁርጥራጮች",
+      "arrivalDate": "የመድረሻ ቀን",
+      "productCount": "የምርት ብዛት",
+      "productsInBatch": "{{count}} ምርቶች በዚህ ጭነት ውስጥ",
+      "details": "ዝርዝሮች"
+    }
+  },
+  "stockDetail": {
+    "loadFailed": "የክምችት ዝርዝር መጫን አልተሳካም",
+    "notFound": "የክምችት መዝገብ አልተገኘም።",
+    "storeStockBreadcrumb": "የመጋዘን ክምችት",
+    "shopStockBreadcrumb": "የሱቅ ክምችት",
+    "subtitle": "ሙሉ ኦዲት እና ማስተካከያ እይታ ለዚህ አድራሻ",
+    "movementLogs": "የእንቅስቃሴ መዝገቦች",
+    "adjustButton": "{{unit}} አስተካክል",
+    "currentLevels": "አሁን ያለው መጠን",
+    "inStock": "ክምችት አለ",
+    "outOfStock": "ክምችት የለም",
+    "locationInfo": "የአድራሻ መረጃ",
+    "mainWarehouse": "ዋና መጋዘን",
+    "inventoryType": "የክምችት አይነት",
+    "bulkStorage": "የጅምላ ማከማቻ (ያልተከፈተ)",
+    "retailDisplay": "የችርቻሮ እይታ (ለሽያጭ ዝግጁ)"
+  },
+  "adjustStockModal": {
+    "adjustSuccess": "{{name}} በተሳካ ሁኔታ ተስተካክሏል",
+    "updateFailed": "ክምችት ማዘመን አልተሳካም",
+    "title": "በእጅ ኦዲት፦ {{name}}",
+    "applyCorrection": "እርማት ተግብር",
+    "alertTitle": "የአስተዳዳሪ ማለፊያ ገባሪ ነው",
+    "alertDesc": "የ{{unit}} ብዛትን መቀየር በቀጥታ የክምችት ዋጋን ይነካል።",
+    "newCountLabel": "ትክክለኛ አዲስ ብዛት ({{unit}})",
+    "reasonLabel": "የማስተካከያ ምክንያት",
+    "reasonRequired": "እባክዎ ለኦዲት መዝገቡ ምክንያት ያስገቡ",
+    "reasonPlaceholder": "ለምሳሌ፦ የተበላሹ እቃዎች ተገኝተዋል፣ በአቅርቦት ጊዜ የቆጠራ ስህተት፣ ወዘተ."
+  },
+  "supplyLogs": {
+    "title": "የአቅራቢ አቅርቦቶች",
+    "loadFailed": "የአቅርቦት ታሪክ መጫን አልተሳካም",
+    "searchPlaceholder": "በምርት፣ አቅራቢ ወይም ቅርንጫፍ ይፈልጉ...",
+    "logNewDelivery": "አዲስ አቅርቦት መዝግብ",
+    "columns": {
+      "dateReceived": "የደረሰበት ቀን",
+      "quantity": "{{count}} ጥቅሎች",
+      "payment": "ክፍያ"
+    }
+  },
+  "logSupplyModal": {
+    "title": "የአቅራቢ አቅርቦቶች መዝግብ",
+    "successMessage": "{{count}} አቅርቦቶች በተሳካ ሁኔታ ተመዝግበዋል",
+    "failedDefault": "አቅርቦቶችን መመዝገብ አልተሳካም።",
+    "saveAll": "ሁሉንም አቅርቦቶች አስቀምጥ",
+    "receivingBranch": "የተቀባይ ቅርንጫፍ",
+    "selectBranch": "ቅርንጫፍ ይምረጡ",
+    "yourAssignedBranch": "የተመደበልዎት ቅርንጫፍ",
+    "dateTimeReceived": "የደረሰበት ቀን እና ሰዓት",
+    "deliveryItems": "የአቅርቦት ዕቃዎች",
+    "missingProduct": "ምርት ይምረጡ",
+    "searchProduct": "ምርት ይፈልጉ",
+    "noVendor": "አቅራቢ የለም",
+    "qtyPacks": "ብዛት (ጥቅሎች)",
+    "missingQty": "ብዛት ያስፈልጋል",
+    "optionalNote": "አማራጭ ማስታወሻ",
+    "freshStock": "አዲስ ክምችት",
+    "replenish": "ሙላ",
+    "addAnother": "ሌላ አቅርቦት ጨምር"
+  },
+  "internalTransfers": {
+    "title": "ከመጋዘን ወደ ሱቅ ማዘዋወሪያ",
+    "loadFailed": "የዝውውር ታሪክ መጫን አልተሳካም",
+    "searchPlaceholder": "በምርት ወይም ቅርንጫፍ ይፈልጉ...",
+    "newRefill": "አዲስ ሙሌት",
+    "columns": {
+      "packsRemoved": "የተነሱ ጥቅሎች",
+      "piecesAdded": "የተጨመሩ ቁርጥራጮች"
+    }
+  },
+  "internalTransferModal": {
+    "title": "ከመጋዘን ወደ ሱቅ ሙሌት",
+    "successMessage": "ሙሌት ተጠናቋል፦ ከመጋዘን ወደ ሱቅ",
+    "failedDefault": "ዝውውር አልተሳካም። በመጋዘን ውስጥ በቂ ክምችት መኖሩን ያረጋግጡ።",
+    "targetBranch": "ዒላማ ቅርንጫፍ",
+    "branchRequired": "እባክዎ ቅርንጫፍ ይምረጡ",
+    "selectBranchPlaceholder": "ለመሙላት ቅርንጫፍ ይምረጡ",
+    "refillingFor": "የሚሞላለት፦",
+    "yourAssignedBranch": "የተመደበልዎት ቅርንጫፍ",
+    "selectProductPlaceholder": "ምርት ይፈልጉ እና ይምረጡ",
+    "packRatio": "(1 ጥቅል = {{count}} ቁርጥራጭ)",
+    "packsToMove": "ከመጋዘን የሚንቀሳቀሱ ጥቅሎች",
+    "enterQuantity": "ብዛት ያስገቡ",
+    "totalPiecesToAdd": "ወደ ሱቅ የሚጨመሩ ጠቅላላ ቁርጥራጮች"
+  }
+}

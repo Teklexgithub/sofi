@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Input, Tag, Typography, Divider, message, Button } from 'antd';
 import { SearchOutlined, HistoryOutlined, FileTextOutlined, PrinterOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { useReactToPrint } from 'react-to-print';
 import { employeeService } from '../../services/employeeService';
 import PayslipDocument from '../../components/print/PayslipDocument';
@@ -9,6 +10,7 @@ import dayjs from 'dayjs';
 const { Title, Text } = Typography;
 
 export const PayslipHistory: React.FC = () => {
+  const { t } = useTranslation('employee');
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,7 +30,7 @@ export const PayslipHistory: React.FC = () => {
       const res = await employeeService.getPayslipsHistory();
       setHistory(Array.isArray(res.data) ? res.data : (res.data.results || []));
     } catch (err) {
-      message.error("Failed to load historical payroll distribution ledger receipts.");
+      message.error(t('payslipHistory.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -44,19 +46,19 @@ export const PayslipHistory: React.FC = () => {
   );
 
   const columns = [
-    { title: 'Payslip ID Token', dataIndex: 'id', key: 'id', render: (id: string) => <Tag color="purple">#PAY-{id.substring(0, 8).toUpperCase()}</Tag> },
-    { title: 'Employee Recipient', dataIndex: 'employee_name', key: 'employee_name', render: (text: string) => <Text strong>{text}</Text> },
-    { title: 'Assigned Station', dataIndex: 'branch_name', key: 'branch_name' },
-    { title: 'Contract Base Salary', dataIndex: 'base_salary_snapshot', key: 'base_salary_snapshot', render: (amt: any) => `${Number(amt).toLocaleString()} ETB` },
-    { title: 'Liabilities Deductions', dataIndex: 'total_deductions_applied', key: 'total_deductions_applied', render: (amt: any) => <Text type="danger">-{Number(amt).toLocaleString()} ETB</Text> },
-    { title: 'Final Disbursed Net', dataIndex: 'final_net_cash_payout', key: 'final_net_cash_payout', render: (amt: any) => <Text style={{ color: '#52c41a', fontWeight: 'bold' }}>{Number(amt).toLocaleString()} ETB</Text> },
-    { title: 'Settlement Run Date', dataIndex: 'executed_at', key: 'executed_at', render: (date: string) => dayjs(date).format('MMMM DD, YYYY | hh:mm A') },
+    { title: t('payslipHistory.columns.payslipId'), dataIndex: 'id', key: 'id', render: (id: string) => <Tag color="purple">#PAY-{id.substring(0, 8).toUpperCase()}</Tag> },
+    { title: t('payslipHistory.columns.employee'), dataIndex: 'employee_name', key: 'employee_name', render: (text: string) => <Text strong>{text}</Text> },
+    { title: t('payslipHistory.columns.station'), dataIndex: 'branch_name', key: 'branch_name' },
+    { title: t('payslipHistory.columns.baseSalary'), dataIndex: 'base_salary_snapshot', key: 'base_salary_snapshot', render: (amt: any) => `${Number(amt).toLocaleString()} ${t('common:units.etb')}` },
+    { title: t('payslipHistory.columns.deductions'), dataIndex: 'total_deductions_applied', key: 'total_deductions_applied', render: (amt: any) => <Text type="danger">-{Number(amt).toLocaleString()} {t('common:units.etb')}</Text> },
+    { title: t('payslipHistory.columns.finalNet'), dataIndex: 'final_net_cash_payout', key: 'final_net_cash_payout', render: (amt: any) => <Text style={{ color: '#52c41a', fontWeight: 'bold' }}>{Number(amt).toLocaleString()} {t('common:units.etb')}</Text> },
+    { title: t('payslipHistory.columns.settlementDate'), dataIndex: 'executed_at', key: 'executed_at', render: (date: string) => dayjs(date).format('MMMM DD, YYYY | hh:mm A') },
     {
-      title: 'Print',
+      title: t('common:actions.print'),
       key: 'print_action',
       align: 'center' as const,
       render: (_: any, record: any) => (
-        <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRow(record)}>Print</Button>
+        <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrintRow(record)}>{t('common:actions.print')}</Button>
       )
     },
   ];
@@ -64,10 +66,10 @@ export const PayslipHistory: React.FC = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <Title level={3} style={{ margin: 0, color: '#714B67' }}><HistoryOutlined /> Finalized Payslips Execution Archive</Title>
+        <Title level={3} style={{ margin: 0, color: '#714B67' }}><HistoryOutlined /> {t('payslipHistory.title')}</Title>
         <Input
           size="large"
-          placeholder="Query historical records by name or station..."
+          placeholder={t('payslipHistory.searchPlaceholder')}
           prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
           style={{ maxWidth: '380px', borderRadius: '6px' }}
           value={searchQuery}
@@ -87,8 +89,8 @@ export const PayslipHistory: React.FC = () => {
         expandable={{
           expandedRowRender: record => (
             <div style={{ padding: '8px 24px', background: '#fafafa', borderRadius: '4px' }}>
-              <Text type="secondary" strong><FileTextOutlined /> Transaction Run Audit Notes: </Text>
-              <Text>{record.notes || "No remarks notes recorded during payroll processing runtime execution."}</Text>
+              <Text type="secondary" strong><FileTextOutlined /> {t('payslipHistory.auditNotesLabel')} </Text>
+              <Text>{record.notes || t('payslipHistory.noNotes')}</Text>
             </div>
           ),
         }}

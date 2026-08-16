@@ -2,20 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Descriptions, Space, Typography, Tag, Breadcrumb, Popconfirm, message } from 'antd';
 import { EditOutlined, DeleteOutlined, ShopOutlined, MailOutlined, KeyOutlined, GlobalOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { settingsService } from '../../services/settingsService';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useAuth } from '../../contexts/AuthContext'; 
+import { useAuth } from '../../contexts/AuthContext';
 import CreateUserModal from './CreateUserModal';
-import ResetPasswordModal from './ResetPasswordModal'; 
+import ResetPasswordModal from './ResetPasswordModal';
 
 const { Title, Text } = Typography;
 
 const UserDetail: React.FC = () => {
+  const { t } = useTranslation('settings');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isDark } = useTheme();
-  const { user } = useAuth(); 
-  
+  const { user } = useAuth();
+
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -30,7 +32,7 @@ const UserDetail: React.FC = () => {
       const response = await settingsService.getUserDetail(id!);
       setUserData(response.data);
     } catch (error) {
-      message.error("Could not load user details");
+      message.error(t('common:messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -43,21 +45,21 @@ const UserDetail: React.FC = () => {
   const handleDelete = async () => {
     try {
       await settingsService.deleteUser(id!);
-      message.success("User account deactivated");
+      message.success(t('userDetail.deactivateSuccess'));
       navigate('/settings/users');
     } catch (error) {
-      message.error("Failed to delete user");
+      message.error(t('userDetail.deactivateFailed'));
     }
   };
 
-  if (!userData && !loading) return <div style={{ padding: '20px' }}><Text type="danger">User not found</Text></div>;
+  if (!userData && !loading) return <div style={{ padding: '20px' }}><Text type="danger">{t('userDetail.notFound')}</Text></div>;
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
       <Breadcrumb style={{ marginBottom: '16px' }}>
         <Breadcrumb.Item>
           <span onClick={() => navigate('/settings/users')} style={{ cursor: 'pointer', color: '#714B67', fontWeight: 500 }}>
-            Users
+            {t('userDetail.usersBreadcrumb')}
           </span>
         </Breadcrumb.Item>
         <Breadcrumb.Item>{userData?.email}</Breadcrumb.Item>
@@ -67,53 +69,53 @@ const UserDetail: React.FC = () => {
         <Space direction="vertical" size={0}>
           <Title level={2} style={{ margin: 0 }}>{userData?.email}</Title>
           <Space>
-             <Tag color={userData?.role === 'ADMIN' ? 'volcano' : 'blue'}>{userData?.role}</Tag>
-             {userData?.is_active ? <Tag color="green">Active</Tag> : <Tag color="red">Inactive</Tag>}
+             <Tag color={userData?.role === 'ADMIN' ? 'volcano' : 'blue'}>{userData?.role ? t(`common:roles.${userData.role}`) : ''}</Tag>
+             {userData?.is_active ? <Tag color="green">{t('common:status.active')}</Tag> : <Tag color="red">{t('common:status.inactive')}</Tag>}
           </Space>
         </Space>
-        
+
         <Space>
           {/* Admin Override: Reset Password on-system */}
           {isGlobalAdmin && (
-            <Button 
-              icon={<KeyOutlined />} 
+            <Button
+              icon={<KeyOutlined />}
               danger
               onClick={() => setIsResetModalVisible(true)}
             >
-              Reset Password
+              {t('userDetail.resetPasswordButton')}
             </Button>
           )}
 
-          <Button 
-            icon={<EditOutlined />} 
-            type="primary" 
-            ghost 
-            onClick={() => setIsEditModalVisible(true)} 
+          <Button
+            icon={<EditOutlined />}
+            type="primary"
+            ghost
+            onClick={() => setIsEditModalVisible(true)}
             style={{ color: '#714B67', borderColor: '#714B67' }}
           >
-            Edit Profile
+            {t('userDetail.editProfileButton')}
           </Button>
-          
-          <Popconfirm 
-            title="Deactivate this user?" 
-            onConfirm={handleDelete} 
-            okText="Yes" 
-            cancelText="No"
+
+          <Popconfirm
+            title={t('userDetail.deactivateConfirmTitle')}
+            onConfirm={handleDelete}
+            okText={t('common:actions.yes')}
+            cancelText={t('common:actions.no')}
             okButtonProps={{ danger: true }}
           >
-            <Button icon={<DeleteOutlined />} danger>Delete</Button>
+            <Button icon={<DeleteOutlined />} danger>{t('common:actions.delete')}</Button>
           </Popconfirm>
         </Space>
       </div>
 
       <Card loading={loading} style={{ borderRadius: '8px', background: isDark ? '#1f1f1f' : '#fff' }}>
-        <Descriptions title="System Access Details" bordered column={2}>
-          <Descriptions.Item label="Email" span={2}>
+        <Descriptions title={t('userDetail.sectionTitle')} bordered column={2}>
+          <Descriptions.Item label={t('common:fields.email')} span={2}>
             <MailOutlined style={{ marginRight: 8 }} />
             {userData?.email}
           </Descriptions.Item>
-          <Descriptions.Item label="System Role">{userData?.role}</Descriptions.Item>
-          <Descriptions.Item label="Branch Assignment">
+          <Descriptions.Item label={t('common:fields.role')}>{userData?.role ? t(`common:roles.${userData.role}`) : ''}</Descriptions.Item>
+          <Descriptions.Item label={t('userList.columns.branchAssignment')}>
              {userData?.branch_details && userData.branch_details.length > 0 ? (
                <Space wrap>
                  {userData.branch_details.map((b: { id: string; name: string }) => (
@@ -123,11 +125,11 @@ const UserDetail: React.FC = () => {
                  ))}
                </Space>
              ) : (
-               <Tag icon={<GlobalOutlined />}>Global Access</Tag>
+               <Tag icon={<GlobalOutlined />}>{t('userList.globalAccess')}</Tag>
              )}
           </Descriptions.Item>
-          <Descriptions.Item label="Joined Date">
-            {userData?.date_joined ? new Date(userData.date_joined).toLocaleDateString() : 'N/A'}
+          <Descriptions.Item label={t('userDetail.joinedDateLabel')}>
+            {userData?.date_joined ? new Date(userData.date_joined).toLocaleDateString() : t('userDetail.notAvailable')}
           </Descriptions.Item>
         </Descriptions>
       </Card>

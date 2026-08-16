@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, InputNumber, Input, message, Alert } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 
 interface AdjustModalProps {
@@ -15,6 +16,7 @@ const AdjustStoreStockModal: React.FC<AdjustModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation('inventory');
 
   useEffect(() => {
     if (visible && initialData) {
@@ -35,53 +37,55 @@ const AdjustStoreStockModal: React.FC<AdjustModalProps> = ({
         await inventoryService.adjustShopStock(initialData.id, values.adjustment_value);
       }
       
-      message.success(`${initialData.product_name} adjusted successfully`);
+      message.success(t('adjustStockModal.adjustSuccess', { name: initialData.product_name }));
       onSuccess();
     } catch (e: any) {
       // Catch specific error messages from the backend (like "Permission Denied")
-      const errorMsg = e.response?.data?.error || 'Failed to update stock';
+      const errorMsg = e.response?.data?.error || t('adjustStockModal.updateFailed');
       message.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
+  const unitLabel = type === 'store' ? t('common:units.packs') : t('common:units.pieces');
+
   return (
-    <Modal 
-      title={`Manual Audit: ${initialData?.product_name}`} 
-      open={visible} 
-      onOk={() => form.submit()} 
+    <Modal
+      title={t('adjustStockModal.title', { name: initialData?.product_name })}
+      open={visible}
+      onOk={() => form.submit()}
       onCancel={onCancel}
       confirmLoading={loading}
-      okText="Apply Correction"
+      okText={t('adjustStockModal.applyCorrection')}
       okButtonProps={{ danger: true }}
       destroyOnClose
     >
-      <Alert 
-        message="Admin Override Active" 
-        description={`Changing the ${type === 'store' ? 'Packs' : 'Pieces'} count directly affects inventory value.`} 
+      <Alert
+        message={t('adjustStockModal.alertTitle')}
+        description={t('adjustStockModal.alertDesc', { unit: unitLabel })}
         type="error" // Changed to error color (Red) to signal high importance
-        showIcon 
+        showIcon
         style={{ marginBottom: 16 }}
       />
       <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item 
-            name="adjustment_value" 
-            label={`New Correct Count (${type === 'store' ? 'Packs' : 'Pieces'})`} 
+        <Form.Item
+            name="adjustment_value"
+            label={t('adjustStockModal.newCountLabel', { unit: unitLabel })}
             rules={[{ required: true }]}
         >
-          <InputNumber 
-            style={{ width: '100%' }} 
-            min={0} 
+          <InputNumber
+            style={{ width: '100%' }}
+            min={0}
             step={type === 'store' ? 0.1 : 1} // Decimals for packs, whole numbers for pieces
           />
         </Form.Item>
-        <Form.Item 
-            name="reason" 
-            label="Adjustment Reason" 
-            rules={[{ required: true, message: 'Please provide a reason for the audit log' }]}
+        <Form.Item
+            name="reason"
+            label={t('adjustStockModal.reasonLabel')}
+            rules={[{ required: true, message: t('adjustStockModal.reasonRequired') }]}
         >
-          <Input.TextArea placeholder="Example: Damaged goods found, counting error during delivery, etc." />
+          <Input.TextArea placeholder={t('adjustStockModal.reasonPlaceholder')} />
         </Form.Item>
       </Form>
     </Modal>

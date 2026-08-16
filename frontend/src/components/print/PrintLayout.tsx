@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PrintLayoutProps {
   title: string;
@@ -10,6 +11,7 @@ interface PrintLayoutProps {
 
 const PrintLayout = forwardRef<HTMLDivElement, PrintLayoutProps>(
   ({ title, subtitle, documentId, children, signatures }, ref) => {
+    const { t } = useTranslation('print');
     return (
       <div ref={ref} style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#222', padding: '8px', width: '100%', background: '#fff' }}>
         <style>{`
@@ -19,13 +21,13 @@ const PrintLayout = forwardRef<HTMLDivElement, PrintLayoutProps>(
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '3px solid #714B67', paddingBottom: '12px', marginBottom: '20px' }}>
           <div>
             <div style={{ fontSize: '26px', fontWeight: 800, color: '#714B67', letterSpacing: '1px' }}>SOFIA</div>
-            <div style={{ fontSize: '11px', color: '#888' }}>Sofia ERP System</div>
+            <div style={{ fontSize: '11px', color: '#888' }}>{t('layout.subtitle')}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '16px', fontWeight: 700 }}>{title}</div>
             {subtitle && <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>{subtitle}</div>}
             {documentId && <div style={{ fontSize: '11px', color: '#999', fontFamily: 'monospace', marginTop: '2px' }}>{documentId}</div>}
-            <div style={{ fontSize: '10px', color: '#aaa', marginTop: '4px' }}>Printed: {new Date().toLocaleString()}</div>
+            <div style={{ fontSize: '10px', color: '#aaa', marginTop: '4px' }}>{t('layout.printedOn', { timestamp: new Date().toLocaleString() })}</div>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Avatar, Dropdown, Badge, Space, Typography, Switch, Menu, Select } from 'antd';
+import { Layout, Avatar, Dropdown, Badge, Space, Typography, Switch, Menu, Select, Segmented } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   BellOutlined, UserOutlined, LogoutOutlined,
@@ -8,9 +8,11 @@ import {
   DollarOutlined, HistoryOutlined,
   WalletOutlined, BankOutlined, FormOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useBranch } from '../contexts/BranchContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useVisibleApps } from '../config/navApps';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 
@@ -18,8 +20,10 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 const { Header, Content, Sider } = Layout;
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { t } = useTranslation('nav');
   const { user, logout, isAdmin } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -35,29 +39,29 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Navigation Items for Inventory
   const inventoryItems: MenuProps['items'] = [
-    { 
-      key: 'overview', 
-      label: 'Stock Levels',
+    {
+      key: 'overview',
+      label: t('inventory.stockLevels'),
       children: [
-        { key: '/inventory/store', label: 'Store Stock (Packs)', onClick: () => navigate('/inventory/store') },
-        { key: '/inventory/shop', label: 'Shop Stock (Pieces)', onClick: () => navigate('/inventory/shop') },
+        { key: '/inventory/store', label: t('inventory.storeStock'), onClick: () => navigate('/inventory/store') },
+        { key: '/inventory/shop', label: t('inventory.shopStock'), onClick: () => navigate('/inventory/shop') },
       ]
     },
     // --- CONDITIONAL ADMIN-ONLY MASTER DATA SUBMENU ---
     ...(isAdmin ? [{
       key: 'products_nav',
-      label: 'Master Data',
+      label: t('inventory.masterData'),
       children: [
-        { key: '/inventory/products', label: 'Products', onClick: () => navigate('/inventory/products') },
-        { key: '/inventory/vendors', label: 'Vendors', onClick: () => navigate('/inventory/vendors') },
+        { key: '/inventory/products', label: t('inventory.products'), onClick: () => navigate('/inventory/products') },
+        { key: '/inventory/vendors', label: t('inventory.vendors'), onClick: () => navigate('/inventory/vendors') },
       ]
     }] : []),
     {
       key: 'operations',
-      label: 'Operations',
+      label: t('inventory.operations'),
       children: [
-        { key: '/inventory/supply-logs', label: 'Vendor Deliveries', onClick: () => navigate('/inventory/supply-logs') },
-        { key: '/inventory/transfers', label: 'Store to Shop Refills', onClick: () => navigate('/inventory/transfers') },
+        { key: '/inventory/supply-logs', label: t('inventory.vendorDeliveries'), onClick: () => navigate('/inventory/supply-logs') },
+        { key: '/inventory/transfers', label: t('inventory.storeToShopRefills'), onClick: () => navigate('/inventory/transfers') },
       ]
     },
   ];
@@ -66,38 +70,38 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const salesItems: MenuProps['items'] = [
     {
       key: 'daily_sessions_nav',
-      label: 'Daily Sessions',
+      label: t('sales.dailySessions'),
       children: [
-        { key: '/sales/daily-session', label: 'Daily Worksheet', icon: <DollarOutlined />, onClick: () => navigate('/sales/daily-session') },
-        { key: '/sales/history', label: 'Sales History', icon: <HistoryOutlined />, onClick: () => navigate('/sales/history') },
+        { key: '/sales/daily-session', label: t('sales.dailyWorksheet'), icon: <DollarOutlined />, onClick: () => navigate('/sales/daily-session') },
+        { key: '/sales/history', label: t('sales.salesHistory'), icon: <HistoryOutlined />, onClick: () => navigate('/sales/history') },
       ]
     },
     // --- CONDITIONAL ADMIN-ONLY VENDOR PAYMENTS & DIGITAL MANAGEMENT SUBMENUS ---
     ...(isAdmin ? [
       {
         key: '/sales/settlements',
-        label: 'Vendor Settlements',
+        label: t('sales.vendorSettlements'),
         icon: <WalletOutlined />,
         onClick: () => navigate('/sales/settlements', { state: { targetTab: '1' } })
       },
       {
         key: 'digital_management_nav',
-        label: 'Digital Accounts',
+        label: t('sales.digitalAccounts'),
         icon: <BankOutlined />, // Moved the main folder icon here for a professional look
         children: [
           {
             key: '/sales/digital-accounts-setup',
-            label: 'Bank Accounts',
+            label: t('sales.bankAccounts'),
             onClick: () => navigate('/sales/digital-accounts-setup')
           },
           {
             key: '/sales/digital-adjustments',
-            label: 'Journal Adjustments',
+            label: t('sales.journalAdjustments'),
             onClick: () => navigate('/sales/digital-adjustments') // Added missing redirect listener!
           },
           {
             key: '/sales/shortages-ledger',
-            label: 'Shortages Ledger',
+            label: t('sales.shortagesLedger'),
             onClick: () => navigate('/sales/shortages-ledger')
           }
         ]
@@ -109,26 +113,26 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const employeeItems: MenuProps['items'] = [
     {
       key: '/employees',
-      label: 'Employees',
+      label: t('employee.employees'),
       icon: <TeamOutlined />,
       onClick: () => navigate('/employees')
     },
     {
       key: 'advances_fines_nav',
-      label: 'Advances & Fines',
+      label: t('employee.advancesFines'),
       icon: <WalletOutlined />,
       children: [
-        { key: '/employees?tab=advance_reg', label: 'Issue Advance/Fine', icon: <FormOutlined />, onClick: () => navigate('/employees?tab=advance_reg') },
-        { key: '/employees?tab=advance_history', label: 'Ledger History Log', icon: <HistoryOutlined />, onClick: () => navigate('/employees?tab=advance_history') },
+        { key: '/employees?tab=advance_reg', label: t('employee.issueAdvanceFine'), icon: <FormOutlined />, onClick: () => navigate('/employees?tab=advance_reg') },
+        { key: '/employees?tab=advance_history', label: t('employee.ledgerHistory'), icon: <HistoryOutlined />, onClick: () => navigate('/employees?tab=advance_history') },
       ]
     },
     {
       key: 'payslips_nav',
-      label: 'Payslips Run',
+      label: t('employee.payslipsRun'),
       icon: <DollarOutlined />,
       children: [
-        { key: '/employees?tab=payslip_run', label: 'Execute Payout Run', icon: <FormOutlined />, onClick: () => navigate('/employees?tab=payslip_run') },
-        { key: '/employees?tab=payslip_history', label: 'Payslip History Log', icon: <HistoryOutlined />, onClick: () => navigate('/employees?tab=payslip_history') },
+        { key: '/employees?tab=payslip_run', label: t('employee.executePayout'), icon: <FormOutlined />, onClick: () => navigate('/employees?tab=payslip_run') },
+        { key: '/employees?tab=payslip_history', label: t('employee.payslipHistory'), icon: <HistoryOutlined />, onClick: () => navigate('/employees?tab=payslip_history') },
       ]
     }
   ];
@@ -137,10 +141,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const settingsItems: MenuProps['items'] = [
     {
       key: 'configuration',
-      label: 'Configuration',
+      label: t('settings.configuration'),
       children: [
-        { key: '/settings/users', label: 'Users', onClick: () => navigate('/settings/users') },
-        { key: '/settings/branches', label: 'Branches', onClick: () => navigate('/settings/branches') },
+        { key: '/settings/users', label: t('settings.users'), onClick: () => navigate('/settings/users') },
+        { key: '/settings/branches', label: t('settings.branches'), onClick: () => navigate('/settings/branches') },
       ]
     }
   ];
@@ -148,32 +152,54 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // User Dropdown Menu
   const userItems: MenuProps['items'] = [
     { key: 'profile', label: 'Sofia Organic', icon: <UserOutlined /> },
-    { 
-      key: 'theme-toggle', 
+    {
+      key: 'theme-toggle',
       label: (
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           width: '100%',
-          minWidth: '130px' 
+          minWidth: '130px'
         }}>
-          <span>Dark Mode</span>
-          <Switch 
-            size="small" 
-            checked={isDark} 
-            onChange={toggleTheme} 
+          <span>{t('user.darkMode')}</span>
+          <Switch
+            size="small"
+            checked={isDark}
+            onChange={toggleTheme}
+          />
+        </div>
+      )
+    },
+    {
+      key: 'language-toggle',
+      label: (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+          minWidth: '130px',
+          gap: '10px'
+        }}>
+          <span>{t('user.language')}</span>
+          <Segmented
+            size="small"
+            value={language}
+            onChange={(val) => setLanguage(val as 'en' | 'am')}
+            options={[{ label: 'EN', value: 'en' }, { label: 'አማ', value: 'am' }]}
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )
     },
     { type: 'divider' },
-    { 
-      key: 'logout', 
-      label: 'Logout', 
-      icon: <LogoutOutlined />, 
-      onClick: logout, 
-      danger: true 
+    {
+      key: 'logout',
+      label: t('user.logout'),
+      icon: <LogoutOutlined />,
+      onClick: logout,
+      danger: true
     },
   ];
 
@@ -184,12 +210,12 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Dynamic Title Helper
   const getHeaderTitle = () => {
-    if (isInventoryModule) return 'Inventory';
-    if (isSalesModule) return 'Sales';
-    if (isEmployeeModule) return 'Employee'; 
-    if (isSettingsModule) return 'Settings';
-    if (isAnalyticsModule) return 'Analytics Dashboard';
-    return 'Sofia ERP';
+    if (isInventoryModule) return t('headerTitle.inventory');
+    if (isSalesModule) return t('headerTitle.sales');
+    if (isEmployeeModule) return t('headerTitle.employee');
+    if (isSettingsModule) return t('headerTitle.settings');
+    if (isAnalyticsModule) return t('headerTitle.analytics');
+    return t('headerTitle.default');
   };
 
   return (

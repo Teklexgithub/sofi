@@ -1,0 +1,398 @@
+{
+  "dailySession": {
+    "subNav": {
+      "worksheet": "Daily Worksheet Staging",
+      "debts": "Advance: Debts Ledger"
+    },
+    "title": "Daily Branch Settlement",
+    "grossSalesLabel": "Gross Sales Volume",
+    "netCashLabel": "Unallocated Cash Variance (Live)",
+    "selectBranchPlaceholder": "Select Target Location",
+    "assignedBranchFallback": "Assigned Branch",
+    "generateWorksheetBtn": "Generate Worksheet",
+    "awaitingInput": "Awaiting input",
+    "tabs": {
+      "stockCount": "1. Stock Count",
+      "expenses": "2. Expenses",
+      "newDebts": "3. New Debts",
+      "creditRecovery": "4. Credit Recovery",
+      "finalHandover": "5. Final Handover"
+    },
+    "stockCount": {
+      "emptyText": "Generate the active worksheet statement to list products.",
+      "overflow": "Overflow",
+      "columns": {
+        "product": "Product catalog profile",
+        "openingBalance": "A.M Balance (Open)",
+        "closingCount": "P.M Count (Actual Items Left)",
+        "piecesSold": "Pieces Sold (Live)"
+      }
+    },
+    "expenses": {
+      "addLine": "Add Expense Line",
+      "emptyText": "No expense rows allocated."
+    },
+    "newDebts": {
+      "addLine": "Register Debt Invoice",
+      "emptyText": "No ledger allocations recorded.",
+      "selectCustomerPlaceholder": "Select or Create Customer profile",
+      "newCustomerNamePlaceholder": "Type New Customer Name...",
+      "balanceSuffix": "(Bal: {{amount}} {{unit}})"
+    },
+    "creditRecovery": {
+      "addLine": "Record Debt Payment",
+      "emptyText": "No collection profiles declared.",
+      "selectCustomerPlaceholder": "Select profile paying back debt",
+      "owesSuffix": "(Owes: {{amount}} {{unit}})",
+      "amountPaidPlaceholder": "Amount Paid"
+    },
+    "finalHandover": {
+      "digitalBalancesTitle": "Digital (Bank/Telebirr) Balances Statement",
+      "addDigitalEntry": "Add Verified Account Balance Entry",
+      "selectWalletPlaceholder": "Select Target App Wallet",
+      "currentBalancePlaceholder": "Current Ending App Balance",
+      "expectedBase": "Expected Base: {{amount}} {{unit}}",
+      "adminAdjustmentsLabel": "Admin Adjustments Logged Since Last Session Close:",
+      "physicalCashTitle": "Liquid Physical Cash Registers Drawer",
+      "rollForwardTitle": "Roll-Forward Active: A.M. Cash Float Baseline Loaded",
+      "rollForwardDesc": "The register drawer opened today with a verified baseline change float of {{amount}} {{unit}} forwarded from the last settlement closure row.",
+      "cashToAdminLabel": "Total Clean Handover Cash for Admin/Courier:",
+      "cashForChangeLabel": "Float Retained in Register Drawer for Change:",
+      "manualDepositsTitle": "Manual Physical Bank Deposits (Slips / Receipts)",
+      "addDepositBtn": "Attach Manual Bank Deposit Slip Statement",
+      "slipAmountPlaceholder": "Slip Receipt Amount",
+      "bankNamePlaceholder": "Bank Name (e.g. CBE, Awash)",
+      "beneficiaryNamePlaceholder": "Beneficiary Account Holder Name",
+      "finalizeBtn": "FINALIZE SETTLEMENT & SYNC ALL DATA"
+    },
+    "debtsLedger": {
+      "cardTitle": "Advance Monitor: Historic Customer Debt Ledger",
+      "alertMessage": "Displays active debtor tracking matrices matching outstanding operational balances across this physical retail hub cluster.",
+      "searchPlaceholder": "Search debtor profile by name...",
+      "adjustBalance": "Adjust Balance",
+      "columns": {
+        "customerName": "Customer Name Account",
+        "outstandingDebt": "Outstanding Debt Profile ({{unit}})",
+        "lastUpdate": "Last Audit Update Timestamp",
+        "adminOptions": "Administrative Options"
+      },
+      "editModal": {
+        "title": "Manual Historical Debt Adjustment",
+        "okText": "Override Historical Balance",
+        "warningTitle": "Critical Financial Override Action",
+        "warningDesc": "This operation modifies historical debt balances directly. Ensure corporate validation paperwork matches this ad-hoc field adjustment.",
+        "customerLabel": "Customer Account Target:",
+        "newBalanceLabel": "New Total Outstanding Balance ({{unit}}):"
+      }
+    },
+    "creditsView": {
+      "cardTitle": "Advance Monitor: Credit Sales & Recovery Reports Tracking",
+      "alertMessage": "Monthly aggregated data logs showing structural asset distribution tracking histories.",
+      "emptyDescription": "No historic monthly logs detected for the current active quarter."
+    },
+    "sessionModal": {
+      "title": "Session Finalized",
+      "doneBtn": "Done",
+      "printBtn": "Print Report"
+    },
+    "messages": {
+      "nameRequired": "Please enter a valid name.",
+      "branchRequired": "Please lock a branch location first.",
+      "customerRegistered": "Profile for \"{{name}}\" registered successfully!",
+      "customerRegisterFailed": "Failed to register new profile. Ensure name is unique.",
+      "balanceUpdated": "Historical debt record for {{name}} updated to {{amount}} {{unit}}.",
+      "balanceUpdateFailed": "Authorization Failure: Balance modification rejected.",
+      "selectBranchFirst": "Please select an active branch location.",
+      "worksheetCompiled": "Worksheet compiled! Proceed through steps.",
+      "worksheetLoadFailed": "Sync Exception: Verify that inventory values exist for this target node.",
+      "noActiveSession": "Action Aborted: No active session active.",
+      "countsRequired": "Validation Error: Please record current counts for all listed catalog items.",
+      "submitSuccess": "Success: Daily Branch settlement submitted safely!",
+      "submitFailed": "Transaction failed during live balancing routine."
+    }
+  },
+  "salesHistory": {
+    "title": "Closed Sales History Audit Journal",
+    "subtitle": "Review closed sub-branch daily settlement worksheets. Admins can view complete breakdowns, edit entries, or delete records to allow full re-submissions.",
+    "searchPlaceholder": "Search by branch location or date...",
+    "detailsBtn": "Details",
+    "lockedTag": "FINALIZED & LOCKED",
+    "unknownLocation": "Unknown Location",
+    "columns": {
+      "tradingDate": "Trading Date",
+      "branch": "Physical Branch Location Node",
+      "grossRevenue": "Gross Revenue Volume",
+      "expenses": "Recorded Expenses",
+      "newCredits": "New Credits Issued",
+      "actions": "Operational Adjustments Logs"
+    },
+    "deleteConfirm": {
+      "title": "Permanently Delete Session?",
+      "desc": "This operation entirely drops this day's financial metrics and linked shortages out of the system. This cannot be undone. Proceed?",
+      "okText": "Yes, Delete Record"
+    },
+    "messages": {
+      "loadFailed": "Sync Failure: Could not load historical daily sessions registry.",
+      "deleteSuccess": "Session completely wiped. The branch admin can now re-submit for this date.",
+      "deleteFailed": "Action Rejected: Database clearance permissions required.",
+      "editRedirectInfo": "Staging parameters loaded for {{branch}}. Hit 'Generate Worksheet' to proceed."
+    },
+    "detailsModal": {
+      "title": "Complete Audit Settlement Breakdown",
+      "printBtn": "Print Report",
+      "closeBtn": "Close Audit View",
+      "coreSummaryTitle": "Core Summary Identifiers",
+      "branchCluster": "Branch Cluster",
+      "tradingSheetDate": "Trading Sheet Date",
+      "cashSubmitted": "Physical Cash Submitted",
+      "floatLeft": "Float Left in Drawer",
+      "summaryMetricsTitle": "Aggregated Summary Metrics Matrices",
+      "grossSales": "Gross Product Sales Volume",
+      "totalExpenses": "Total Shift Store Expenses",
+      "totalNewDebts": "Total New Debts Granted",
+      "totalCreditRecovered": "Total Customer Credit Recovered",
+      "na": "N/A",
+      "unknownCustomer": "Unknown Customer",
+      "unknownAccount": "Unknown Account",
+      "sections": {
+        "stockCount": "1. Stock Count Inventory Inlines",
+        "expenses": "2. Operational Store Expenses",
+        "newDebts": "3. Items Taken on Credit (New Debts)",
+        "creditRecoveries": "4. Credit Recoveries (Repayments)",
+        "digitalChannels": "5. Digital Channels Revenue Balances",
+        "manualDeposits": "6. Manual Physical Bank Deposits (Slips / Receipts)"
+      },
+      "stockCountEmpty": "No specific inventory modifications logged.",
+      "expensesEmpty": "No company expenses recorded during this shift.",
+      "digitalEmpty": "No bank or mobile money endpoints verified.",
+      "newDebtsEmpty": "No debtor invoices processed today.",
+      "recoveriesEmpty": "No outstanding collection repayments retrieved.",
+      "manualDepositsEmpty": "No manual physical bank deposit slips attached to this session ledger.",
+      "columns": {
+        "product": "Product catalog profile",
+        "opening": "A.M Balance (Open)",
+        "closing": "P.M Count (Closing)",
+        "piecesSold": "Pieces Sold",
+        "priceAtSale": "Price at Sale",
+        "subtotalRevenue": "Subtotal Revenue",
+        "expenseReason": "Expense Reason/Justification",
+        "amountExpended": "Amount Expended",
+        "accountHandle": "Account Handle",
+        "endingBalance": "Ending Balance",
+        "revenueDelta": "Shift Revenue Delta",
+        "debtorProfile": "Debtor Customer Profile",
+        "amountOwed": "Amount Owed",
+        "payerProfile": "Payer Customer Profile",
+        "cashRecovered": "Cash Recovered",
+        "bankName": "Bank Name",
+        "accountHolder": "Account Registered Name Holder",
+        "totalDeposited": "Total Value Deposited"
+      }
+    }
+  },
+  "digitalAccountSetup": {
+    "title": "Master Digital Accounts Registry",
+    "subtitle": "Configure and edit branch-linked wallet nodes (CBE, Telebirr, Awash) to initialize automatic delta revenue tracking workflows.",
+    "searchPlaceholder": "Search by branch or account name...",
+    "emptyText": "No configured digital accounts found.",
+    "globalFallback": "Global",
+    "accessDenied": {
+      "title": "Security Restriction Active",
+      "desc": "Access Denied: Admin level security clearance is required to interact with system wallet configuration matrices."
+    },
+    "editAlert": {
+      "title": "Modifying Wallet Profile",
+      "desc": "You are currently updating an existing configurations context. Changes will alter calculations on subsequent submissions."
+    },
+    "form": {
+      "branchLabel": "Target Branch Node",
+      "branchRequired": "Please select a deployment location branch",
+      "branchPlaceholder": "Deploy to location...",
+      "nameLabel": "Unique Wallet/Account Name Identifier",
+      "nameRequired": "Please enter a name identifier descriptor",
+      "namePlaceholder": "e.g. CBE Main (0911...) or Telebirr Shop",
+      "initialBalanceLabel": "Initial Balance ({{unit}})",
+      "balanceRequired": "Please enter starting balance",
+      "updateBtn": "Update Wallet",
+      "registerBtn": "Register Wallet",
+      "cancelEditBtn": "Cancel Edit"
+    },
+    "columns": {
+      "branch": "Assigned Physical Branch Hub",
+      "name": "System Account Reference Descriptor Name",
+      "initialBalance": "Seeded Initial Balance",
+      "actions": "Management Actions"
+    },
+    "deleteConfirm": {
+      "title": "Purge Profile Entry",
+      "desc": "Are you sure you want to permanently remove this configuration profile? This action cannot be reversed.",
+      "okText": "Purge",
+      "cancelText": "Abort"
+    },
+    "messages": {
+      "loadFailed": "Data Sync Exception: Master account profiles could not be loaded.",
+      "updateSuccess": "Wallet profile updated successfully!",
+      "createSuccess": "Wallet profile for \"{{name}}\" registered successfully!",
+      "submitFailed": "Submission Denied: Verify fields are valid and the account name identifier is distinct.",
+      "deleteSuccess": "Account profile successfully removed from system registries.",
+      "deleteFailed": "Action Blocked: Cannot delete accounts containing active daily statement dependencies."
+    }
+  },
+  "digitalAccountAdjustments": {
+    "title": "Corporate Accounts Adjustments Journal",
+    "subtitle": "Log manual banking transfers, injections, or direct vendor payments. These balances update cash-flow requirements on active daily workspaces.",
+    "searchPlaceholder": "Search by account, branch, or reason...",
+    "accessDenied": {
+      "title": "Access Denied",
+      "desc": "Admin clearance required."
+    },
+    "form": {
+      "typeLabel": "Action Context Type",
+      "payout": "Payout",
+      "injection": "Injection",
+      "accountLabel": "Target Master Account",
+      "accountRequired": "Select wallet",
+      "accountPlaceholder": "Choose account channel...",
+      "amountLabel": "Transaction Amount",
+      "amountRequired": "Input amount",
+      "amountPlaceholder": "0.00 {{unit}}",
+      "reasonLabel": "Reference Reason Description Notes",
+      "reasonRequired": "Add voucher notes",
+      "reasonPlaceholder": "e.g. Paid wholesale vendor for inventory",
+      "submitBtn": "Commit Journal Entry"
+    },
+    "columns": {
+      "dateLogged": "Date Logged",
+      "branch": "Source Branch Hub",
+      "account": "Target Account Channel",
+      "reason": "Reference Voucher Notes Reason",
+      "amount": "Transaction Flow Shift Value"
+    },
+    "deleteConfirm": {
+      "title": "Revoke adjustment line entry?",
+      "desc": "This deletes the adjustment transaction record context."
+    },
+    "messages": {
+      "loadFailed": "Sync Failure: Could not download transactions history.",
+      "submitSuccess": "Ledger adjustment record committed successfully!",
+      "submitFailed": "Transaction rejected by validation monitors.",
+      "deleteSuccess": "Transaction entry revoked.",
+      "deleteFailed": "Action denied."
+    }
+  },
+  "managerShortages": {
+    "title": "Corporate Shortages Assignment Journal",
+    "subtitle": "Review branch shortages. Remote entries default to unassigned until an admin delegates financial liability to a specific Branch Admin, Salesman, or Delivery Man.",
+    "searchPlaceholder": "Search by Branch name or employee...",
+    "assignPlaceholder": "Assign liability to employee...",
+    "deductFromSalary": "Deduct from Salary",
+    "selectedStaffFallback": "Selected Staff Member",
+    "accessDenied": {
+      "title": "Security Restriction Active",
+      "desc": "Access Denied: Administrative level clearance parameters required."
+    },
+    "columns": {
+      "dateLogged": "Date Logged",
+      "branch": "Branch Location",
+      "shortageAmount": "Unallocated Loss Amount",
+      "staffAssignment": "Accountable Staff Assignment",
+      "deductionStatus": "Deduction Status",
+      "payrollAction": "Payroll Action Reconciliation"
+    },
+    "tags": {
+      "awaitingAssignment": "AWAITING ASSIGNMENT",
+      "salaryDeducted": "SALARY DEDUCTED",
+      "unsettledAccount": "UNSETTLED ACCOUNT"
+    },
+    "confirmModal": {
+      "title": "Confirm Accountability Assignment",
+      "okText": "Confirm & Link",
+      "desc": "Are you sure you want to delegate financial liability for this cash shortage register entry to <b>{{name}}</b>?",
+      "note": "Once linked, you can toggle payroll deduction parameters to resolve this balance from their next monthly payslip file run."
+    },
+    "messages": {
+      "loadFailed": "Sync Failure: Operational liability registers could not be loaded.",
+      "assignSuccess": "Accountable employee assigned to liability line entry successfully.",
+      "assignFailed": "Assignment update failed.",
+      "assignEmployeeFirst": "Action Blocked: Assign a responsible employee before applying payroll salary deductions.",
+      "statusSyncSuccess": "Deduction status synchronized successfully.",
+      "statusSyncFailed": "Status sync failed."
+    }
+  },
+  "vendorSettlements": {
+    "title": "Wholesale Vendor Settlements Hub",
+    "tabs": {
+      "statement": "Vendor Statements Workspace",
+      "history": "Payment History Log",
+      "delivery": "Delivery Report"
+    },
+    "selectVendorPlaceholder": "Select Target Location / Vendor Node",
+    "dateSelectionWindowLabel": "Date Selection Window",
+    "generateWorksheetBtn": "Generate Worksheet",
+    "unpaidDeliveriesTitle": "Unpaid Delivery Log Rows Found",
+    "reconciliationTitle": "Reconciliation Posting",
+    "actualCashHandedLabel": "Actual Cash Handed Over ({{unit}}):",
+    "advanceCreditNotice": "An extra <b>{{amount}} {{unit}}</b> will be allocated as an advance credit for future supply cycles.",
+    "postSettlementBtn": "Post & Save Settlement",
+    "emptyStatement": "Select both vendor and date interval to load the active statement worksheet.",
+    "selectVendorProfileLabel": "Select Targeted Vendor Profile",
+    "chooseVendorPlaceholder": "Choose wholesale vendor node...",
+    "lifecycleVolumeLabel": "Lifecycle Volume:",
+    "totalUnresolvedDebtLabel": "Total Unresolved Debt:",
+    "historicalBatchesTitle": "Historical Locked Settlement Batches",
+    "searchSettlementPlaceholder": "Search by settlement ID...",
+    "filterAll": "ALL REC.",
+    "emptyHistory": "Select a target vendor from the menu pool to pull historical cash settlement statements.",
+    "selectVendorSimplePlaceholder": "Select Vendor",
+    "dateRangeLabel": "Date Range",
+    "generateReportBtn": "Generate Report",
+    "deliveriesAcrossBranchesTitle": "Deliveries Across All Branches",
+    "searchDeliveryPlaceholder": "Search by branch or product...",
+    "printReportBtn": "Print Report",
+    "unitPriceLabel": "Unit Price",
+    "subtotalLabel": "Subtotal",
+    "emptyDelivery": "Select a vendor and date range to generate the cross-branch delivery report.",
+    "columns": {
+      "dateReceived": "Date Received",
+      "packsReceived": "Packs Rec.",
+      "convertedPieces": "Converted Pieces",
+      "unitBuyPrice": "Unit Buy Price",
+      "subtotalCost": "Subtotal Cost"
+    },
+    "historyColumns": {
+      "settlementId": "Settlement ID Reference",
+      "dateFinalized": "Date Finalized",
+      "totalBatchCost": "Total Batch Cost",
+      "amountPaidTotal": "Amount Paid Total",
+      "remainingDebt": "Remaining Debt",
+      "voucher": "Voucher"
+    },
+    "installments": {
+      "title": "Payout Installment Audit Trail Log",
+      "paidAt": "Paid At Timestamp",
+      "cashHandedOver": "Physical Cash Handed Over",
+      "advanceCreated": "Advance Surplus Created",
+      "advanceSpent": "Advance Spent From Past"
+    },
+    "stats": {
+      "grossBatchCost": "Calculated Gross Batch Cost",
+      "pastAdvance": "Applied Past Advance Credits",
+      "netBalanceDue": "Net Balance Due Now"
+    },
+    "postedModal": {
+      "title": "Settlement Posted",
+      "printBtn": "Print Voucher"
+    },
+    "messages": {
+      "loadVendorsFailed": "Failed to load vendors registry",
+      "loadHistoryFailed": "Failed to sync vendor's master history log file",
+      "selectVendorAndRange": "Please select both a vendor node and a date range configuration",
+      "statementCompiled": "Statement worksheet metrics compiled successfully.",
+      "statementFailed": "Error computing statement worksheet profiles.",
+      "settlementSuccess": "Vendor settlement processed and logged successfully!",
+      "settlementFailed": "Failed to submit settlement entry validation",
+      "selectVendorAndRangeShort": "Please select both a vendor and a date range",
+      "deliveryReportFailed": "Failed to load vendor delivery report"
+    }
+  }
+}

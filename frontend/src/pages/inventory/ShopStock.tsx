@@ -10,6 +10,7 @@ import {
   EditOutlined,
   SearchOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +23,7 @@ const ShopStock: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { t } = useTranslation('inventory');
 
   const fetchStock = async () => {
     setLoading(true);
@@ -29,7 +31,7 @@ const ShopStock: React.FC = () => {
       const res = await inventoryService.getShopStock();
       setData(res.data);
     } catch (e) {
-      message.error("Failed to load inventory groups");
+      message.error(t('shopStock.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -42,45 +44,45 @@ const ShopStock: React.FC = () => {
   // --- NESTED TABLE: Shows products delivered for a specific Branch/Date combo ---
   const expandedRowRender = (record: any) => {
     const subColumns = [
-      { 
-        title: 'Product Name', 
-        dataIndex: 'product_name', 
+      {
+        title: t('shopStock.columns.productName'),
+        dataIndex: 'product_name',
         key: 'name',
         render: (text: string) => <Text strong>{text}</Text>
       },
-      { 
-        title: 'Source', 
-        dataIndex: 'destination', 
+      {
+        title: t('shopStock.columns.source'),
+        dataIndex: 'destination',
         key: 'source',
         render: (dest: string) => (
-          <Tag 
-            icon={dest === 'SHOP' ? <ThunderboltOutlined /> : <DatabaseOutlined />} 
+          <Tag
+            icon={dest === 'SHOP' ? <ThunderboltOutlined /> : <DatabaseOutlined />}
             color={dest === 'SHOP' ? 'cyan' : 'blue'}
           >
-            {dest === 'SHOP' ? 'Direct Delivery' : 'Store Refill'}
+            {dest === 'SHOP' ? t('shopStock.directDelivery') : t('shopStock.storeRefill')}
           </Tag>
-        ) 
+        )
       },
-      { 
-        title: 'Current Quantity', 
-        dataIndex: 'quantity_in_pieces', 
+      {
+        title: t('shopStock.columns.currentQuantity'),
+        dataIndex: 'quantity_in_pieces',
         key: 'qty',
-        render: (q: number) => <Tag color={q > 0 ? 'green' : 'red'}>{q} Pieces</Tag> 
+        render: (q: number) => <Tag color={q > 0 ? 'green' : 'red'}>{t('shopStock.columns.pieces', { count: q })}</Tag>
       },
 
       {
-        title: 'Action',
+        title: t('common:fields.action'),
         key: 'adjust',
         render: (record: any) => (
-          <Button 
-            type="link" 
-            icon={<EditOutlined />} 
+          <Button
+            type="link"
+            icon={<EditOutlined />}
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/inventory/stock/shop/${record.id}`);
             }}
           >
-            View & Adjust
+            {t('shopStock.viewAndAdjust')}
           </Button>
         )
       }
@@ -107,7 +109,7 @@ const ShopStock: React.FC = () => {
   // --- MAIN TABLE COLUMNS: The "Date + Branch" Summary ---
   const mainColumns = [
     {
-      title: 'Arrival Date',
+      title: t('shopStock.columns.arrivalDate'),
       dataIndex: 'date',
       key: 'date',
       render: (date: string) => (
@@ -115,7 +117,7 @@ const ShopStock: React.FC = () => {
       )
     },
     {
-      title: 'Branch Name',
+      title: t('common:fields.branch'),
       dataIndex: 'branch_name',
       key: 'branch',
       render: (name: string) => (
@@ -123,15 +125,15 @@ const ShopStock: React.FC = () => {
       )
     },
     {
-      title: 'Product Count',
+      title: t('shopStock.columns.productCount'),
       dataIndex: 'item_count',
       key: 'count',
-      render: (count: number) => <Text type="secondary">{count} Products in this batch</Text>
+      render: (count: number) => <Text type="secondary">{t('shopStock.columns.productsInBatch', { count })}</Text>
     },
     {
-      title: 'Details',
+      title: t('shopStock.columns.details'),
       key: 'action',
-      render: () => <Button type="link" icon={<EyeOutlined />} style={{ color: '#714B67' }}>Expand to View</Button>
+      render: () => <Button type="link" icon={<EyeOutlined />} style={{ color: '#714B67' }}>{t('shopStock.expandToView')}</Button>
     }
   ];
 
@@ -162,14 +164,14 @@ const ShopStock: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, gap: '16px', flexWrap: 'wrap' }}>
         <div>
           <Title level={3} style={{ marginBottom: 4 }}>
-            <ShopOutlined style={{ color: '#714B67' }} /> Daily Shop Inventory
+            <ShopOutlined style={{ color: '#714B67' }} /> {t('shopStock.title')}
           </Title>
           <Text type="secondary">
-            Everything currently in the shop floor, organized by arrival date and location.
+            {t('shopStock.subtitle')}
           </Text>
         </div>
         <Input
-          placeholder="Search by branch..."
+          placeholder={t('shopStock.searchPlaceholder')}
           prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}

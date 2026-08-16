@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Row, Col, Table, Typography, Spin, Alert, Empty, Input } from 'antd';
 import { GoldOutlined, WarningOutlined, DollarOutlined, SearchOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTranslation } from 'react-i18next';
 import { dashboardService } from '../../../services/dashboardService';
 import type { InventoryAnalyticsResponse } from '../../../services/dashboardService';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -12,6 +13,7 @@ import StatTile from '../shared/StatTile';
 const { Text } = Typography;
 
 export const InventoryAnalytics: React.FC = () => {
+  const { t } = useTranslation('dashboard');
   const { isDark } = useTheme();
   const theme = getChartTheme(isDark);
   const [loading, setLoading] = useState(true);
@@ -22,12 +24,12 @@ export const InventoryAnalytics: React.FC = () => {
   useEffect(() => {
     dashboardService.getInventoryAnalytics()
       .then(res => { setData(res.data); setLoading(false); })
-      .catch(() => { setError("Couldn't load inventory data. Try refreshing the page."); setLoading(false); });
-  }, []);
+      .catch(() => { setError(t('inventory.states.loadErrorMessage')); setLoading(false); });
+  }, [t]);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '100px 0' }}><Spin size="large" tip="Loading inventory data..." /></div>;
-  if (error) return <Alert message="Inventory data unavailable" description={error} type="error" showIcon />;
-  if (!data) return <Empty description="No stock recorded yet." />;
+  if (loading) return <div style={{ textAlign: 'center', padding: '100px 0' }}><Spin size="large" tip={t('inventory.states.loading')} /></div>;
+  if (error) return <Alert message={t('inventory.states.errorTitle')} description={error} type="error" showIcon />;
+  if (!data) return <Empty description={t('inventory.states.empty')} />;
 
   const { metrics, charts, vendors_ledger } = data;
 
@@ -42,25 +44,25 @@ export const InventoryAnalytics: React.FC = () => {
         <Col xs={24} md={8}>
           <StatTile
             icon={<GoldOutlined />}
-            label="Total Stock Value"
+            label={t('inventory.kpi.totalStockValue.label')}
             value={formatETB(metrics.total_asset_valuation)}
-            description="Everything currently in your stores and shops"
+            description={t('inventory.kpi.totalStockValue.description')}
           />
         </Col>
         <Col xs={24} md={8}>
           <StatTile
             icon={<DollarOutlined />}
-            label="Unpaid Deliveries"
+            label={t('inventory.kpi.unpaidDeliveries.label')}
             value={formatETB(metrics.active_vendor_debt)}
-            description="What you owe vendors for stock already received"
+            description={t('inventory.kpi.unpaidDeliveries.description')}
           />
         </Col>
         <Col xs={24} md={8}>
           <StatTile
             icon={<WarningOutlined />}
-            label="Products Out of Stock"
+            label={t('inventory.kpi.productsOutOfStock.label')}
             value={`${metrics.stockout_warning_count}`}
-            description="Products with zero stock in both store and shop"
+            description={t('inventory.kpi.productsOutOfStock.description')}
             status={hasStockouts ? 'critical' : 'good'}
           />
         </Col>
@@ -69,7 +71,7 @@ export const InventoryAnalytics: React.FC = () => {
       {/* Charts */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} lg={12}>
-          <ChartCard title="Stock Value by Branch" description="Where your inventory value is concentrated">
+          <ChartCard title={t('inventory.charts.stockByBranch.title')} description={t('inventory.charts.stockByBranch.description')}>
             <ResponsiveContainer width="100%" height={Math.max(160, branchValuation.length * 44)}>
               <BarChart data={branchValuation} layout="vertical" margin={{ top: 0, right: 24, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke={theme.gridline} horizontal={false} />
@@ -78,7 +80,7 @@ export const InventoryAnalytics: React.FC = () => {
                 <Tooltip
                   contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
                   labelStyle={{ color: theme.textPrimary, fontWeight: 600 }}
-                  formatter={(value: any) => [formatETB(Number(value)), 'Stock Value']}
+                  formatter={(value: any) => [formatETB(Number(value)), t('inventory.charts.stockByBranch.tooltipLabel')]}
                 />
                 <Bar dataKey="valuation" fill={theme.sequential} radius={[0, 4, 4, 0]} maxBarSize={28} />
               </BarChart>
@@ -87,7 +89,7 @@ export const InventoryAnalytics: React.FC = () => {
         </Col>
 
         <Col xs={24} lg={12}>
-          <ChartCard title="Stock Value by Category" description="Which product categories tie up the most money">
+          <ChartCard title={t('inventory.charts.stockByCategory.title')} description={t('inventory.charts.stockByCategory.description')}>
             <ResponsiveContainer width="100%" height={Math.max(160, categoryValuation.length * 44)}>
               <BarChart data={categoryValuation} layout="vertical" margin={{ top: 0, right: 24, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke={theme.gridline} horizontal={false} />
@@ -96,7 +98,7 @@ export const InventoryAnalytics: React.FC = () => {
                 <Tooltip
                   contentStyle={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
                   labelStyle={{ color: theme.textPrimary, fontWeight: 600 }}
-                  formatter={(value: any) => [formatETB(Number(value)), 'Stock Value']}
+                  formatter={(value: any) => [formatETB(Number(value)), t('inventory.charts.stockByCategory.tooltipLabel')]}
                 />
                 <Bar dataKey="valuation" fill={theme.sequential} radius={[0, 4, 4, 0]} maxBarSize={28} />
               </BarChart>
@@ -109,11 +111,11 @@ export const InventoryAnalytics: React.FC = () => {
       <Row gutter={[16, 16]}>
         <Col xs={24}>
           <ChartCard
-            title="Vendor Supply & Debt Summary"
-            description="How much each vendor has delivered, and what you owe them"
+            title={t('inventory.table.title')}
+            description={t('inventory.table.description')}
             extra={
               <Input
-                placeholder="Search by vendor or contact..."
+                placeholder={t('inventory.table.searchPlaceholder')}
                 prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
                 value={vendorSearchQuery}
                 onChange={e => setVendorSearchQuery(e.target.value)}
@@ -132,12 +134,12 @@ export const InventoryAnalytics: React.FC = () => {
               })}
               rowKey="vendor_id"
               scroll={{ x: 'max-content' }}
-              locale={{ emptyText: 'No vendor activity yet.' }}
+              locale={{ emptyText: t('inventory.table.emptyText') }}
               columns={[
-                { title: 'Vendor', dataIndex: 'vendor_name', key: 'vendor_name', render: (t: string) => <Text strong>{t}</Text> },
-                { title: 'Contact Person', dataIndex: 'contact_person', key: 'contact_person', render: (t: string) => t || '—' },
-                { title: 'Total Delivered', dataIndex: 'total_pieces_received', key: 'total_pieces_received', render: (v: number) => `${Number(v).toLocaleString()} pieces` },
-                { title: 'You Owe', dataIndex: 'pending_debt', key: 'pending_debt', render: (v: number) => Number(v) > 0 ? <Text style={{ color: theme.status.critical }} strong>{formatETB(v)}</Text> : <Text type="secondary">Paid up</Text> }
+                { title: t('common:fields.vendor'), dataIndex: 'vendor_name', key: 'vendor_name', render: (v: string) => <Text strong>{v}</Text> },
+                { title: t('common:fields.contactPerson'), dataIndex: 'contact_person', key: 'contact_person', render: (v: string) => v || '—' },
+                { title: t('inventory.table.columns.totalDelivered'), dataIndex: 'total_pieces_received', key: 'total_pieces_received', render: (v: number) => `${Number(v).toLocaleString()} ${t('common:units.pieces')}` },
+                { title: t('inventory.table.columns.youOwe'), dataIndex: 'pending_debt', key: 'pending_debt', render: (v: number) => Number(v) > 0 ? <Text style={{ color: theme.status.critical }} strong>{formatETB(v)}</Text> : <Text type="secondary">{t('inventory.table.paidUp')}</Text> }
               ]}
             />
           </ChartCard>

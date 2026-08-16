@@ -8,6 +8,7 @@ import {
   FileTextOutlined, WalletOutlined, ArrowUpOutlined, ArrowDownOutlined,
   SearchOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { salesService } from '../../services/salesService';
 import { useAuth } from '../../contexts/AuthContext';
 import dayjs from 'dayjs';
@@ -15,6 +16,7 @@ import dayjs from 'dayjs';
 const { Title, Text } = Typography;
 
 const DigitalAccountAdjustments: React.FC = () => {
+  const { t } = useTranslation('sales');
   const { user } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,7 @@ const DigitalAccountAdjustments: React.FC = () => {
   if (user?.role !== 'ADMIN') {
     return (
       <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
-        <Alert message="Access Denied" description="Admin clearance required." type="error" showIcon />
+        <Alert message={t('digitalAccountAdjustments.accessDenied.title')} description={t('digitalAccountAdjustments.accessDenied.desc')} type="error" showIcon />
       </div>
     );
   }
@@ -41,7 +43,7 @@ const DigitalAccountAdjustments: React.FC = () => {
       const adjRes = await salesService.getDigitalAdjustments();
       setAdjustments(Array.isArray(adjRes.data) ? adjRes.data : (adjRes.data.results || []));
     } catch (e) {
-      message.error("Sync Failure: Could not download transactions history.");
+      message.error(t('digitalAccountAdjustments.messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -61,11 +63,11 @@ const DigitalAccountAdjustments: React.FC = () => {
       };
 
       await salesService.createDigitalAdjustment(payload);
-      message.success("Ledger adjustment record committed successfully!");
+      message.success(t('digitalAccountAdjustments.messages.submitSuccess'));
       form.resetFields();
       loadPageContextData();
     } catch (err) {
-      message.error("Transaction rejected by validation monitors.");
+      message.error(t('digitalAccountAdjustments.messages.submitFailed'));
     } finally {
       setLoading(false);
     }
@@ -75,10 +77,10 @@ const DigitalAccountAdjustments: React.FC = () => {
     setLoading(true);
     try {
       await salesService.deleteDigitalAdjustment(id);
-      message.success("Transaction entry revoked.");
+      message.success(t('digitalAccountAdjustments.messages.deleteSuccess'));
       loadPageContextData();
     } catch (e) {
-      message.error("Action denied.");
+      message.error(t('digitalAccountAdjustments.messages.deleteFailed'));
     } finally {
       setLoading(false);
     }
@@ -88,31 +90,31 @@ const DigitalAccountAdjustments: React.FC = () => {
     <div style={{ padding: '20px', maxWidth: '1100px', margin: '0 auto' }}>
       <Card bordered={false} style={{ borderRadius: '15px', boxShadow: '0 12px 40px rgba(0,0,0,0.05)' }}>
         <Title level={2} style={{ color: '#714B67', marginBottom: 4 }}>
-          <TransactionOutlined /> Corporate Accounts Adjustments Journal
+          <TransactionOutlined /> {t('digitalAccountAdjustments.title')}
         </Title>
         <Text type="secondary">
-          Log manual banking transfers, injections, or direct vendor payments. These balances update cash-flow requirements on active daily workspaces.
+          {t('digitalAccountAdjustments.subtitle')}
         </Text>
         <Divider style={{ margin: '15px 0 25px 0' }} />
 
         <Form form={form} layout="vertical" onFinish={handleTransactionSubmit} style={{ background: '#fcfcfc', padding: '25px', borderRadius: '12px', border: '1px solid #f0f0f0', marginBottom: '30px' }}>
           <Row gutter={20} align="bottom">
             <Col span={6}>
-              <Form.Item name="tx_mode" label={<Text strong style={{ color: '#555' }}>Action Context Type</Text>} initialValue="DEBIT">
-                <Radio.Group 
+              <Form.Item name="tx_mode" label={<Text strong style={{ color: '#555' }}>{t('digitalAccountAdjustments.form.typeLabel')}</Text>} initialValue="DEBIT">
+                <Radio.Group
                   buttonStyle="solid" // Fixed: Applied valid Ant Design type variant option literal
-                  size="large" 
-                  style={{ width: '100%' }} 
+                  size="large"
+                  style={{ width: '100%' }}
                   onChange={(e) => setTxType(e.target.value)}
                 >
-                  <Radio.Button value="DEBIT" style={{ width: '50%', textAlign: 'center' }}><ArrowDownOutlined style={{color:'#ff4d4f'}} /> Payout</Radio.Button>
-                  <Radio.Button value="CREDIT" style={{ width: '50%', textAlign: 'center' }}><ArrowUpOutlined style={{color:'#52c41a'}} /> Injection</Radio.Button>
+                  <Radio.Button value="DEBIT" style={{ width: '50%', textAlign: 'center' }}><ArrowDownOutlined style={{color:'#ff4d4f'}} /> {t('digitalAccountAdjustments.form.payout')}</Radio.Button>
+                  <Radio.Button value="CREDIT" style={{ width: '50%', textAlign: 'center' }}><ArrowUpOutlined style={{color:'#52c41a'}} /> {t('digitalAccountAdjustments.form.injection')}</Radio.Button>
                 </Radio.Group>
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item name="account" label={<Text strong style={{ color: '#555' }}>Target Master Account</Text>} rules={[{ required: true, message: 'Select wallet' }]}>
-                <Select placeholder="Choose account channel..." size="large">
+              <Form.Item name="account" label={<Text strong style={{ color: '#555' }}>{t('digitalAccountAdjustments.form.accountLabel')}</Text>} rules={[{ required: true, message: t('digitalAccountAdjustments.form.accountRequired') }]}>
+                <Select placeholder={t('digitalAccountAdjustments.form.accountPlaceholder')} size="large">
                   {accounts.map(acc => (
                     <Select.Option key={acc.id} value={acc.id}>{acc.name} ({acc.branch_name})</Select.Option>
                   ))}
@@ -120,26 +122,26 @@ const DigitalAccountAdjustments: React.FC = () => {
               </Form.Item>
             </Col>
             <Col span={4}>
-              <Form.Item name="amount" label={<Text strong style={{ color: '#555' }}>Transaction Amount</Text>} rules={[{ required: true, message: 'Input amount' }]}>
-                <InputNumber style={{ width: '100%' }} min={0.01} precision={2} placeholder="0.00 ETB" size="large" />
+              <Form.Item name="amount" label={<Text strong style={{ color: '#555' }}>{t('digitalAccountAdjustments.form.amountLabel')}</Text>} rules={[{ required: true, message: t('digitalAccountAdjustments.form.amountRequired') }]}>
+                <InputNumber style={{ width: '100%' }} min={0.01} precision={2} placeholder={t('digitalAccountAdjustments.form.amountPlaceholder', { unit: t('common:units.etb') })} size="large" />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="reason" label={<Text strong style={{ color: '#555' }}>Reference Reason Description Notes</Text>} rules={[{ required: true, message: 'Add voucher notes' }]}>
-                <Input placeholder="e.g. Paid wholesale vendor for inventory" size="large" prefix={<FileTextOutlined />} />
+              <Form.Item name="reason" label={<Text strong style={{ color: '#555' }}>{t('digitalAccountAdjustments.form.reasonLabel')}</Text>} rules={[{ required: true, message: t('digitalAccountAdjustments.form.reasonRequired') }]}>
+                <Input placeholder={t('digitalAccountAdjustments.form.reasonPlaceholder')} size="large" prefix={<FileTextOutlined />} />
               </Form.Item>
             </Col>
           </Row>
           <Row justify="end" style={{ marginTop: 15 }}>
             <Button type="primary" htmlType="submit" icon={<PlusOutlined />} size="large" loading={loading} style={{ background: '#714B67', borderColor: '#714B67', fontWeight: 'bold', padding: '0 30px' }}>
-              Commit Journal Entry
+              {t('digitalAccountAdjustments.form.submitBtn')}
             </Button>
           </Row>
         </Form>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
           <Input
-            placeholder="Search by account, branch, or reason..."
+            placeholder={t('digitalAccountAdjustments.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -157,17 +159,17 @@ const DigitalAccountAdjustments: React.FC = () => {
           bordered
           scroll={{ x: 'max-content' }}
           columns={[
-          { title: 'Date Logged', dataIndex: 'logged_at', key: 'date', render: (d) => <Text style={{color:'#666'}}>{dayjs(d).format('YYYY-MM-DD HH:mm')}</Text> },
-          { title: 'Source Branch Hub', dataIndex: 'branch_name', key: 'branch' },
-          { title: 'Target Account Channel', dataIndex: 'account_name', key: 'acc', render: (t) => <Text strong style={{color:'#714B67'}}><WalletOutlined style={{marginRight:6}} />{t}</Text> },
-          { title: 'Reference Voucher Notes Reason', dataIndex: 'reason', key: 'note' },
-          { title: 'Transaction Flow Shift Value', dataIndex: 'amount', key: 'val', align: 'right', render: (v) => {
+          { title: t('digitalAccountAdjustments.columns.dateLogged'), dataIndex: 'logged_at', key: 'date', render: (d) => <Text style={{color:'#666'}}>{dayjs(d).format('YYYY-MM-DD HH:mm')}</Text> },
+          { title: t('digitalAccountAdjustments.columns.branch'), dataIndex: 'branch_name', key: 'branch' },
+          { title: t('digitalAccountAdjustments.columns.account'), dataIndex: 'account_name', key: 'acc', render: (val) => <Text strong style={{color:'#714B67'}}><WalletOutlined style={{marginRight:6}} />{val}</Text> },
+          { title: t('digitalAccountAdjustments.columns.reason'), dataIndex: 'reason', key: 'note' },
+          { title: t('digitalAccountAdjustments.columns.amount'), dataIndex: 'amount', key: 'val', align: 'right', render: (v) => {
               const val = Number(v);
-              return <Text strong style={{ color: val >= 0 ? '#52c41a' : '#f5222d' }}>{val >= 0 ? '+' : ''}{val.toLocaleString('en-US', { minimumFractionDigits: 2 })} ETB</Text>;
+              return <Text strong style={{ color: val >= 0 ? '#52c41a' : '#f5222d' }}>{val >= 0 ? '+' : ''}{val.toLocaleString('en-US', { minimumFractionDigits: 2 })} {t('common:units.etb')}</Text>;
             }
           },
-          { title: 'Actions', key: 'action', align: 'center', width: 90, render: (_, rec) => (
-              <Popconfirm title="Revoke adjustment line entry?" description="This deletes the adjustment transaction record context." onConfirm={() => removeAdjustmentRecord(rec.id)} okText="Delete" cancelText="Abort" okButtonProps={{ danger: true }}>
+          { title: t('common:fields.actions'), key: 'action', align: 'center', width: 90, render: (_, rec) => (
+              <Popconfirm title={t('digitalAccountAdjustments.deleteConfirm.title')} description={t('digitalAccountAdjustments.deleteConfirm.desc')} onConfirm={() => removeAdjustmentRecord(rec.id)} okText={t('common:actions.delete')} cancelText={t('common:actions.cancel')} okButtonProps={{ danger: true }}>
                 <Button type="text" danger icon={<DeleteOutlined />} />
               </Popconfirm>
             )

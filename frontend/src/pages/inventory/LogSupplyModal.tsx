@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Select, InputNumber, Button, Space, DatePicker, message, Divider, Card, Typography } from 'antd';
 import { PlusOutlined, DeleteOutlined, ShopOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import { settingsService } from '../../services/settingsService';
 import { useAuth } from '../../contexts/AuthContext'; // Import Auth
@@ -22,6 +23,7 @@ const LogSupplyModal: React.FC<LogSupplyProps> = ({ visible, onCancel, onSuccess
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
+  const { t } = useTranslation('inventory');
 
   const isAdmin = user?.role === 'ADMIN';
 
@@ -56,11 +58,11 @@ const LogSupplyModal: React.FC<LogSupplyProps> = ({ visible, onCancel, onSuccess
       
       // Ensure your service has the bulk create method
       await inventoryService.bulkCreateSupplyLog(payload);
-      message.success(`Successfully logged ${values.items.length} deliveries`);
+      message.success(t('logSupplyModal.successMessage', { count: values.items.length }));
       form.resetFields();
       onSuccess();
     } catch (error: any) {
-      const msg = error.response?.data?.error || "Failed to log deliveries.";
+      const msg = error.response?.data?.error || t('logSupplyModal.failedDefault');
       message.error(msg);
     } finally {
       setLoading(false);
@@ -69,48 +71,48 @@ const LogSupplyModal: React.FC<LogSupplyProps> = ({ visible, onCancel, onSuccess
 
   return (
     <Modal
-      title={<span><DatabaseOutlined style={{color: '#714B67'}} /> Log Vendor Deliveries</span>}
+      title={<span><DatabaseOutlined style={{color: '#714B67'}} /> {t('logSupplyModal.title')}</span>}
       open={visible}
       onCancel={() => { form.resetFields(); onCancel(); }}
       onOk={() => form.submit()}
       confirmLoading={loading}
       width={900}
-      okText="Save All Deliveries"
+      okText={t('logSupplyModal.saveAll')}
       okButtonProps={{ style: { background: '#714B67', border: 'none' } }}
       destroyOnClose
     >
       <Form form={form} layout="vertical" onFinish={onFinish}>
         <Space size="large" style={{ width: '97%', background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-          
+
           {/* BRANCH LOCK UI */}
           {isAdmin ? (
-            <Form.Item 
-              name="branch" 
-              label="Receiving Branch" 
-              rules={[{ required: true }]} 
+            <Form.Item
+              name="branch"
+              label={t('logSupplyModal.receivingBranch')}
+              rules={[{ required: true }]}
               style={{ minWidth: 250, marginBottom: 0 }}
             >
-              <Select placeholder="Select Branch">
+              <Select placeholder={t('logSupplyModal.selectBranch')}>
                 {branches.map(b => <Select.Option key={b.id} value={b.id}>{b.name}</Select.Option>)}
               </Select>
             </Form.Item>
           ) : (
             <div style={{ minWidth: 250 }}>
-              <Text type="secondary" style={{ fontSize: '12px' }}>Receiving Branch</Text>
+              <Text type="secondary" style={{ fontSize: '12px' }}>{t('logSupplyModal.receivingBranch')}</Text>
               <div style={{ fontWeight: 'bold', color: '#714B67', padding: '4px 0' }}>
-                 Your Assigned Branch
+                 {t('logSupplyModal.yourAssignedBranch')}
               </div>
               {/* Hidden field so the value is still submitted in the form */}
               <Form.Item name="branch" hidden><Select /></Form.Item>
             </div>
           )}
 
-          <Form.Item name="date_received" label="Date & Time Received" rules={[{ required: true }]} style={{ marginBottom: 0 }}>
+          <Form.Item name="date_received" label={t('logSupplyModal.dateTimeReceived')} rules={[{ required: true }]} style={{ marginBottom: 0 }}>
             <DatePicker showTime style={{ width: '100%' }} />
           </Form.Item>
         </Space>
 
-        <Divider>Delivery Items</Divider>
+        <Divider>{t('logSupplyModal.deliveryItems')}</Divider>
 
         <Form.List name="items">
           {(fields, { add, remove }) => (
@@ -126,20 +128,20 @@ const LogSupplyModal: React.FC<LogSupplyProps> = ({ visible, onCancel, onSuccess
                     <Form.Item
                       {...restField}
                       name={[name, 'product']}
-                      label="Product"
-                      rules={[{ required: true, message: 'Missing product' }]}
+                      label={t('common:fields.product')}
+                      rules={[{ required: true, message: t('logSupplyModal.missingProduct') }]}
                       style={{ width: 350, marginBottom: 0 }}
                     >
-                      <Select 
-                        showSearch 
-                        placeholder="Search Product"
+                      <Select
+                        showSearch
+                        placeholder={t('logSupplyModal.searchProduct')}
                         optionFilterProp="children"
                       >
                         {products.map(p => (
                           <Select.Option key={p.id} value={p.id}>
                             <Space>
                               {p.destination === 'SHOP' ? <ShopOutlined style={{color: '#13c2c2'}}/> : <DatabaseOutlined style={{color: '#1890ff'}}/>}
-                              {p.name} <Text type="secondary" style={{fontSize: '11px'}}>[{p.vendor_name || 'No Vendor'}]</Text>
+                              {p.name} <Text type="secondary" style={{fontSize: '11px'}}>[{p.vendor_name || t('logSupplyModal.noVendor')}]</Text>
                             </Space>
                           </Select.Option>
                         ))}
@@ -149,8 +151,8 @@ const LogSupplyModal: React.FC<LogSupplyProps> = ({ visible, onCancel, onSuccess
                     <Form.Item
                       {...restField}
                       name={[name, 'packs_received']}
-                      label="Qty (Packs)"
-                      rules={[{ required: true, message: 'Missing qty' }]}
+                      label={t('logSupplyModal.qtyPacks')}
+                      rules={[{ required: true, message: t('logSupplyModal.missingQty') }]}
                       style={{ width: 120, marginBottom: 0 }}
                     >
                       <InputNumber min={0.1} placeholder="0.0" style={{ width: '100%' }} />
@@ -159,12 +161,12 @@ const LogSupplyModal: React.FC<LogSupplyProps> = ({ visible, onCancel, onSuccess
                     <Form.Item
                       {...restField}
                       name={[name, 'manager_notes']}
-                      label="Notes"
+                      label={t('common:fields.notes')}
                       style={{ width: 200, marginBottom: 0 }}
                     >
-                      <Select placeholder="Optional Note" allowClear>
-                        <Select.Option value="Fresh Stock">Fresh Stock</Select.Option>
-                        <Select.Option value="Replenish">Replenish</Select.Option>
+                      <Select placeholder={t('logSupplyModal.optionalNote')} allowClear>
+                        <Select.Option value="Fresh Stock">{t('logSupplyModal.freshStock')}</Select.Option>
+                        <Select.Option value="Replenish">{t('logSupplyModal.replenish')}</Select.Option>
                       </Select>
                     </Form.Item>
 
@@ -179,14 +181,14 @@ const LogSupplyModal: React.FC<LogSupplyProps> = ({ visible, onCancel, onSuccess
                   </Space>
                 </Card>
               ))}
-              <Button 
-                type="dashed" 
-                onClick={() => add()} 
-                block 
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                block
                 icon={<PlusOutlined />}
                 style={{ marginTop: 8, height: '40px' }}
               >
-                Add Another Vendor Delivery
+                {t('logSupplyModal.addAnother')}
               </Button>
             </>
           )}

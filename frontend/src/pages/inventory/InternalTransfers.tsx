@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Typography, Card, Button, message, Tag, Input, Space } from 'antd'; // Added Input and Space to imports
 import { PlusOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons'; // Added SearchOutlined
+import { useTranslation } from 'react-i18next';
 import { inventoryService } from '../../services/inventoryService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBranch } from '../../contexts/BranchContext';
@@ -15,6 +16,7 @@ const InternalTransfers: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchText, setSearchText] = useState(''); // Added state to track search query
+  const { t } = useTranslation('inventory');
 
   const fetchTransfers = async () => {
     setLoading(true);
@@ -22,7 +24,7 @@ const InternalTransfers: React.FC = () => {
       const res = await inventoryService.getInternalTransfers();
       setData(res.data);
     } catch (e) {
-      message.error("Failed to load transfer history");
+      message.error(t('internalTransfers.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -40,21 +42,21 @@ const InternalTransfers: React.FC = () => {
   });
 
   const columns = [
-    { title: 'Date', dataIndex: 'timestamp', key: 'date', render: (d: string) => new Date(d).toLocaleString() },
-    { title: 'Branch', dataIndex: 'branch_name', key: 'branch', render: (name: string) => <Tag color="purple">{name}</Tag> },
-    { title: 'Product', dataIndex: 'product_name', key: 'product' },
-    { title: 'Packs Removed', dataIndex: 'packs_moved', key: 'packs' },
-    { title: 'Pieces Added', dataIndex: 'pieces_created', key: 'pieces' },
+    { title: t('common:fields.date'), dataIndex: 'timestamp', key: 'date', render: (d: string) => new Date(d).toLocaleString() },
+    { title: t('common:fields.branch'), dataIndex: 'branch_name', key: 'branch', render: (name: string) => <Tag color="purple">{name}</Tag> },
+    { title: t('common:fields.product'), dataIndex: 'product_name', key: 'product' },
+    { title: t('internalTransfers.columns.packsRemoved'), dataIndex: 'packs_moved', key: 'packs' },
+    { title: t('internalTransfers.columns.piecesAdded'), dataIndex: 'pieces_created', key: 'pieces' },
   ];
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <Space size="large" style={{ flex: 1 }}>
-          <Title level={3} style={{ margin: 0 }}><HistoryOutlined /> Store to Shop Refills</Title>
+          <Title level={3} style={{ margin: 0 }}><HistoryOutlined /> {t('internalTransfers.title')}</Title>
           {/* 🌟 ADDED: Smooth Search Bar Filter */}
           <Input
-            placeholder="Search by product or branch..."
+            placeholder={t('internalTransfers.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -62,13 +64,13 @@ const InternalTransfers: React.FC = () => {
             style={{ width: '320px', borderRadius: '6px' }}
           />
         </Space>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
           style={{ background: '#714B67', border: 'none' }}
           onClick={() => setIsModalVisible(true)}
         >
-          New Refill
+          {t('internalTransfers.newRefill')}
         </Button>
       </div>
 

@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, ConfigProvider, theme, message } from 'antd';
+import { Form, Input, Button, Card, Typography, ConfigProvider, theme, message, Segmented } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { login } from '../services/authService'; // Ensure this path is correct
 import { useTheme } from '../contexts/ThemeContext'; // Import your shared theme hook
+import { useLanguage } from '../contexts/LanguageContext';
 
 const { Title, Text } = Typography;
 
 const Login: React.FC = () => {
+  const { t } = useTranslation('common');
   const { isDark, toggleTheme } = useTheme(); // Consume global theme context instead of local useState
+  const { language, setLanguage } = useLanguage();
   const [loading, setLoading] = useState(false); // Add loading state for the button
 
   const onFinish = async (values: any) => {
@@ -15,16 +19,16 @@ const Login: React.FC = () => {
     try {
       // Call the login service with form values
       await login(values.email, values.password);
-      
-      message.success('Login successful! Redirecting...');
-      
+
+      message.success(t('login.loginSuccess'));
+
       // Delay redirect slightly so user can see success message
       setTimeout(() => {
-        window.location.href = '/dashboard'; 
+        window.location.href = '/dashboard';
       }, 1000);
     } catch (error: any) {
       console.error('Login Error:', error);
-      message.error(error.detail || 'Invalid email or password. Please try again.');
+      message.error(error.detail || t('login.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -115,55 +119,64 @@ const Login: React.FC = () => {
             boxShadow: '0 25px 50px rgba(0,0,0,0.3)',
             padding: '10px'
           }}>
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <Title level={3} style={{ margin: 0 }}>Welcome</Title>
-              <Text type="secondary" style={{ fontSize: '12px' }}>Sign in to your account</Text>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <Segmented
+                size="small"
+                value={language}
+                onChange={(val) => setLanguage(val as 'en' | 'am')}
+                options={[{ label: 'EN', value: 'en' }, { label: 'አማርኛ', value: 'am' }]}
+              />
             </div>
 
-            <Form 
-              layout="vertical" 
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <Title level={3} style={{ margin: 0 }}>{t('login.welcome')}</Title>
+              <Text type="secondary" style={{ fontSize: '12px' }}>{t('login.signInPrompt')}</Text>
+            </div>
+
+            <Form
+              layout="vertical"
               size="large"
-              onFinish={onFinish} 
+              onFinish={onFinish}
             >
-              <Form.Item 
-                label={<Text style={{fontSize: '12px', opacity: 0.7}}>Email</Text>} 
+              <Form.Item
+                label={<Text style={{fontSize: '12px', opacity: 0.7}}>{t('fields.email')}</Text>}
                 name="email"
-                rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}
+                rules={[{ required: true, type: 'email', message: t('login.emailInvalid') }]}
               >
-                <Input 
+                <Input
                     prefix={<UserOutlined style={{ opacity: 0.5 }} />}
-                    placeholder="you@example.com" 
-                    style={{ borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }} 
+                    placeholder="you@example.com"
+                    style={{ borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }}
                 />
               </Form.Item>
 
-              <Form.Item 
-                label={<Text style={{fontSize: '12px', opacity: 0.7}}>Password</Text>} 
+              <Form.Item
+                label={<Text style={{fontSize: '12px', opacity: 0.7}}>{t('fields.password')}</Text>}
                 name="password"
-                rules={[{ required: true, message: 'Please enter your password' }]}
+                rules={[{ required: true, message: t('login.passwordRequired') }]}
               >
-                <Input.Password 
+                <Input.Password
                     prefix={<LockOutlined style={{ opacity: 0.5 }} />}
-                    placeholder="••••••••" 
-                    style={{ borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }} 
+                    placeholder="••••••••"
+                    style={{ borderRadius: '12px', background: 'rgba(0,0,0,0.05)' }}
                 />
               </Form.Item>
 
-              <Button 
-                type="primary" 
- block 
-                htmlType="submit" 
-                loading={loading} 
-                style={{ 
-                  height: '50px', 
-                  borderRadius: '15px', 
+              <Button
+                type="primary"
+ block
+                htmlType="submit"
+                loading={loading}
+                style={{
+                  height: '50px',
+                  borderRadius: '15px',
                   marginTop: '10px',
                   background: 'linear-gradient(90deg, #c5a059 0%, #ecd299 100%)',
                   border: 'none',
                   color: '#000',
                   fontWeight: 'bold'
               }}>
-                Sign In
+                {t('login.signIn')}
               </Button>
             </Form>
           </Card>

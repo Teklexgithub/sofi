@@ -1,0 +1,158 @@
+{
+  "hub": {
+    "title": "ሶፊያ ትንተና"
+  },
+  "sales": {
+    "states": {
+      "loading": "የሽያጭ መረጃ በመጫን ላይ...",
+      "errorTitle": "የሽያጭ መረጃ አይገኝም",
+      "loadErrorMessage": "የሽያጭ መረጃ መጫን አልተቻለም። ገጹን እንደገና ለማደስ ይሞክሩ።",
+      "empty": "እስካሁን የተመዘገበ ሽያጭ የለም።"
+    },
+    "kpi": {
+      "totalSalesToday": {
+        "label": "የዛሬ ጠቅላላ ሽያጭ",
+        "description": "በሁሉም ቅርንጫፎች ዛሬ የተሸጠው ሁሉ"
+      },
+      "unresolvedShortages": {
+        "label": "ያልተፈታ የገንዘብ ጉድለት",
+        "description": "ከደመወዝ ገና ያልተቀነሰ የገንዘብ ማጠራቀሚያ ጉድለት"
+      },
+      "customerDebt": {
+        "label": "የደንበኞች ዕዳ",
+        "description": "ደንበኞች በዱቤ የሚያስቀሩት ጠቅላላ መጠን"
+      },
+      "netCashCollected": {
+        "label": "ዛሬ የተሰበሰበ ተጣራ ገንዘብ",
+        "description": "ዛሬ የተሰበሰበ ጥሬ ገንዘብ እና ዲጂታል ክፍያ፣ ወጪ ከተቀነሰ በኋላ"
+      }
+    },
+    "charts": {
+      "salesTrend": {
+        "title": "የሽያጭ አዝማሚያ (ያለፉት 30 ቀናት)",
+        "description": "በየቀኑ በሁሉም ቅርንጫፎች የተመዘገበ ጠቅላላ ሽያጭ",
+        "tooltipLabel": "ሽያጭ"
+      },
+      "revenueComposition": {
+        "title": "ገንዘብ የገባበት መንገድ",
+        "description": "ከጠቅላላ ጊዜ ሽያጭ በክፍያ ዘዴ የተከፋፈለ ድርሻ",
+        "cash": "ጥሬ ገንዘብ",
+        "digitalWallets": "ዲጂታል ዋሌት",
+        "storeCredit": "የሱቅ ዱቤ"
+      },
+      "salesByBranch": {
+        "title": "በቅርንጫፍ የተከፋፈለ ሽያጭ",
+        "description": "የትኞቹ ቅርንጫፎች ከጅምሩ ጀምሮ በላጩ እየሸጡ ነው",
+        "tooltipLabel": "ጠቅላላ ሽያጭ"
+      }
+    },
+    "table": {
+      "title": "ለእያንዳንዱ አቅራቢ ያለብዎት ዕዳ",
+      "description": "ቅድሚያ ዱቤ፣ ያልተከፈለ ዕዳ እና የክፍያ ሁኔታ በአቅራቢ",
+      "searchPlaceholder": "በአቅራቢ ስም ይፈልጉ...",
+      "emptyText": "እስካሁን የአቅራቢ እንቅስቃሴ የለም።",
+      "columns": {
+        "advanceCredit": "የቅድሚያ ክፍያ ዱቤዎ",
+        "youOwe": "ያለብዎት ዕዳ",
+        "settlements": "የክፍያ ሁኔታ"
+      }
+    }
+  },
+  "inventory": {
+    "states": {
+      "loading": "የክምችት መረጃ በመጫን ላይ...",
+      "errorTitle": "የክምችት መረጃ አይገኝም",
+      "loadErrorMessage": "የክምችት መረጃ መጫን አልተቻለም። ገጹን እንደገና ለማደስ ይሞክሩ።",
+      "empty": "እስካሁን የተመዘገበ ክምችት የለም።"
+    },
+    "kpi": {
+      "totalStockValue": {
+        "label": "ጠቅላላ የክምችት ዋጋ",
+        "description": "በመጋዘኖችዎ እና ሱቆችዎ ውስጥ በአሁኑ ጊዜ ያለው ሁሉ"
+      },
+      "unpaidDeliveries": {
+        "label": "ያልተከፈለ አቅርቦት",
+        "description": "ቀድሞ ለተረከቡት ክምችት ለአቅራቢዎች የሚገባቸው"
+      },
+      "productsOutOfStock": {
+        "label": "ከክምችት ያለቁ ምርቶች",
+        "description": "በመጋዘንም ሆነ በሱቅ ክምችታቸው ዜሮ የደረሱ ምርቶች"
+      }
+    },
+    "charts": {
+      "stockByBranch": {
+        "title": "በቅርንጫፍ የክምችት ዋጋ",
+        "description": "የክምችትዎ ዋጋ የት እንደተከማቸ",
+        "tooltipLabel": "የክምችት ዋጋ"
+      },
+      "stockByCategory": {
+        "title": "በምድብ የክምችት ዋጋ",
+        "description": "የትኞቹ የምርት ምድቦች ከፍተኛ ገንዘብ ይይዛሉ",
+        "tooltipLabel": "የክምችት ዋጋ"
+      }
+    },
+    "table": {
+      "title": "የአቅራቢ አቅርቦት እና ዕዳ ማጠቃለያ",
+      "description": "እያንዳንዱ አቅራቢ ምን ያህል እንዳቀረበ እና ምን ያህል እንደሚገባው",
+      "searchPlaceholder": "በአቅራቢ ስም ወይም አግኚ ይፈልጉ...",
+      "emptyText": "እስካሁን የአቅራቢ እንቅስቃሴ የለም።",
+      "paidUp": "ተከፍሏል",
+      "columns": {
+        "totalDelivered": "ጠቅላላ የቀረበ",
+        "youOwe": "ያለብዎት ዕዳ"
+      }
+    }
+  },
+  "employee": {
+    "states": {
+      "loading": "የሰራተኞች መረጃ በመጫን ላይ...",
+      "errorTitle": "የሰራተኞች መረጃ አይገኝም",
+      "loadErrorMessage": "የሰራተኞች መረጃ መጫን አልተቻለም። ገጹን እንደገና ለማደስ ይሞክሩ።",
+      "empty": "እስካሁን የተመዘገበ ሰራተኛ የለም።"
+    },
+    "kpi": {
+      "activeEmployees": {
+        "label": "ንቁ ሰራተኞች",
+        "description": "በሁሉም ቅርንጫፎች በአሁኑ ጊዜ የተቀጠሩ ሰራተኞች"
+      },
+      "unpaidAdvancesFines": {
+        "label": "ያልተከፈለ ቅድሚያ ክፍያ እና ቅጣት",
+        "description": "በሰራተኞች ላይ ያለ ገና ከደመወዝ ያልተቀነሰ"
+      },
+      "totalPaidOut": {
+        "label": "እስካሁን የተከፈለ ጠቅላላ (ከጅምሩ)",
+        "description": "ስርዓቱ ከጀመረ ጀምሮ የተከፈለ ተጣራ ደመወዝ"
+      },
+      "expectedMonthlyPayroll": {
+        "label": "የሚጠበቅ ወርሃዊ ደመወዝ",
+        "description": "በዚህ ወር ለሁሉም ንቁ ሰራተኞች የሚገባ ጠቅላላ ደመወዝ"
+      }
+    },
+    "charts": {
+      "staffByRole": {
+        "title": "ሰራተኞች በሚና",
+        "description": "የሰራተኞችዎ በስራ ሚና እንዴት እንደተከፋፈሉ"
+      },
+      "payrollTrend": {
+        "title": "ወርሃዊ የደመወዝ አዝማሚያ",
+        "description": "ባለፉት 6 ወራት የሚገባ ጠቅላላ ደመወዝ እና በትክክል የተከፈለ ተጣራ ገንዘብ",
+        "grossPayroll": "ጠቅላላ ደመወዝ",
+        "netPaid": "የተከፈለ ተጣራ"
+      }
+    },
+    "table": {
+      "title": "የሰራተኛ ክፍያ እና ዕዳዎች",
+      "description": "ደመወዝ፣ የስራ ዘመን እና ያልተከፈለ ቅድሚያ ክፍያ ወይም ቅጣት በሰራተኛ",
+      "searchPlaceholder": "በስም፣ ሚና ወይም ቅርንጫፍ ይፈልጉ...",
+      "emptyText": "እስካሁን ሰራተኛ የለም።",
+      "none": "የለም",
+      "columns": {
+        "monthlySalary": "ወርሃዊ ደመወዝ",
+        "tenure": "የስራ ዘመን",
+        "unpaidAdvances": "ያልተከፈለ ቅድሚያ ክፍያ",
+        "unpaidFines": "ያልተከፈለ ቅጣት",
+        "payslipsRun": "የተከፈሉ ደመወዞች"
+      }
+    }
+  }
+}

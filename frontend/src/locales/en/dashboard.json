@@ -1,0 +1,158 @@
+{
+  "hub": {
+    "title": "Sofia Analytics"
+  },
+  "sales": {
+    "states": {
+      "loading": "Loading sales data...",
+      "errorTitle": "Sales data unavailable",
+      "loadErrorMessage": "Couldn't load sales data. Try refreshing the page.",
+      "empty": "No sales recorded yet."
+    },
+    "kpi": {
+      "totalSalesToday": {
+        "label": "Total Sales Today",
+        "description": "Everything sold across all branches today"
+      },
+      "unresolvedShortages": {
+        "label": "Unresolved Cash Shortages",
+        "description": "Till shortages not yet deducted from payroll"
+      },
+      "customerDebt": {
+        "label": "Customer Debt",
+        "description": "Total owed to you by customers on credit"
+      },
+      "netCashCollected": {
+        "label": "Net Cash Collected Today",
+        "description": "Cash + digital payments received today, after expenses"
+      }
+    },
+    "charts": {
+      "salesTrend": {
+        "title": "Sales Trend (Last 30 Days)",
+        "description": "Total sales recorded each day, across all branches",
+        "tooltipLabel": "Sales"
+      },
+      "revenueComposition": {
+        "title": "How Money Came In",
+        "description": "Share of all-time sales collected by payment method",
+        "cash": "Cash",
+        "digitalWallets": "Digital Wallets",
+        "storeCredit": "Store Credit"
+      },
+      "salesByBranch": {
+        "title": "Sales by Branch",
+        "description": "Which branches are selling the most, all-time",
+        "tooltipLabel": "Total Sales"
+      }
+    },
+    "table": {
+      "title": "What You Owe Each Vendor",
+      "description": "Advance credit, outstanding debt, and settlement status per vendor",
+      "searchPlaceholder": "Search by vendor...",
+      "emptyText": "No vendor activity yet.",
+      "columns": {
+        "advanceCredit": "Your Advance Credit",
+        "youOwe": "You Owe",
+        "settlements": "Settlements"
+      }
+    }
+  },
+  "inventory": {
+    "states": {
+      "loading": "Loading inventory data...",
+      "errorTitle": "Inventory data unavailable",
+      "loadErrorMessage": "Couldn't load inventory data. Try refreshing the page.",
+      "empty": "No stock recorded yet."
+    },
+    "kpi": {
+      "totalStockValue": {
+        "label": "Total Stock Value",
+        "description": "Everything currently in your stores and shops"
+      },
+      "unpaidDeliveries": {
+        "label": "Unpaid Deliveries",
+        "description": "What you owe vendors for stock already received"
+      },
+      "productsOutOfStock": {
+        "label": "Products Out of Stock",
+        "description": "Products with zero stock in both store and shop"
+      }
+    },
+    "charts": {
+      "stockByBranch": {
+        "title": "Stock Value by Branch",
+        "description": "Where your inventory value is concentrated",
+        "tooltipLabel": "Stock Value"
+      },
+      "stockByCategory": {
+        "title": "Stock Value by Category",
+        "description": "Which product categories tie up the most money",
+        "tooltipLabel": "Stock Value"
+      }
+    },
+    "table": {
+      "title": "Vendor Supply & Debt Summary",
+      "description": "How much each vendor has delivered, and what you owe them",
+      "searchPlaceholder": "Search by vendor or contact...",
+      "emptyText": "No vendor activity yet.",
+      "paidUp": "Paid up",
+      "columns": {
+        "totalDelivered": "Total Delivered",
+        "youOwe": "You Owe"
+      }
+    }
+  },
+  "employee": {
+    "states": {
+      "loading": "Loading employee data...",
+      "errorTitle": "Employee data unavailable",
+      "loadErrorMessage": "Couldn't load employee data. Try refreshing the page.",
+      "empty": "No employees registered yet."
+    },
+    "kpi": {
+      "activeEmployees": {
+        "label": "Active Employees",
+        "description": "Staff currently employed across all branches"
+      },
+      "unpaidAdvancesFines": {
+        "label": "Unpaid Advances & Fines",
+        "description": "Owed by staff, not yet deducted from a payslip"
+      },
+      "totalPaidOut": {
+        "label": "Total Paid Out (All Time)",
+        "description": "Net payroll disbursed since the system started"
+      },
+      "expectedMonthlyPayroll": {
+        "label": "Expected Monthly Payroll",
+        "description": "Gross salary owed to all active staff this month"
+      }
+    },
+    "charts": {
+      "staffByRole": {
+        "title": "Staff by Role",
+        "description": "How your workforce is split across job roles"
+      },
+      "payrollTrend": {
+        "title": "Monthly Payroll Trend",
+        "description": "Gross payroll owed vs. net cash actually paid out, last 6 months",
+        "grossPayroll": "Gross Payroll",
+        "netPaid": "Net Paid"
+      }
+    },
+    "table": {
+      "title": "Employee Pay & Liabilities",
+      "description": "Salary, tenure, and any outstanding advances or fines per employee",
+      "searchPlaceholder": "Search by name, role, or branch...",
+      "emptyText": "No employees yet.",
+      "none": "None",
+      "columns": {
+        "monthlySalary": "Monthly Salary",
+        "tenure": "Tenure",
+        "unpaidAdvances": "Unpaid Advances",
+        "unpaidFines": "Unpaid Fines",
+        "payslipsRun": "Payslips Run"
+      }
+    }
+  }
+}

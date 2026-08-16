@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import PrintLayout, { printTableStyle, printThStyle, printTdStyle } from './PrintLayout';
 
 interface DeliveryLine {
@@ -46,47 +47,55 @@ const fmt = (v: number) => Number(v || 0).toLocaleString('en-US', { minimumFract
 
 const VendorSettlementVoucher = forwardRef<HTMLDivElement, VendorSettlementVoucherProps>(
   ({ settlement, vendor }, ref) => {
+    const { t } = useTranslation('print');
     const latestInstallment = settlement.installments?.[settlement.installments.length - 1];
+    const etb = t('common:units.etb');
+
+    const paymentStatusLabel = settlement.payment_status === 'FULL'
+      ? t('common:status.fullyPaid')
+      : settlement.payment_status === 'PARTIAL'
+        ? t('common:status.partial')
+        : t('common:status.unpaid');
 
     return (
       <PrintLayout
         ref={ref}
-        title="Vendor Payment Voucher"
+        title={t('vendorVoucher.title')}
         subtitle={settlement.vendor_name}
         documentId={`#SETL-${settlement.id.substring(0, 8).toUpperCase()}`}
-        signatures={{ left: 'Received By (Vendor / Agent)', right: 'Paid By (Admin)' }}
+        signatures={{ left: t('vendorVoucher.receivedByVendorAgent'), right: t('vendorVoucher.paidByAdmin') }}
       >
         <table style={{ ...printTableStyle, marginBottom: '20px' }}>
           <tbody>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700, width: '25%' }}>Vendor</td>
+              <td style={{ ...printTdStyle, fontWeight: 700, width: '25%' }}>{t('common:fields.vendor')}</td>
               <td style={printTdStyle}>{settlement.vendor_name}</td>
-              <td style={{ ...printTdStyle, fontWeight: 700, width: '25%' }}>Date Finalized</td>
+              <td style={{ ...printTdStyle, fontWeight: 700, width: '25%' }}>{t('vendorVoucher.dateFinalized')}</td>
               <td style={printTdStyle}>{dayjs(settlement.created_at || undefined).format('YYYY-MM-DD HH:mm')}</td>
             </tr>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Contact Person</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('common:fields.contactPerson')}</td>
               <td style={printTdStyle}>{vendor?.contact_person || 'N/A'}</td>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Phone</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('common:fields.phoneNumber')}</td>
               <td style={printTdStyle}>{vendor?.phone_no || 'N/A'}</td>
             </tr>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Bank Account</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('vendorVoucher.bankAccount')}</td>
               <td style={printTdStyle} colSpan={3}>{vendor?.bank_account || 'N/A'}</td>
             </tr>
           </tbody>
         </table>
 
-        <div style={{ fontWeight: 700, fontSize: '13px', color: '#714B67', marginBottom: '6px' }}>Itemized Deliveries Settled</div>
+        <div style={{ fontWeight: 700, fontSize: '13px', color: '#714B67', marginBottom: '6px' }}>{t('vendorVoucher.itemizedDeliveries')}</div>
         <table style={printTableStyle}>
           <thead>
             <tr>
-              <th style={printThStyle}>Date</th>
-              <th style={printThStyle}>Product</th>
-              <th style={{ ...printThStyle, textAlign: 'right' }}>Packs</th>
-              <th style={{ ...printThStyle, textAlign: 'right' }}>Pieces</th>
-              <th style={{ ...printThStyle, textAlign: 'right' }}>Unit Price</th>
-              <th style={{ ...printThStyle, textAlign: 'right' }}>Subtotal</th>
+              <th style={printThStyle}>{t('common:fields.date')}</th>
+              <th style={printThStyle}>{t('common:fields.product')}</th>
+              <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:units.packs')}</th>
+              <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:units.pieces')}</th>
+              <th style={{ ...printThStyle, textAlign: 'right' }}>{t('shared.unitPrice')}</th>
+              <th style={{ ...printThStyle, textAlign: 'right' }}>{t('shared.subtotal')}</th>
             </tr>
           </thead>
           <tbody>
@@ -96,8 +105,8 @@ const VendorSettlementVoucher = forwardRef<HTMLDivElement, VendorSettlementVouch
                 <td style={printTdStyle}>{line.product_name}</td>
                 <td style={{ ...printTdStyle, textAlign: 'right' }}>{line.packs_received ?? '-'}</td>
                 <td style={{ ...printTdStyle, textAlign: 'right' }}>{line.calculated_pieces_count ?? '-'}</td>
-                <td style={{ ...printTdStyle, textAlign: 'right' }}>{line.buying_price_unit ? `${fmt(line.buying_price_unit)} ETB` : '-'}</td>
-                <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 600 }}>{fmt(line.calculated_row_subtotal)} ETB</td>
+                <td style={{ ...printTdStyle, textAlign: 'right' }}>{line.buying_price_unit ? `${fmt(line.buying_price_unit)} ${etb}` : '-'}</td>
+                <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 600 }}>{fmt(line.calculated_row_subtotal)} {etb}</td>
               </tr>
             ))}
           </tbody>
@@ -106,36 +115,36 @@ const VendorSettlementVoucher = forwardRef<HTMLDivElement, VendorSettlementVouch
         <table style={{ ...printTableStyle, width: '60%', marginLeft: 'auto' }}>
           <tbody>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Total Batch Cost</td>
-              <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(settlement.total_batch_cost)} ETB</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('vendorVoucher.totalBatchCost')}</td>
+              <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(settlement.total_batch_cost)} {etb}</td>
             </tr>
             {latestInstallment && (
               <>
                 <tr>
-                  <td style={printTdStyle}>Cash Handed Over</td>
-                  <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(latestInstallment.amount_handed_over)} ETB</td>
+                  <td style={printTdStyle}>{t('vendorVoucher.cashHandedOver')}</td>
+                  <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(latestInstallment.amount_handed_over)} {etb}</td>
                 </tr>
                 <tr>
-                  <td style={printTdStyle}>Advance Used From Past</td>
-                  <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(latestInstallment.advance_used_from_past)} ETB</td>
+                  <td style={printTdStyle}>{t('vendorVoucher.advanceUsedFromPast')}</td>
+                  <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(latestInstallment.advance_used_from_past)} {etb}</td>
                 </tr>
                 <tr>
-                  <td style={printTdStyle}>New Advance Surplus Created</td>
-                  <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(latestInstallment.advance_amount_created)} ETB</td>
+                  <td style={printTdStyle}>{t('vendorVoucher.newAdvanceSurplus')}</td>
+                  <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(latestInstallment.advance_amount_created)} {etb}</td>
                 </tr>
               </>
             )}
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Amount Paid (Total)</td>
-              <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{fmt(settlement.amount_paid_total)} ETB</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('vendorVoucher.amountPaidTotal')}</td>
+              <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{fmt(settlement.amount_paid_total)} {etb}</td>
             </tr>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Remaining Debt</td>
-              <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{fmt(settlement.remaining_debt)} ETB</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('vendorVoucher.remainingDebt')}</td>
+              <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{fmt(settlement.remaining_debt)} {etb}</td>
             </tr>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Payment Status</td>
-              <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{settlement.payment_status}</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('vendorVoucher.paymentStatus')}</td>
+              <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 700 }}>{paymentStatusLabel}</td>
             </tr>
           </tbody>
         </table>

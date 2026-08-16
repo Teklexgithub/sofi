@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import PrintLayout, { printTableStyle, printThStyle, printTdStyle } from './PrintLayout';
 
 interface Session {
@@ -32,52 +33,57 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
   </div>
 );
 
-const Empty = () => <div style={{ fontSize: '11px', color: '#999', fontStyle: 'italic', marginBottom: '10px' }}>None recorded.</div>;
+const Empty = () => {
+  const { t } = useTranslation('print');
+  return <div style={{ fontSize: '11px', color: '#999', fontStyle: 'italic', marginBottom: '10px' }}>{t('dailySessionReport.noneRecorded')}</div>;
+};
 
 const DailySessionReport = forwardRef<HTMLDivElement, DailySessionReportProps>(
   ({ session }, ref) => {
+    const { t } = useTranslation('print');
+    const etb = t('common:units.etb');
     return (
       <PrintLayout
         ref={ref}
-        title="Daily Session End-of-Day Report"
+        title={t('dailySessionReport.title')}
         subtitle={`${session.branch_name || 'N/A'} — ${session.trading_date}`}
         documentId={session.id ? `#SESS-${session.id.substring(0, 8).toUpperCase()}` : undefined}
-        signatures={{ left: 'Branch Admin (Handover)', right: 'Received By (Admin / Courier)' }}
+        signatures={{ left: t('dailySessionReport.branchAdminHandover'), right: t('dailySessionReport.receivedByAdminCourier') }}
       >
         <table style={{ ...printTableStyle, marginBottom: '20px' }}>
           <tbody>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700, width: '25%' }}>Gross Sales</td>
-              <td style={printTdStyle}>{fmt(session.total_sales)} ETB</td>
-              <td style={{ ...printTdStyle, fontWeight: 700, width: '25%' }}>Total Expenses</td>
-              <td style={printTdStyle}>{fmt(session.total_expenses)} ETB</td>
+              <td style={{ ...printTdStyle, fontWeight: 700, width: '25%' }}>{t('dailySessionReport.grossSales')}</td>
+              <td style={printTdStyle}>{fmt(session.total_sales)} {etb}</td>
+              <td style={{ ...printTdStyle, fontWeight: 700, width: '25%' }}>{t('dailySessionReport.totalExpenses')}</td>
+              <td style={printTdStyle}>{fmt(session.total_expenses)} {etb}</td>
             </tr>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>New Credit Issued</td>
-              <td style={printTdStyle}>{fmt(session.total_new_credit)} ETB</td>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Credit Recovered</td>
-              <td style={printTdStyle}>{fmt(session.total_credit_recovered)} ETB</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('dailySessionReport.newCreditIssued')}</td>
+              <td style={printTdStyle}>{fmt(session.total_new_credit)} {etb}</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('dailySessionReport.creditRecovered')}</td>
+              <td style={printTdStyle}>{fmt(session.total_credit_recovered)} {etb}</td>
             </tr>
             <tr>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Cash Handed to Admin</td>
-              <td style={printTdStyle}>{fmt(session.cash_handed_to_admin)} ETB</td>
-              <td style={{ ...printTdStyle, fontWeight: 700 }}>Cash Retained for Change</td>
-              <td style={printTdStyle}>{fmt(session.cash_retained_for_change)} ETB</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('dailySessionReport.cashHandedToAdmin')}</td>
+              <td style={printTdStyle}>{fmt(session.cash_handed_to_admin)} {etb}</td>
+              <td style={{ ...printTdStyle, fontWeight: 700 }}>{t('dailySessionReport.cashRetainedForChange')}</td>
+              <td style={printTdStyle}>{fmt(session.cash_retained_for_change)} {etb}</td>
             </tr>
           </tbody>
         </table>
 
-        <Section title="1. Stock Count">
+        <Section title={t('dailySessionReport.section1Title')}>
           {session.products_sold?.length ? (
             <table style={printTableStyle}>
               <thead>
                 <tr>
-                  <th style={printThStyle}>Product</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Open</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Close</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Sold</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Price</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Subtotal</th>
+                  <th style={printThStyle}>{t('common:fields.product')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('dailySessionReport.open')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('dailySessionReport.close')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('dailySessionReport.sold')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:fields.price')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('shared.subtotal')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,20 +102,20 @@ const DailySessionReport = forwardRef<HTMLDivElement, DailySessionReportProps>(
           ) : <Empty />}
         </Section>
 
-        <Section title="2. Expenses">
+        <Section title={t('dailySessionReport.section2Title')}>
           {session.expenses_logged?.length ? (
             <table style={printTableStyle}>
               <thead>
                 <tr>
-                  <th style={printThStyle}>Reason</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Amount</th>
+                  <th style={printThStyle}>{t('common:fields.reason')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:fields.amount')}</th>
                 </tr>
               </thead>
               <tbody>
                 {session.expenses_logged.map((e: any, i: number) => (
                   <tr key={i}>
                     <td style={printTdStyle}>{e.reason}</td>
-                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(e.amount)} ETB</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(e.amount)} {etb}</td>
                   </tr>
                 ))}
               </tbody>
@@ -117,22 +123,22 @@ const DailySessionReport = forwardRef<HTMLDivElement, DailySessionReportProps>(
           ) : <Empty />}
         </Section>
 
-        <Section title="3. Digital Account Balances">
+        <Section title={t('dailySessionReport.section3Title')}>
           {session.digital_balances?.length ? (
             <table style={printTableStyle}>
               <thead>
                 <tr>
-                  <th style={printThStyle}>Account</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Closing Balance</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Revenue Delta</th>
+                  <th style={printThStyle}>{t('dailySessionReport.account')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('dailySessionReport.closingBalance')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('dailySessionReport.revenueDelta')}</th>
                 </tr>
               </thead>
               <tbody>
                 {session.digital_balances.map((d: any, i: number) => (
                   <tr key={d.id || i}>
                     <td style={printTdStyle}>{d.account_name}</td>
-                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(d.closing_balance)} ETB</td>
-                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{d.revenue_delta >= 0 ? '+' : ''}{fmt(d.revenue_delta)} ETB</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(d.closing_balance)} {etb}</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{d.revenue_delta >= 0 ? '+' : ''}{fmt(d.revenue_delta)} {etb}</td>
                   </tr>
                 ))}
               </tbody>
@@ -140,20 +146,20 @@ const DailySessionReport = forwardRef<HTMLDivElement, DailySessionReportProps>(
           ) : <Empty />}
         </Section>
 
-        <Section title="4. New Debts Issued">
+        <Section title={t('dailySessionReport.section4Title')}>
           {session.credits_issued?.length ? (
             <table style={printTableStyle}>
               <thead>
                 <tr>
-                  <th style={printThStyle}>Customer</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Amount</th>
+                  <th style={printThStyle}>{t('common:fields.customer')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:fields.amount')}</th>
                 </tr>
               </thead>
               <tbody>
                 {session.credits_issued.map((c: any, i: number) => (
                   <tr key={c.id || i}>
                     <td style={printTdStyle}>{c.customer_name || 'Unknown'}</td>
-                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(c.amount)} ETB</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(c.amount)} {etb}</td>
                   </tr>
                 ))}
               </tbody>
@@ -161,20 +167,20 @@ const DailySessionReport = forwardRef<HTMLDivElement, DailySessionReportProps>(
           ) : <Empty />}
         </Section>
 
-        <Section title="5. Credit Recoveries">
+        <Section title={t('dailySessionReport.section5Title')}>
           {session.credit_payments?.length ? (
             <table style={printTableStyle}>
               <thead>
                 <tr>
-                  <th style={printThStyle}>Customer</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Amount Recovered</th>
+                  <th style={printThStyle}>{t('common:fields.customer')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('dailySessionReport.amountRecovered')}</th>
                 </tr>
               </thead>
               <tbody>
                 {session.credit_payments.map((c: any, i: number) => (
                   <tr key={i}>
                     <td style={printTdStyle}>{c.customer_name || c.customer || 'Unknown'}</td>
-                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(c.amount_paid ?? c.amount)} ETB</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(c.amount_paid ?? c.amount)} {etb}</td>
                   </tr>
                 ))}
               </tbody>
@@ -182,14 +188,14 @@ const DailySessionReport = forwardRef<HTMLDivElement, DailySessionReportProps>(
           ) : <Empty />}
         </Section>
 
-        <Section title="6. Manual Bank Deposits">
+        <Section title={t('dailySessionReport.section6Title')}>
           {session.manual_deposits?.length ? (
             <table style={printTableStyle}>
               <thead>
                 <tr>
-                  <th style={printThStyle}>Bank</th>
-                  <th style={printThStyle}>Account Holder</th>
-                  <th style={{ ...printThStyle, textAlign: 'right' }}>Amount</th>
+                  <th style={printThStyle}>{t('dailySessionReport.bank')}</th>
+                  <th style={printThStyle}>{t('dailySessionReport.accountHolder')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:fields.amount')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -197,7 +203,7 @@ const DailySessionReport = forwardRef<HTMLDivElement, DailySessionReportProps>(
                   <tr key={m.id || i}>
                     <td style={printTdStyle}>{m.bank_name || 'N/A'}</td>
                     <td style={printTdStyle}>{m.account_name || 'N/A'}</td>
-                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(m.amount)} ETB</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(m.amount)} {etb}</td>
                   </tr>
                 ))}
               </tbody>

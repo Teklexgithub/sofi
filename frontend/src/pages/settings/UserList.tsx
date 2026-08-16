@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Space, Tag, Typography, Card, Input, message } from 'antd';
 import { PlusOutlined, ReloadOutlined, UserOutlined, GlobalOutlined, ShopOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { settingsService } from '../../services/settingsService';
 import { useTheme } from '../../contexts/ThemeContext';
 import type { UserAccount } from '../../types/settings';
@@ -10,6 +11,7 @@ import CreateUserModal from './CreateUserModal';
 const { Title, Text } = Typography;
 
 const UserList: React.FC = () => {
+  const { t } = useTranslation('settings');
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -23,7 +25,7 @@ const UserList: React.FC = () => {
       const response = await settingsService.getUsers();
       setUsers(response.data);
     } catch (error) {
-      message.error("Failed to load users");
+      message.error(t('common:messages.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -37,15 +39,15 @@ const UserList: React.FC = () => {
   });
 
   const columns = [
-    { 
-      title: 'User', 
+    {
+      title: t('userList.columns.user'),
       key: 'user',
       render: (record: any) => (
         <Space>
           <UserOutlined style={{ color: '#714B67' }} />
-          <Button 
-            type="link" 
-            onClick={() => navigate(`/settings/users/${record.id}`)} 
+          <Button
+            type="link"
+            onClick={() => navigate(`/settings/users/${record.id}`)}
             style={{ padding: 0, fontWeight: 'bold', color: isDark ? '#fff' : '#714B67' }}
           >
             {record.email}
@@ -54,16 +56,16 @@ const UserList: React.FC = () => {
       )
     },
     {
-      title: 'Role',
+      title: t('common:fields.role'),
       dataIndex: 'role',
       key: 'role',
       render: (role: string) => {
         const color = role === 'ADMIN' ? 'volcano' : 'blue';
-        return <Tag color={color} style={{ fontWeight: '500' }}>{role}</Tag>;
+        return <Tag color={color} style={{ fontWeight: '500' }}>{t(`common:roles.${role}`)}</Tag>;
       }
     },
     {
-      title: 'Branch Assignment',
+      title: t('userList.columns.branchAssignment'),
       dataIndex: 'branch_details',
       key: 'branch',
       render: (branchDetails: { id: string; name: string }[], record: UserAccount) => {
@@ -71,7 +73,7 @@ const UserList: React.FC = () => {
           return (
             <Space style={{ color: '#8c8c8c' }}>
               <GlobalOutlined />
-              <span>Global Access</span>
+              <span>{t('userList.globalAccess')}</span>
             </Space>
           );
         }
@@ -79,7 +81,7 @@ const UserList: React.FC = () => {
           return (
             <Space>
               <ShopOutlined style={{ color: '#d9d9d9' }} />
-              <Text>Not Assigned</Text>
+              <Text>{t('userList.notAssigned')}</Text>
             </Space>
           );
         }
@@ -93,16 +95,16 @@ const UserList: React.FC = () => {
       }
     },
     {
-      title: 'Action',
+      title: t('common:fields.action'),
       key: 'action',
       align: 'right' as const,
       render: (_: any, record: UserAccount) => (
-        <Button 
-            type="default" 
+        <Button
+            type="default"
             size="small"
             onClick={() => navigate(`/settings/users/${record.id}`)}
         >
-            View Profile
+            {t('common:actions.viewProfile')}
         </Button>
       ),
     },
@@ -112,26 +114,26 @@ const UserList: React.FC = () => {
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <Space direction="vertical" size={0}>
-          <Title level={3} style={{ margin: 0 }}>System Users</Title>
-          <Text type="secondary">Manage employee accounts and branch permissions</Text>
+          <Title level={3} style={{ margin: 0 }}>{t('userList.title')}</Title>
+          <Text type="secondary">{t('userList.subtitle')}</Text>
         </Space>
         <Space>
           <Input
-            placeholder="Search by email or role..."
+            placeholder={t('userList.searchPlaceholder')}
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             allowClear
             style={{ width: '260px' }}
           />
-          <Button icon={<ReloadOutlined />} onClick={fetchUsers} title="Refresh Table" />
+          <Button icon={<ReloadOutlined />} onClick={fetchUsers} title={t('userList.refreshTitle')} />
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setIsModalVisible(true)}
             style={{ background: '#714B67', border: 'none' }}
           >
-            Create User
+            {t('userList.createButton')}
           </Button>
         </Space>
       </div>

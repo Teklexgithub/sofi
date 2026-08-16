@@ -4,6 +4,8 @@
 // colors are used as documented. Run scripts/validate_palette.js again before
 // changing any of these hex values.
 
+import i18n from '../../../i18n';
+
 export interface ChartTheme {
   surface: string;
   pagePlane: string;
@@ -51,8 +53,9 @@ export const getChartTheme = (isDark: boolean): ChartTheme => ({
 /** Format an ETB amount for compact axis/label display, e.g. 12500 -> "12.5k ETB". */
 export const formatETB = (value: number, compact = false): string => {
   const n = Number(value || 0);
+  const unit = i18n.t('common:units.etb');
   if (compact && Math.abs(n) >= 1000) {
-    return `${(n / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k ETB`;
+    return `${(n / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k ${unit}`;
   }
-  return `${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB`;
+  return `${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${unit}`;
 };

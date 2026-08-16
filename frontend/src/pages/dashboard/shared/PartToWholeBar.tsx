@@ -1,5 +1,6 @@
 import { Typography } from 'antd';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { getChartTheme } from './chartTheme';
 
@@ -21,6 +22,7 @@ interface PartToWholeBarProps {
  * the honest form for "share of total" per the dataviz skill, replacing a pie
  * chart with direct-labeled segments and a legend underneath. */
 const PartToWholeBar: React.FC<PartToWholeBarProps> = ({ segments, unit }) => {
+  const { t } = useTranslation('common');
   const { isDark } = useTheme();
   const theme = getChartTheme(isDark);
   const total = segments.reduce((sum, s) => sum + s.value, 0);
@@ -28,7 +30,7 @@ const PartToWholeBar: React.FC<PartToWholeBarProps> = ({ segments, unit }) => {
   const chartData = [Object.fromEntries(nonZeroSegments.map(s => [s.name, s.value]))];
 
   if (total <= 0) {
-    return <Text style={{ fontSize: 12, color: theme.textMuted, fontStyle: 'italic' }}>No data recorded yet.</Text>;
+    return <Text style={{ fontSize: 12, color: theme.textMuted, fontStyle: 'italic' }}>{t('messages.noData')}</Text>;
   }
 
   return (

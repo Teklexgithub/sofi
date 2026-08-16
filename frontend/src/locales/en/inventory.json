@@ -1,0 +1,228 @@
+{
+  "productList": {
+    "title": "Products",
+    "searchPlaceholder": "Search products...",
+    "syncFailed": "Backend sync failed",
+    "columns": {
+      "name": "Product Name",
+      "packMultiplier": "Pack Multiplier",
+      "priceSingle": "Price (Single)"
+    }
+  },
+  "productDetail": {
+    "notFound": "Product not found",
+    "loadFailed": "Could not load product details",
+    "deleteSuccess": "Product deleted successfully",
+    "deleteFailed": "Failed to delete product",
+    "checkStock": "Check Stock",
+    "deleteConfirmTitle": "Delete Product?",
+    "directToShop": "Direct to Shop",
+    "goesToWarehouse": "Goes to Warehouse",
+    "fullSpecs": "Full Product Specifications",
+    "productNameLabel": "Product Name",
+    "primaryVendor": "Primary Vendor",
+    "notLinked": "Not Linked",
+    "inventoryDestination": "Inventory Destination",
+    "destinationShopDesc": "External deliveries for this product bypass the warehouse and go directly to the shop floor.",
+    "destinationStoreDesc": "External deliveries for this product are stored in the warehouse before being transferred to the shop.",
+    "packMultiplier": "Pack Multiplier",
+    "piecesPerPack": "pieces per pack",
+    "pricesPerPiece": "Prices (per piece)",
+    "buy": "Buy",
+    "sell": "Sell"
+  },
+  "createProductModal": {
+    "editTitle": "Edit Product",
+    "createTitle": "Create New Product",
+    "updateButton": "Update Product",
+    "saveButton": "Save Product",
+    "updateSuccess": "Product updated successfully!",
+    "createSuccess": "Product created successfully!",
+    "operationFailed": "Operation failed. Please check your network or inputs.",
+    "nameLabel": "Product Name",
+    "namePlaceholder": "e.g. Coca Cola 500ml",
+    "nameRequired": "Name is required",
+    "categoryPlaceholder": "Select category",
+    "categories": {
+      "khat": "Khat",
+      "drink": "Soft Drink",
+      "water": "Water",
+      "nuts": "Nuts",
+      "cigarette": "Cigarette"
+    },
+    "destinationLabel": "Inventory Flow (Destination)",
+    "destinationExtra": "Where does this arrive?",
+    "destinationStore": "Store (Warehouse)",
+    "destinationShop": "Shop (Direct/Khat)",
+    "vendorLabel": "Primary Vendor",
+    "vendorPlaceholder": "Select a Vendor",
+    "pricingDivider": "Pricing & Packaging",
+    "piecesPerPackLabel": "Pieces per Pack",
+    "buyingPriceLabel": "Buying Price (Single Piece)",
+    "sellingPriceLabel": "Selling Price (Single Piece)"
+  },
+  "vendors": {
+    "title": "Vendors",
+    "loadFailed": "Failed to load vendors",
+    "searchPlaceholder": "Search by vendor or contact...",
+    "viewHistory": "View History",
+    "columns": {
+      "name": "Vendor Name"
+    }
+  },
+  "vendorDetail": {
+    "notFound": "Vendor not found",
+    "loadFailed": "Could not load vendor details",
+    "deleteSuccess": "Vendor removed from Sofia ERP",
+    "deleteFailed": "Failed to delete vendor",
+    "verifiedVendor": "Verified Vendor",
+    "deliveryHistory": "Delivery History",
+    "deleteConfirmTitle": "Delete Vendor?",
+    "businessContact": "Business Contact & Billing",
+    "vendorNameLabel": "Vendor Name",
+    "notAvailable": "N/A",
+    "bankAccount": "Bank Account"
+  },
+  "createVendorModal": {
+    "editTitle": "Edit Vendor",
+    "createTitle": "Add New Vendor",
+    "updateSuccess": "Vendor updated in Sofia ERP",
+    "createSuccess": "Vendor added to Sofia ERP",
+    "updateFailed": "Failed to update vendor",
+    "createFailed": "Failed to create vendor",
+    "nameLabel": "Vendor Name",
+    "nameRequired": "Required",
+    "namePlaceholder": "e.g. BGI Ethiopia",
+    "contactPlaceholder": "e.g. Ato Abebe",
+    "phonePlaceholder": "e.g. +251 911...",
+    "bankAccountLabel": "Bank Account Number",
+    "bankAccountPlaceholder": "e.g. CBE 1000123456789"
+  },
+  "storeStock": {
+    "title": "Store Inventory (Bulk)",
+    "subtitle": "Warehouse stock levels tracked in full packs and crates.",
+    "loadFailed": "Failed to load store inventory",
+    "searchPlaceholder": "Search by branch...",
+    "refreshLevels": "Refresh Levels",
+    "viewAndAdjust": "View & Adjust",
+    "manageItems": "Manage Store Items",
+    "footerPrefix": "Items in the Store are stored as bulk packaging and must be",
+    "footerBold": "Internal Transferred",
+    "footerSuffix": "to appear in Shop Stock.",
+    "columns": {
+      "productName": "Product Name",
+      "currentInventory": "Current Inventory",
+      "fullPacks": "{{count}} Full Packs",
+      "lastActivity": "Last Activity",
+      "warehouseLocation": "Warehouse Location",
+      "warehouseSuffix": "{{name}} Warehouse",
+      "totalCategories": "Total Categories",
+      "productTypes": "{{count}} Product Types"
+    }
+  },
+  "shopStock": {
+    "title": "Daily Shop Inventory",
+    "subtitle": "Everything currently in the shop floor, organized by arrival date and location.",
+    "loadFailed": "Failed to load inventory groups",
+    "searchPlaceholder": "Search by branch...",
+    "viewAndAdjust": "View & Adjust",
+    "directDelivery": "Direct Delivery",
+    "storeRefill": "Store Refill",
+    "expandToView": "Expand to View",
+    "columns": {
+      "productName": "Product Name",
+      "source": "Source",
+      "currentQuantity": "Current Quantity",
+      "pieces": "{{count}} Pieces",
+      "arrivalDate": "Arrival Date",
+      "productCount": "Product Count",
+      "productsInBatch": "{{count}} Products in this batch",
+      "details": "Details"
+    }
+  },
+  "stockDetail": {
+    "loadFailed": "Failed to load stock details",
+    "notFound": "Stock record not found.",
+    "storeStockBreadcrumb": "Store Stock",
+    "shopStockBreadcrumb": "Shop Stock",
+    "subtitle": "Full audit and adjustment view for this location",
+    "movementLogs": "Movement Logs",
+    "adjustButton": "Adjust {{unit}}",
+    "currentLevels": "Current Levels",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "locationInfo": "Location Info",
+    "mainWarehouse": "Main Warehouse",
+    "inventoryType": "Inventory Type",
+    "bulkStorage": "Bulk Storage (Unopened)",
+    "retailDisplay": "Retail Display (Ready for Sale)"
+  },
+  "adjustStockModal": {
+    "adjustSuccess": "{{name}} adjusted successfully",
+    "updateFailed": "Failed to update stock",
+    "title": "Manual Audit: {{name}}",
+    "applyCorrection": "Apply Correction",
+    "alertTitle": "Admin Override Active",
+    "alertDesc": "Changing the {{unit}} count directly affects inventory value.",
+    "newCountLabel": "New Correct Count ({{unit}})",
+    "reasonLabel": "Adjustment Reason",
+    "reasonRequired": "Please provide a reason for the audit log",
+    "reasonPlaceholder": "Example: Damaged goods found, counting error during delivery, etc."
+  },
+  "supplyLogs": {
+    "title": "Vendor Deliveries",
+    "loadFailed": "Failed to load delivery history",
+    "searchPlaceholder": "Search by product, vendor, or branch...",
+    "logNewDelivery": "Log New Delivery",
+    "columns": {
+      "dateReceived": "Date Received",
+      "quantity": "{{count}} Packs",
+      "payment": "Payment"
+    }
+  },
+  "logSupplyModal": {
+    "title": "Log Vendor Deliveries",
+    "successMessage": "Successfully logged {{count}} deliveries",
+    "failedDefault": "Failed to log deliveries.",
+    "saveAll": "Save All Deliveries",
+    "receivingBranch": "Receiving Branch",
+    "selectBranch": "Select Branch",
+    "yourAssignedBranch": "Your Assigned Branch",
+    "dateTimeReceived": "Date & Time Received",
+    "deliveryItems": "Delivery Items",
+    "missingProduct": "Missing product",
+    "searchProduct": "Search Product",
+    "noVendor": "No Vendor",
+    "qtyPacks": "Qty (Packs)",
+    "missingQty": "Missing qty",
+    "optionalNote": "Optional Note",
+    "freshStock": "Fresh Stock",
+    "replenish": "Replenish",
+    "addAnother": "Add Another Vendor Delivery"
+  },
+  "internalTransfers": {
+    "title": "Store to Shop Refills",
+    "loadFailed": "Failed to load transfer history",
+    "searchPlaceholder": "Search by product or branch...",
+    "newRefill": "New Refill",
+    "columns": {
+      "packsRemoved": "Packs Removed",
+      "piecesAdded": "Pieces Added"
+    }
+  },
+  "internalTransferModal": {
+    "title": "Store to Shop Refill",
+    "successMessage": "Refill completed: Store to Shop",
+    "failedDefault": "Transfer failed. Ensure enough stock is available in the Store.",
+    "targetBranch": "Target Branch",
+    "branchRequired": "Please select a branch",
+    "selectBranchPlaceholder": "Select Branch to refill",
+    "refillingFor": "Refilling For:",
+    "yourAssignedBranch": "Your Assigned Branch",
+    "selectProductPlaceholder": "Search and select product",
+    "packRatio": "(1 Pack = {{count}} pcs)",
+    "packsToMove": "Packs to Move (from Store)",
+    "enterQuantity": "Enter quantity",
+    "totalPiecesToAdd": "Total Pieces to Add to Shop"
+  }
+}
