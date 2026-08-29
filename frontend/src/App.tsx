@@ -21,6 +21,8 @@ import DigitalAccountSetup from './pages/sales/DigitalAccountSetup';
 import DigitalAccountAdjustments from './pages/sales/DigitalAccountAdjustments';
 import ManagerShortagesDashboard from './pages/sales/ManagerShortagesDashboard';
 import { VendorSettlements } from './pages/sales/VendorSettlements';
+import VipOrders from './pages/sales/VipOrders';
+import VipPayments from './pages/sales/VipPayments';
 // (Future Settlement page import will go here)
 
 // 🌟 EMPLOYEE APP - NEW IMPORT
@@ -94,6 +96,8 @@ function App() {
                   <Route path="/sales/digital-adjustments" element={<RequireAdmin><DigitalAccountAdjustments /></RequireAdmin>} />
                   <Route path="/sales/shortages-ledger" element={<RequireAdmin><ManagerShortagesDashboard /></RequireAdmin>} />
                   <Route path="/sales/settlements" element={<RequireAdmin><VendorSettlements /></RequireAdmin>} />
+                  <Route path="/sales/vip-orders" element={<RequireAdmin><VipOrders /></RequireAdmin>} />
+                  <Route path="/sales/vip-payments" element={<RequireAdmin><VipPayments /></RequireAdmin>} />
 
                   {/* EMPLOYEE APP - NEW ROUTE */}
                   <Route path="/employees" element={<RequireAdmin><EmployeeHub /></RequireAdmin>} />

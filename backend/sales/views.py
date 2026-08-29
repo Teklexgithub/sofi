@@ -2,25 +2,27 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction, models
-from django.utils import timezone
 import datetime
 from decimal import Decimal
 
 from .models import (
     DailySession, SessionProduct, SessionExpense, CustomerCredit,
-    SessionCreditEntry, SessionCreditPayment, DigitalAccount, 
+    SessionCreditEntry, SessionCreditPayment, DigitalAccount,
     SessionDigitalBalance, ManualBankDeposit, DigitalAccountAdjustment,
-    ManagerShortageLedger, VendorSettlement, VendorPaymentInstallment, 
-    VendorSettlementLine, VendorCreditProfile
+    ManagerShortageLedger, VendorSettlement, VendorPaymentInstallment,
+    VendorSettlementLine, VendorCreditProfile, VIPCustomer, VIPOrder, VIPPayment
 )
 from .serializers import (
-    DailySessionSerializer, 
+    DailySessionSerializer,
     SessionDigitalBalanceSerializer,
     DigitalAccountSerializer,
     CustomerCreditSerializer,
     DigitalAccountAdjustmentSerializer,
     ManagerShortageSerializer,
-    VendorSettlementSerializer
+    VendorSettlementSerializer,
+    VIPCustomerSerializer,
+    VIPOrderSerializer,
+    VIPPaymentSerializer
 )
 from inventory.models import ShopStock, Product, SupplyLog, Vendor
 from django.utils.dateparse import parse_date
@@ -617,3 +619,48 @@ class VendorSettlementViewSet(viewsets.ModelViewSet):
 
             serializer = VendorSettlementSerializer(master_settlement)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# ---- VIP CUSTOMER MANAGEMENT PART ----
+
+class VIPCustomerViewSet(viewsets.ModelViewSet):
+    """VIP customers order directly through the Admin; entirely Admin-only, no branch involved."""
+    queryset = VIPCustomer.objects.all().order_by('full_name')
+    serializer_class = VIPCustomerSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['full_name', 'phone_number']
+
+
+class VIPOrderViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only order log for VIP customers. Never touches branch stock.
+    Full CRUD - an order can be edited (product/quantity/date changed) or deleted outright if dismissed.
+    """
+    queryset = VIPOrder.objects.all().order_by('-order_date', '-created_at')
+    serializer_class = VIPOrderSerializer
+    permission_classes = [IsAdmin]
+
+    def get_queryset(self):
+        queryset = VIPOrder.objects.all().order_by('-order_date', '-created_at')
+        customer_id = self.request.query_params.get('customer')
+        if customer_id:
+            queryset = queryset.filter(customer_id=customer_id)
+        return queryset
+
+
+class VIPPaymentViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only payment log for VIP customers. A payment can be partial - it simply reduces
+    the customer's running outstanding balance (see VIPCustomerSerializer.outstanding_balance).
+    """
+    queryset = VIPPayment.objects.all().order_by('-payment_date', '-created_at')
+    serializer_class = VIPPaymentSerializer
+    permission_classes = [IsAdmin]
+
+    def get_queryset(self):
+        queryset = VIPPayment.objects.all().order_by('-payment_date', '-created_at')
+        customer_id = self.request.query_params.get('customer')
+        if customer_id:
+            queryset = queryset.filter(customer_id=customer_id)
+        return queryset

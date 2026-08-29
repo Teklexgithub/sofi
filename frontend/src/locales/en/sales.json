@@ -394,5 +394,100 @@
       "selectVendorAndRangeShort": "Please select both a vendor and a date range",
       "deliveryReportFailed": "Failed to load vendor delivery report"
     }
+  },
+  "vipCustomerModal": {
+    "createTitle": "Register VIP Customer",
+    "editTitle": "Edit VIP Customer",
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "e.g. Ato Kebede Alemu",
+    "phonePlaceholder": "e.g. 0911000000",
+    "addressLabel": "Address",
+    "addressPlaceholder": "e.g. Bole, Addis Ababa",
+    "frequencyLabel": "Preferred Payment Frequency",
+    "frequencyPlaceholder": "Select frequency",
+    "frequencyOptions": {
+      "WEEKLY": "Weekly",
+      "MONTHLY": "Monthly",
+      "CUSTOM": "Custom"
+    },
+    "createSuccess": "VIP customer registered successfully.",
+    "createFailed": "Failed to register VIP customer.",
+    "updateSuccess": "VIP customer updated successfully.",
+    "updateFailed": "Failed to update VIP customer."
+  },
+  "vipOrders": {
+    "title": "VIP Customer Orders",
+    "subtitle": "Register orders and manage profiles for customers who order and pay directly through the Admin.",
+    "unnamedCustomer": "Unnamed Customer",
+    "customersSectionTitle": "VIP Customers",
+    "customerSearchPlaceholder": "Search by name or phone...",
+    "orderSearchPlaceholder": "Search by customer or product...",
+    "addCustomerBtn": "Add VIP Customer",
+    "placeOrderTitle": "Place New Order",
+    "historyTitle": "Order History",
+    "customerColumns": {
+      "fullName": "Full Name",
+      "outstanding": "Outstanding Balance",
+      "orderCount": "Orders"
+    },
+    "historyColumns": {
+      "unitPrice": "Unit Price"
+    },
+    "form": {
+      "customerPlaceholder": "Search or select a VIP customer",
+      "customerRequired": "Please select a customer",
+      "createNewOption": "Create \"{{name}}\" as new VIP customer",
+      "productPlaceholder": "Select a product",
+      "productRequired": "Please select a product",
+      "quantityRequired": "Please enter a quantity",
+      "orderDateLabel": "Order Date",
+      "orderDateRequired": "Please select the order date",
+      "unitPricePreview": "Current selling price: {{price}} per piece",
+      "submitBtn": "Register Order"
+    },
+    "editModal": {
+      "title": "Edit VIP Order",
+      "updateSuccess": "Order updated successfully.",
+      "updateFailed": "Failed to update order."
+    },
+    "deleteOrderConfirm": {
+      "title": "Delete this order?",
+      "desc": "This cannot be undone. The customer's outstanding balance will be recalculated."
+    },
+    "deleteCustomerConfirm": {
+      "title": "Delete this VIP customer?",
+      "desc": "This will permanently remove the customer along with their entire order and payment history."
+    },
+    "messages": {
+      "loadFailed": "Failed to load data.",
+      "orderSuccess": "Order registered successfully.",
+      "orderFailed": "Failed to register order.",
+      "orderDeleteSuccess": "Order deleted successfully.",
+      "orderDeleteFailed": "Failed to delete order.",
+      "customerDeleteSuccess": "VIP customer deleted successfully.",
+      "customerDeleteFailed": "Failed to delete VIP customer."
+    }
+  },
+  "vipPayments": {
+    "title": "VIP Customer Payments",
+    "subtitle": "Record full or partial payments from VIP customers against their running balance.",
+    "searchPlaceholder": "Search by name or phone...",
+    "recordPaymentBtn": "Record Payment",
+    "ordersTab": "Orders",
+    "paymentsTab": "Payment History",
+    "paymentModal": {
+      "title": "Record Payment",
+      "outstandingLine": "{{name}} currently owes {{amount}}",
+      "amountLabel": "Amount Paid",
+      "amountRequired": "Please enter the amount paid",
+      "dateLabel": "Payment Date",
+      "dateRequired": "Please select the payment date",
+      "submitBtn": "Record Payment",
+      "recordSuccess": "Payment recorded successfully.",
+      "recordFailed": "Failed to record payment."
+    },
+    "messages": {
+      "loadFailed": "Failed to load data."
+    }
   }
 }

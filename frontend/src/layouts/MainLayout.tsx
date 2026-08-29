@@ -105,6 +105,23 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             onClick: () => navigate('/sales/shortages-ledger')
           }
         ]
+      },
+      {
+        key: 'vip_customer_nav',
+        label: t('sales.vipCustomer'),
+        icon: <UserOutlined />,
+        children: [
+          {
+            key: '/sales/vip-orders',
+            label: t('sales.vipOrder'),
+            onClick: () => navigate('/sales/vip-orders')
+          },
+          {
+            key: '/sales/vip-payments',
+            label: t('sales.vipPayment'),
+            onClick: () => navigate('/sales/vip-payments')
+          }
+        ]
       }
     ] : []),
   ];

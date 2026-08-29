@@ -31,6 +31,39 @@ export interface CustomerCreditProfile {
   last_updated: string;
 }
 
+export interface VIPCustomer {
+  id: string;
+  full_name: string;
+  phone_number: string;
+  address: string;
+  preferred_payment_frequency: 'WEEKLY' | 'MONTHLY' | 'CUSTOM' | '';
+  outstanding_balance: number;
+  order_count: number;
+  created_at: string;
+}
+
+export interface VIPOrder {
+  id: string;
+  customer: string;
+  customer_name: string;
+  product: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  order_date: string;
+  created_at: string;
+}
+
+export interface VIPPayment {
+  id: string;
+  customer: string;
+  customer_name: string;
+  amount: number;
+  payment_date: string;
+  created_at: string;
+}
+
 export interface SubmitSessionPayload {
   branch: string | undefined;
   trading_date: string;
@@ -222,5 +255,43 @@ export const salesService = {
   clearRemainingDebt: (settlementId: string, amountHandedOver: number) =>
     salesApi.post(`vendor-settlements/${settlementId}/clear-debt/`, {
       amount_handed_over: amountHandedOver
-    })
+    }),
+
+  // --- VIP CUSTOMER MANAGEMENT (Admin-only) ---
+
+  getVipCustomers: (search?: string) =>
+    salesApi.get<VIPCustomer[]>('vip-customers/', {
+      params: search ? { search } : {}
+    }),
+
+  createVipCustomer: (data: { full_name?: string; phone_number?: string; address?: string; preferred_payment_frequency?: string }) =>
+    salesApi.post<VIPCustomer>('vip-customers/', data),
+
+  updateVipCustomer: (id: string, data: { full_name?: string; phone_number?: string; address?: string; preferred_payment_frequency?: string }) =>
+    salesApi.put<VIPCustomer>(`vip-customers/${id}/`, data),
+
+  deleteVipCustomer: (id: string) =>
+    salesApi.delete(`vip-customers/${id}/`),
+
+  getVipOrders: (customerId?: string) =>
+    salesApi.get<VIPOrder[]>('vip-orders/', {
+      params: { customer: customerId || undefined }
+    }),
+
+  createVipOrder: (data: { customer: string; product: string; quantity: number; order_date: string }) =>
+    salesApi.post<VIPOrder>('vip-orders/', data),
+
+  updateVipOrder: (orderId: string, data: { product: string; quantity: number; order_date: string }) =>
+    salesApi.patch<VIPOrder>(`vip-orders/${orderId}/`, data),
+
+  deleteVipOrder: (orderId: string) =>
+    salesApi.delete(`vip-orders/${orderId}/`),
+
+  getVipPayments: (customerId?: string) =>
+    salesApi.get<VIPPayment[]>('vip-payments/', {
+      params: { customer: customerId || undefined }
+    }),
+
+  createVipPayment: (data: { customer: string; amount: number; payment_date: string }) =>
+    salesApi.post<VIPPayment>('vip-payments/', data)
 };

@@ -33,7 +33,10 @@
     "digitalAccounts": "ዲጂታል አካውንቶች",
     "bankAccounts": "የባንክ አካውንቶች",
     "journalAdjustments": "የመዝገብ ማስተካከያ",
-    "shortagesLedger": "የጉድለት መዝገብ"
+    "shortagesLedger": "የጉድለት መዝገብ",
+    "vipCustomer": "የVIP ደንበኛ",
+    "vipOrder": "ትዕዛዝ",
+    "vipPayment": "ክፍያ"
   },
   "employee": {
     "employees": "ሰራተኞች",

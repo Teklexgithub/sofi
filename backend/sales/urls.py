@@ -1,12 +1,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    DailySessionViewSet, 
-    DigitalAccountViewSet, 
+    DailySessionViewSet,
+    DigitalAccountViewSet,
     CustomerCreditViewSet,
     DigitalAccountAdjustmentViewSet,
     ManagerShortageViewSet,
-    VendorSettlementViewSet
+    VendorSettlementViewSet,
+    VIPCustomerViewSet,
+    VIPOrderViewSet,
+    VIPPaymentViewSet
 )
 
 # Initialize standard REST framework automated routing engine
@@ -21,6 +24,11 @@ router.register(r'shortages', ManagerShortageViewSet, basename='shortage')
 
 # Vendor Payment Settlement Viewset
 router.register(r'vendor-settlements', VendorSettlementViewSet, basename='vendor-settlements')
+
+# VIP Customer Management Viewsets
+router.register(r'vip-customers', VIPCustomerViewSet, basename='vip-customer')
+router.register(r'vip-orders', VIPOrderViewSet, basename='vip-order')
+router.register(r'vip-payments', VIPPaymentViewSet, basename='vip-payment')
 
 
 urlpatterns = [

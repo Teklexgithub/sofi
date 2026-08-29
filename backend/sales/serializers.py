@@ -16,7 +16,10 @@ from .models import (
     VendorCreditProfile,
     VendorSettlement,
     VendorPaymentInstallment,
-    VendorSettlementLine
+    VendorSettlementLine,
+    VIPCustomer,
+    VIPOrder,
+    VIPPayment
 )
 
 
@@ -248,7 +251,62 @@ class VendorSettlementSerializer(serializers.ModelSerializer):
     class Meta:
         model = VendorSettlement
         fields = [
-            'id', 'vendor', 'vendor_name', 'total_batch_cost', 
-            'amount_paid_total', 'remaining_debt', 'payment_status', 
+            'id', 'vendor', 'vendor_name', 'total_batch_cost',
+            'amount_paid_total', 'remaining_debt', 'payment_status',
             'created_at', 'updated_at', 'installments', 'itemized_deliveries'
         ]
+
+
+# ---- VIP CUSTOMER MANAGEMENT PART ----
+
+class VIPCustomerSerializer(serializers.ModelSerializer):
+    outstanding_balance = serializers.SerializerMethodField()
+    order_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = VIPCustomer
+        fields = [
+            'id', 'full_name', 'phone_number', 'address',
+            'preferred_payment_frequency', 'outstanding_balance', 'order_count', 'created_at'
+        ]
+
+    def get_outstanding_balance(self, obj):
+        total_ordered = sum(
+            order.quantity * float(order.product.selling_price_per_piece)
+            for order in obj.orders.select_related('product').all()
+        )
+        total_paid = sum(float(p.amount) for p in obj.payments.all())
+        return total_ordered - total_paid
+
+    def get_order_count(self, obj):
+        return obj.orders.count()
+
+
+class VIPOrderSerializer(serializers.ModelSerializer):
+    customer_name = serializers.ReadOnlyField(source='customer.full_name')
+    product_name = serializers.ReadOnlyField(source='product.name')
+    unit_price = serializers.ReadOnlyField(source='product.selling_price_per_piece')
+    total_amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = VIPOrder
+        fields = [
+            'id', 'customer', 'customer_name', 'product', 'product_name',
+            'quantity', 'unit_price', 'total_amount', 'order_date', 'created_at'
+        ]
+
+    def get_total_amount(self, obj):
+        return obj.quantity * float(obj.product.selling_price_per_piece)
+
+
+class VIPPaymentSerializer(serializers.ModelSerializer):
+    customer_name = serializers.ReadOnlyField(source='customer.full_name')
+
+    class Meta:
+        model = VIPPayment
+        fields = ['id', 'customer', 'customer_name', 'amount', 'payment_date', 'created_at']
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError('Payment amount must be greater than zero.')
+        return value

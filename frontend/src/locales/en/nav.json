@@ -33,7 +33,10 @@
     "digitalAccounts": "Digital Accounts",
     "bankAccounts": "Bank Accounts",
     "journalAdjustments": "Journal Adjustments",
-    "shortagesLedger": "Shortages Ledger"
+    "shortagesLedger": "Shortages Ledger",
+    "vipCustomer": "VIP Customer",
+    "vipOrder": "Order",
+    "vipPayment": "Payment"
   },
   "employee": {
     "employees": "Employees",

@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.db.models import Sum
+from django.utils import timezone
 from inventory.models import Branch, Product
 from users.models import User
 
@@ -208,3 +209,55 @@ class VendorSettlementLine(models.Model):
 
     def __str__(self):
         return f"Line: Log {self.supply_log.id.hex[:6]} linked to Settlement {self.settlement.id.hex[:6]}"
+
+
+# ---- VIP CUSTOMER MANAGEMENT PART ----
+# VIP customers order directly through the Admin and never touch branch stock or branch cash sessions.
+
+class VIPCustomer(models.Model):
+    """ Registry of VIP customers managed entirely by the Admin. All profile fields are optional. """
+    FREQUENCY_CHOICES = [
+        ('WEEKLY', 'Weekly'),
+        ('MONTHLY', 'Monthly'),
+        ('CUSTOM', 'Custom'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    full_name = models.CharField(max_length=150, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+    preferred_payment_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.full_name or f"VIP Customer ({str(self.id)[:8]})"
+
+
+class VIPOrder(models.Model):
+    """
+    A single product order placed by a VIP customer directly with the Admin. Never deducts branch stock.
+    Orders never carry their own paid/unpaid flag - a customer's balance is the running total of all
+    their orders minus all their VIPPayments (see VIPPayment below), so a partial payment naturally
+    leaves the remainder outstanding for next time.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(VIPCustomer, on_delete=models.CASCADE, related_name='orders')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='vip_orders')
+    quantity = models.FloatField()
+    order_date = models.DateField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.customer} - {self.product} x{self.quantity} ({self.order_date})"
+
+
+class VIPPayment(models.Model):
+    """ A single cash handover from a VIP customer to the Admin. Can be partial - it just reduces the running balance. """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(VIPCustomer, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    payment_date = models.DateField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.customer} paid {self.amount} on {self.payment_date}"

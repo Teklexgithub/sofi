@@ -394,5 +394,100 @@
       "selectVendorAndRangeShort": "እባክዎ አቅራቢ እና የቀን ክልል ሁለቱንም ይምረጡ",
       "deliveryReportFailed": "የአቅራቢ አቅርቦት ሪፖርት መጫን አልተቻለም"
     }
+  },
+  "vipCustomerModal": {
+    "createTitle": "የVIP ደንበኛ መዝግብ",
+    "editTitle": "የVIP ደንበኛ አርትዕ",
+    "fullNameLabel": "ሙሉ ስም",
+    "fullNamePlaceholder": "ለምሳሌ አቶ ከበደ አለሙ",
+    "phonePlaceholder": "ለምሳሌ 0911000000",
+    "addressLabel": "አድራሻ",
+    "addressPlaceholder": "ለምሳሌ ቦሌ, አዲስ አበባ",
+    "frequencyLabel": "የተመረጠ የክፍያ ጊዜ",
+    "frequencyPlaceholder": "የክፍያ ጊዜ ይምረጡ",
+    "frequencyOptions": {
+      "WEEKLY": "ሳምንታዊ",
+      "MONTHLY": "ወርሃዊ",
+      "CUSTOM": "እንደተመረጠው"
+    },
+    "createSuccess": "የVIP ደንበኛ በተሳካ ሁኔታ ተመዝግቧል።",
+    "createFailed": "የVIP ደንበኛ መመዝገብ አልተቻለም።",
+    "updateSuccess": "የVIP ደንበኛ በተሳካ ሁኔታ ተስተካክሏል።",
+    "updateFailed": "የVIP ደንበኛ ማስተካከል አልተቻለም።"
+  },
+  "vipOrders": {
+    "title": "የVIP ደንበኛ ትዕዛዞች",
+    "subtitle": "በቀጥታ በአስተዳዳሪ በኩል የሚያዙ እና የሚከፍሉ ደንበኞችን ትዕዛዝ እና መገለጫ ያስተዳድሩ።",
+    "unnamedCustomer": "ስም ያልተጠቀሰ ደንበኛ",
+    "customersSectionTitle": "የVIP ደንበኞች",
+    "customerSearchPlaceholder": "በስም ወይም በስልክ ቁጥር ይፈልጉ...",
+    "orderSearchPlaceholder": "በደንበኛ ወይም በምርት ይፈልጉ...",
+    "addCustomerBtn": "የVIP ደንበኛ ጨምር",
+    "placeOrderTitle": "አዲስ ትዕዛዝ አስመዝግብ",
+    "historyTitle": "የትዕዛዝ ታሪክ",
+    "customerColumns": {
+      "fullName": "ሙሉ ስም",
+      "outstanding": "ያልተከፈለ ቀሪ ሂሳብ",
+      "orderCount": "ትዕዛዞች"
+    },
+    "historyColumns": {
+      "unitPrice": "የአንድ ዋጋ"
+    },
+    "form": {
+      "customerPlaceholder": "የVIP ደንበኛ ይፈልጉ ወይም ይምረጡ",
+      "customerRequired": "እባክዎ ደንበኛ ይምረጡ",
+      "createNewOption": "«{{name}}»ን እንደ አዲስ የVIP ደንበኛ መዝግብ",
+      "productPlaceholder": "ምርት ይምረጡ",
+      "productRequired": "እባክዎ ምርት ይምረጡ",
+      "quantityRequired": "እባክዎ መጠን ያስገቡ",
+      "orderDateLabel": "የትዕዛዝ ቀን",
+      "orderDateRequired": "እባክዎ የትዕዛዝ ቀን ይምረጡ",
+      "unitPricePreview": "የአሁኑ የሽያጭ ዋጋ: {{price}} በእያንዳንዱ ቁራጭ",
+      "submitBtn": "ትዕዛዝ አስመዝግብ"
+    },
+    "editModal": {
+      "title": "የVIP ትዕዛዝ አርትዕ",
+      "updateSuccess": "ትዕዛዙ በተሳካ ሁኔታ ተስተካክሏል።",
+      "updateFailed": "ትዕዛዙን ማስተካከል አልተቻለም።"
+    },
+    "deleteOrderConfirm": {
+      "title": "ይህን ትዕዛዝ ሰርዝ?",
+      "desc": "ይህ ተመልሶ ሊቀር አይችልም። የደንበኛው ያልተከፈለ ቀሪ ሂሳብ በድጋሚ ይሰላል።"
+    },
+    "deleteCustomerConfirm": {
+      "title": "ይህን የVIP ደንበኛ ሰርዝ?",
+      "desc": "ይህ ደንበኛውን ከመላው የትዕዛዝ እና የክፍያ ታሪካቸው ጋር በቋሚነት ያስወግዳል።"
+    },
+    "messages": {
+      "loadFailed": "ውሂብ መጫን አልተቻለም።",
+      "orderSuccess": "ትዕዛዝ በተሳካ ሁኔታ ተመዝግቧል።",
+      "orderFailed": "ትዕዛዝ መመዝገብ አልተቻለም።",
+      "orderDeleteSuccess": "ትዕዛዙ በተሳካ ሁኔታ ተሰርዟል።",
+      "orderDeleteFailed": "ትዕዛዙን መሰረዝ አልተቻለም።",
+      "customerDeleteSuccess": "የVIP ደንበኛ በተሳካ ሁኔታ ተሰርዟል።",
+      "customerDeleteFailed": "የVIP ደንበኛን መሰረዝ አልተቻለም።"
+    }
+  },
+  "vipPayments": {
+    "title": "የVIP ደንበኛ ክፍያዎች",
+    "subtitle": "ከVIP ደንበኞች ሙሉ ወይም ከፊል ክፍያዎችን በያዙት ቀሪ ሂሳብ ላይ ይመዝግቡ።",
+    "searchPlaceholder": "በስም ወይም በስልክ ቁጥር ይፈልጉ...",
+    "recordPaymentBtn": "ክፍያ መዝግብ",
+    "ordersTab": "ትዕዛዞች",
+    "paymentsTab": "የክፍያ ታሪክ",
+    "paymentModal": {
+      "title": "ክፍያ መዝግብ",
+      "outstandingLine": "{{name}} አሁን {{amount}} ዕዳ አለበት",
+      "amountLabel": "የተከፈለ መጠን",
+      "amountRequired": "እባክዎ የተከፈለውን መጠን ያስገቡ",
+      "dateLabel": "የክፍያ ቀን",
+      "dateRequired": "እባክዎ የክፍያ ቀን ይምረጡ",
+      "submitBtn": "ክፍያ መዝግብ",
+      "recordSuccess": "ክፍያው በተሳካ ሁኔታ ተመዝግቧል።",
+      "recordFailed": "ክፍያውን መመዝገብ አልተቻለም።"
+    },
+    "messages": {
+      "loadFailed": "ውሂብ መጫን አልተቻለም።"
+    }
   }
 }
