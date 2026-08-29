@@ -224,5 +224,44 @@
     "packsToMove": "Packs to Move (from Store)",
     "enterQuantity": "Enter quantity",
     "totalPiecesToAdd": "Total Pieces to Add to Shop"
+  },
+  "poorProductReports": {
+    "title": "Poor Product Reports",
+    "subtitle": "Log deliveries that turned out poor or substandard. Reports marked \"Deduct\" automatically reduce what's owed to that vendor at settlement time.",
+    "searchPlaceholder": "Search by product, vendor, or branch...",
+    "registerBtn": "Register Poor Product",
+    "loadFailed": "Failed to load data.",
+    "deleteSuccess": "Report deleted successfully.",
+    "deleteFailed": "Failed to delete report.",
+    "settledTag": "Applied to Settlement",
+    "lockedNote": "Already settled - locked",
+    "columns": {
+      "reportDate": "Report Date",
+      "vendor": "Vendor",
+      "buyingPrice": "Buying Price"
+    },
+    "statusOptions": {
+      "NOT_DEDUCT": "Not Deduct",
+      "DEDUCT": "Deduct"
+    },
+    "deleteConfirm": {
+      "title": "Delete this report?",
+      "desc": "This cannot be undone."
+    },
+    "modal": {
+      "createTitle": "Register Poor Product",
+      "editTitle": "Edit Poor Product Report",
+      "productPlaceholder": "Select a product",
+      "productRequired": "Please select a product",
+      "branchPlaceholder": "Select a branch",
+      "branchRequired": "Please select a branch",
+      "quantityRequired": "Please enter a quantity",
+      "reportDateLabel": "Report Date",
+      "reportDateRequired": "Please select the report date",
+      "createSuccess": "Report registered successfully.",
+      "createFailed": "Failed to register report.",
+      "updateSuccess": "Report updated successfully.",
+      "updateFailed": "Failed to update report."
+    }
   }
 }

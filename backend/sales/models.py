@@ -211,6 +211,31 @@ class VendorSettlementLine(models.Model):
         return f"Line: Log {self.supply_log.id.hex[:6]} linked to Settlement {self.settlement.id.hex[:6]}"
 
 
+class PoorProductReport(models.Model):
+    """
+    Logs a delivered batch that turned out poor/substandard. If status is DEDUCT, its cost
+    (quantity x buying price) reduces what's owed to that product's vendor at settlement time.
+    The settlement FK is set once a DEDUCT report has actually been applied to a finalized
+    settlement, so it can never be counted against the vendor twice.
+    """
+    STATUS_CHOICES = [
+        ('NOT_DEDUCT', 'Not Deduct'),
+        ('DEDUCT', 'Deduct'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='poor_product_reports')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='poor_product_reports')
+    quantity = models.FloatField()
+    report_date = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='NOT_DEDUCT')
+    settlement = models.ForeignKey(VendorSettlement, on_delete=models.SET_NULL, null=True, blank=True, related_name='quality_deductions')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.product} x{self.quantity} at {self.branch} ({self.status})"
+
+
 # ---- VIP CUSTOMER MANAGEMENT PART ----
 # VIP customers order directly through the Admin and never touch branch stock or branch cash sessions.
 

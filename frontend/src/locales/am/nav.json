@@ -23,7 +23,8 @@
     "vendors": "አቅራቢዎች",
     "operations": "ስራዎች",
     "vendorDeliveries": "የአቅራቢ አቅርቦቶች",
-    "storeToShopRefills": "ከመጋዘን ወደ ሱቅ ማዘዋወሪያ"
+    "storeToShopRefills": "ከመጋዘን ወደ ሱቅ ማዘዋወሪያ",
+    "poorProductReports": "የጥራት ጉድለት ሪፖርቶች"
   },
   "sales": {
     "dailySessions": "የቀን ስራ",

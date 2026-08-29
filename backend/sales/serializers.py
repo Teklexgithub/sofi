@@ -19,7 +19,8 @@ from .models import (
     VendorSettlementLine,
     VIPCustomer,
     VIPOrder,
-    VIPPayment
+    VIPPayment,
+    PoorProductReport
 )
 
 
@@ -242,18 +243,43 @@ class VendorPaymentInstallmentSerializer(serializers.ModelSerializer):
         fields = ['id', 'amount_handed_over', 'advance_amount_created', 'advance_used_from_past', 'paid_at']
 
 
+class PoorProductReportSerializer(serializers.ModelSerializer):
+    product_name = serializers.ReadOnlyField(source='product.name')
+    branch_name = serializers.ReadOnlyField(source='branch.name')
+    vendor_name = serializers.ReadOnlyField(source='product.vendor.name')
+    buying_price_unit = serializers.ReadOnlyField(source='product.buying_price_per_piece')
+    total_amount = serializers.SerializerMethodField()
+    is_settled = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PoorProductReport
+        fields = [
+            'id', 'product', 'product_name', 'vendor_name', 'branch', 'branch_name',
+            'quantity', 'buying_price_unit', 'total_amount', 'report_date', 'status',
+            'settlement', 'is_settled', 'created_at'
+        ]
+        read_only_fields = ['settlement']
+
+    def get_total_amount(self, obj):
+        return obj.quantity * float(obj.product.buying_price_per_piece)
+
+    def get_is_settled(self, obj):
+        return obj.settlement_id is not None
+
+
 class VendorSettlementSerializer(serializers.ModelSerializer):
     vendor_name = serializers.ReadOnlyField(source='vendor.name')
     installments = VendorPaymentInstallmentSerializer(many=True, read_only=True)
     # 🌟 FLATTENED: Feeds array response straight to the table state loop key
     itemized_deliveries = VendorSettlementLineSerializer(source='lines', many=True, read_only=True)
+    itemized_deductions = PoorProductReportSerializer(source='quality_deductions', many=True, read_only=True)
 
     class Meta:
         model = VendorSettlement
         fields = [
             'id', 'vendor', 'vendor_name', 'total_batch_cost',
             'amount_paid_total', 'remaining_debt', 'payment_status',
-            'created_at', 'updated_at', 'installments', 'itemized_deliveries'
+            'created_at', 'updated_at', 'installments', 'itemized_deliveries', 'itemized_deductions'
         ]
 
 

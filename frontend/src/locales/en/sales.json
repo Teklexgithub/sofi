@@ -330,6 +330,8 @@
     "dateSelectionWindowLabel": "Date Selection Window",
     "generateWorksheetBtn": "Generate Worksheet",
     "unpaidDeliveriesTitle": "Unpaid Delivery Log Rows Found",
+    "deductionsAppliedTitle": "Poor Product Deductions Applied",
+    "deductionsAppliedNote": "These amounts have already been subtracted from the Gross Batch Cost above.",
     "reconciliationTitle": "Reconciliation Posting",
     "actualCashHandedLabel": "Actual Cash Handed Over ({{unit}}):",
     "advanceCreditNotice": "An extra <b>{{amount}} {{unit}}</b> will be allocated as an advance credit for future supply cycles.",
@@ -357,7 +359,8 @@
       "packsReceived": "Packs Rec.",
       "convertedPieces": "Converted Pieces",
       "unitBuyPrice": "Unit Buy Price",
-      "subtotalCost": "Subtotal Cost"
+      "subtotalCost": "Subtotal Cost",
+      "reportDate": "Report Date"
     },
     "historyColumns": {
       "settlementId": "Settlement ID Reference",
@@ -377,6 +380,7 @@
     "stats": {
       "grossBatchCost": "Calculated Gross Batch Cost",
       "pastAdvance": "Applied Past Advance Credits",
+      "qualityDeductions": "Poor Product Deductions",
       "netBalanceDue": "Net Balance Due Now"
     },
     "postedModal": {

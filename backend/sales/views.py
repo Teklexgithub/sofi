@@ -10,7 +10,8 @@ from .models import (
     SessionCreditEntry, SessionCreditPayment, DigitalAccount,
     SessionDigitalBalance, ManualBankDeposit, DigitalAccountAdjustment,
     ManagerShortageLedger, VendorSettlement, VendorPaymentInstallment,
-    VendorSettlementLine, VendorCreditProfile, VIPCustomer, VIPOrder, VIPPayment
+    VendorSettlementLine, VendorCreditProfile, VIPCustomer, VIPOrder, VIPPayment,
+    PoorProductReport
 )
 from .serializers import (
     DailySessionSerializer,
@@ -22,7 +23,8 @@ from .serializers import (
     VendorSettlementSerializer,
     VIPCustomerSerializer,
     VIPOrderSerializer,
-    VIPPaymentSerializer
+    VIPPaymentSerializer,
+    PoorProductReportSerializer
 )
 from inventory.models import ShopStock, Product, SupplyLog, Vendor
 from django.utils.dateparse import parse_date
@@ -449,19 +451,19 @@ class VendorSettlementViewSet(viewsets.ModelViewSet):
         if not vendor_id:
             return Response({"error": "Missing vendor parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
+        parsed_start_date = parse_date(start_date_str) if start_date_str else None
+        parsed_end_date = parse_date(end_date_str) if end_date_str else None
+
         # 1. Gather fresh, unpaid cargo items
         fresh_unpaid_logs = SupplyLog.objects.filter(
             product__vendor_id=vendor_id,
             is_paid_to_vendor=False
         ).select_related('product')
 
-        if start_date_str and end_date_str:
-            start_date = parse_date(start_date_str)
-            end_date = parse_date(end_date_str)
-            if start_date and end_date:
-                start_datetime = datetime.datetime.combine(start_date, datetime.time.min)
-                end_datetime = datetime.datetime.combine(end_date, datetime.time.max)
-                fresh_unpaid_logs = fresh_unpaid_logs.filter(date_received__range=(start_datetime, end_datetime))
+        if parsed_start_date and parsed_end_date:
+            start_datetime = datetime.datetime.combine(parsed_start_date, datetime.time.min)
+            end_datetime = datetime.datetime.combine(parsed_end_date, datetime.time.max)
+            fresh_unpaid_logs = fresh_unpaid_logs.filter(date_received__range=(start_datetime, end_datetime))
 
         # 2. Compute fresh cargo subtotals
         fresh_batch_cost = Decimal('0.00')
@@ -504,12 +506,38 @@ class VendorSettlementViewSet(viewsets.ModelViewSet):
                 "calculated_row_subtotal": float(past_outstanding_debt)
             })
 
+        # 4. Quality deductions - unsettled DEDUCT reports for this vendor's products reduce what's owed
+        deduction_reports = PoorProductReport.objects.filter(
+            product__vendor_id=vendor_id, status='DEDUCT', settlement__isnull=True
+        ).select_related('product', 'branch')
+
+        if parsed_start_date and parsed_end_date:
+            deduction_reports = deduction_reports.filter(report_date__range=(parsed_start_date, parsed_end_date))
+
+        total_deductions = Decimal('0.00')
+        itemized_deductions = []
+        for report in deduction_reports:
+            qty = Decimal(str(report.quantity))
+            buy_price = Decimal(str(report.product.buying_price_per_piece or 0.00))
+            subtotal = qty * buy_price
+            total_deductions += subtotal
+
+            itemized_deductions.append({
+                "id": str(report.id),
+                "report_date": report.report_date.isoformat(),
+                "product_name": report.product.name,
+                "branch_name": report.branch.name,
+                "quantity": float(qty),
+                "buying_price_unit": float(buy_price),
+                "calculated_row_subtotal": float(subtotal)
+            })
+
         credit_prof = VendorCreditProfile.objects.filter(vendor_id=vendor_id).first()
         past_advance = Decimal(str(credit_prof.current_advance_balance)) if credit_prof else Decimal('0.00')
 
-        # Calculate liabilities precisely
-        gross_total_liability = fresh_batch_cost + past_outstanding_debt
-        
+        # Calculate liabilities precisely, net of quality deductions
+        gross_total_liability = max(Decimal('0.00'), fresh_batch_cost + past_outstanding_debt - total_deductions)
+
         if past_advance >= gross_total_liability:
             net_balance_due = Decimal('0.00')
             displayed_advance = past_advance - gross_total_liability
@@ -519,10 +547,12 @@ class VendorSettlementViewSet(viewsets.ModelViewSet):
 
         return Response({
             "vendor_id": vendor_id,
-            "calculated_batch_cost": float(fresh_batch_cost + past_outstanding_debt), 
+            "calculated_batch_cost": float(gross_total_liability),
+            "total_quality_deductions": float(total_deductions),
             "available_past_advance": float(displayed_advance),
             "net_balance_due": float(net_balance_due),
-            "itemized_deliveries": itemized_lines
+            "itemized_deliveries": itemized_lines,
+            "itemized_deductions": itemized_deductions
         }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['POST'], url_path='post-settlement')
@@ -559,12 +589,23 @@ class VendorSettlementViewSet(viewsets.ModelViewSet):
                 packs = Decimal(str(log.packs_received or 0.0))
                 pieces_per_pack = Decimal(str(log.product.pieces_per_pack or 1))
                 buy_price = Decimal(str(log.product.buying_price_per_piece or 0.00))
-                
+
                 total_pieces = packs * pieces_per_pack
                 fresh_logs_cost += (total_pieces * buy_price)
 
-            total_liabilities = fresh_logs_cost + past_debts_cost
-            
+            # 2b. Sweep in unsettled quality deductions for this vendor - reduces what's owed, once and only once
+            deduction_reports = PoorProductReport.objects.filter(
+                product__vendor_id=vendor_id, status='DEDUCT', settlement__isnull=True
+            ).select_related('product')
+
+            total_deductions = Decimal('0.00')
+            for report in deduction_reports:
+                qty = Decimal(str(report.quantity))
+                buy_price = Decimal(str(report.product.buying_price_per_piece or 0.00))
+                total_deductions += (qty * buy_price)
+
+            total_liabilities = max(Decimal('0.00'), fresh_logs_cost + past_debts_cost - total_deductions)
+
             credit_prof, _ = VendorCreditProfile.objects.get_or_create(
                 vendor_id=vendor_id,
                 defaults={'current_advance_balance': Decimal('0.00')}
@@ -606,6 +647,9 @@ class VendorSettlementViewSet(viewsets.ModelViewSet):
                 log.is_paid_to_vendor = True
                 log.save()
 
+            # Lock the quality deductions into this settlement so they can never be counted again
+            deduction_reports.update(settlement=master_settlement)
+
             # Mark older partial settlements as resolved since their active debt rolled forward here
             open_settlements.exclude(id=master_settlement.id).update(remaining_debt=Decimal('0.00'), payment_status='FULL')
 
@@ -622,6 +666,54 @@ class VendorSettlementViewSet(viewsets.ModelViewSet):
 
 
 # ---- VIP CUSTOMER MANAGEMENT PART ----
+
+class PoorProductReportViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only log of poor/rejected product deliveries. A DEDUCT report reduces what's owed
+    to that product's vendor at settlement time. Once a report has actually been applied to a
+    finalized settlement, it's locked - editing or deleting it would silently corrupt that
+    settlement's already-recorded totals.
+    """
+    queryset = PoorProductReport.objects.all().order_by('-report_date', '-created_at')
+    serializer_class = PoorProductReportSerializer
+    permission_classes = [IsAdmin]
+
+    def get_queryset(self):
+        queryset = PoorProductReport.objects.all().order_by('-report_date', '-created_at')
+        branch_id = self.request.query_params.get('branch')
+        vendor_id = self.request.query_params.get('vendor')
+        if branch_id:
+            queryset = queryset.filter(branch_id=branch_id)
+        if vendor_id:
+            queryset = queryset.filter(product__vendor_id=vendor_id)
+        return queryset
+
+    def _block_if_settled(self, instance):
+        if instance.settlement_id is not None:
+            return Response(
+                {"error": "This report has already been applied to a finalized settlement and can no longer be changed."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return None
+
+    def update(self, request, *args, **kwargs):
+        blocked = self._block_if_settled(self.get_object())
+        if blocked:
+            return blocked
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        blocked = self._block_if_settled(self.get_object())
+        if blocked:
+            return blocked
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        blocked = self._block_if_settled(self.get_object())
+        if blocked:
+            return blocked
+        return super().destroy(request, *args, **kwargs)
+
 
 class VIPCustomerViewSet(viewsets.ModelViewSet):
     """VIP customers order directly through the Admin; entirely Admin-only, no branch involved."""

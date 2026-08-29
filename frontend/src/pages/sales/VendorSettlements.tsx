@@ -6,7 +6,7 @@ import {
 import {
   FileTextOutlined, HistoryOutlined, SearchOutlined,
   CheckCircleOutlined, InfoCircleOutlined, DownOutlined,
-  DollarCircleOutlined, PrinterOutlined, TruckOutlined
+  DollarCircleOutlined, PrinterOutlined, TruckOutlined, WarningOutlined
 } from '@ant-design/icons';
 import { useReactToPrint } from 'react-to-print';
 import { useTranslation, Trans } from 'react-i18next';
@@ -23,7 +23,7 @@ const { Text, Title } = Typography;
 interface DeliveryLog {
   id: string;
   date_received: string;
-  product_name: string; 
+  product_name: string;
   packs_received: number;
   pieces_per_pack: number;
   calculated_pieces_count: number;
@@ -31,12 +31,24 @@ interface DeliveryLog {
   calculated_row_subtotal: number;
 }
 
+interface DeductionLog {
+  id: string;
+  report_date: string;
+  product_name: string;
+  branch_name: string;
+  quantity: number;
+  buying_price_unit: number;
+  calculated_row_subtotal: number;
+}
+
 interface WorksheetPayload {
   vendor_id: string;
   calculated_batch_cost: number;
+  total_quality_deductions: number;
   available_past_advance: number;
   net_balance_due: number;
   itemized_deliveries: DeliveryLog[];
+  itemized_deductions: DeductionLog[];
 }
 
 export const VendorSettlements: React.FC = () => {
@@ -225,6 +237,40 @@ export const VendorSettlements: React.FC = () => {
     },
   ];
 
+  const deductionColumns = [
+    {
+      title: t('vendorSettlements.columns.reportDate'),
+      dataIndex: 'report_date',
+      render: (d: string) => dayjs(d).format('YYYY-MM-DD')
+    },
+    {
+      title: t('common:fields.product'),
+      dataIndex: 'product_name',
+    },
+    {
+      title: t('common:fields.branch'),
+      dataIndex: 'branch_name',
+      render: (v: string) => <Tag color="purple">{v}</Tag>
+    },
+    {
+      title: t('common:fields.quantity'),
+      dataIndex: 'quantity',
+      align: 'right' as const,
+    },
+    {
+      title: t('vendorSettlements.columns.unitBuyPrice'),
+      dataIndex: 'buying_price_unit',
+      align: 'right' as const,
+      render: (v: number) => `${Number(v).toFixed(2)} ${t('common:units.etb')}`
+    },
+    {
+      title: t('vendorSettlements.columns.subtotalCost'),
+      dataIndex: 'calculated_row_subtotal',
+      align: 'right' as const,
+      render: (v: number) => <Text type="danger" strong>-{Number(v).toFixed(2)} {t('common:units.etb')}</Text>
+    },
+  ];
+
   const historyColumns = [
     {
       title: t('vendorSettlements.historyColumns.settlementId'),
@@ -332,6 +378,12 @@ export const VendorSettlements: React.FC = () => {
   const aggregateTotalCost = filteredHistory.reduce((acc, curr) => acc + Number(curr.total_batch_cost), 0);
   const aggregateTotalDebt = filteredHistory.reduce((acc, curr) => acc + Number(curr.remaining_debt), 0);
 
+  // Gross Batch Cost and Net Balance Due are always shown; Advance and Deductions only when non-zero
+  const visibleStatCount = 2
+    + (worksheetData && worksheetData.available_past_advance > 0 ? 1 : 0)
+    + (worksheetData && worksheetData.total_quality_deductions > 0 ? 1 : 0);
+  const statSpan = 24 / visibleStatCount;
+
   const getTabButtonStyle = (tabKey: string) => {
     const isActive = activeTab === tabKey;
     return {
@@ -419,22 +471,46 @@ export const VendorSettlements: React.FC = () => {
             {worksheetData ? (
               <div>
                 <Row gutter={16} style={{ marginBottom: '24px' }}>
-                  <Col span={8}>
+                  <Col span={statSpan}>
                     <Card bordered={false} style={{ background: '#f9f9f9', textAlign: 'center', borderRadius: '8px', border: '1px solid #eee' }}>
                       <Statistic title={t('vendorSettlements.stats.grossBatchCost')} value={worksheetData.calculated_batch_cost} precision={2} suffix={t('common:units.etb')} valueStyle={{ fontWeight: 'bold', color: '#444' }} />
                     </Card>
                   </Col>
-                  <Col span={8} hidden={worksheetData.available_past_advance <= 0}>
+                  <Col span={statSpan} hidden={worksheetData.total_quality_deductions <= 0}>
+                    <Card bordered={false} style={{ background: '#fff7e6', textAlign: 'center', borderRadius: '8px', border: '1px solid #ffd591' }}>
+                      <Statistic title={t('vendorSettlements.stats.qualityDeductions')} value={worksheetData.total_quality_deductions} precision={2} suffix={t('common:units.etb')} valueStyle={{ fontWeight: 'bold', color: '#d46b08' }} prefix="-" />
+                    </Card>
+                  </Col>
+                  <Col span={statSpan} hidden={worksheetData.available_past_advance <= 0}>
                     <Card bordered={false} style={{ background: '#fff1f0', textAlign: 'center', borderRadius: '8px', border: '1px solid #ffa39e' }}>
                       <Statistic title={t('vendorSettlements.stats.pastAdvance')} value={worksheetData.available_past_advance} precision={2} suffix={t('common:units.etb')} valueStyle={{ fontWeight: 'bold', color: '#cf1322' }} />
                     </Card>
                   </Col>
-                  <Col span={worksheetData.available_past_advance > 0 ? 8 : 16}>
+                  <Col span={statSpan}>
                     <Card bordered={false} style={{ background: '#f6ffed', textAlign: 'center', borderRadius: '8px', border: '1px solid #b7eb8f' }}>
                       <Statistic title={t('vendorSettlements.stats.netBalanceDue')} value={worksheetData.net_balance_due} precision={2} suffix={t('common:units.etb')} valueStyle={{ fontWeight: 'bold', color: '#3f8600' }} />
                     </Card>
                   </Col>
                 </Row>
+
+                {worksheetData.itemized_deductions.length > 0 && (
+                  <Card
+                    title={<span><WarningOutlined style={{ color: '#d46b08' }} /> {t('vendorSettlements.deductionsAppliedTitle')}</span>}
+                    bodyStyle={{ padding: 0 }}
+                    style={{ borderRadius: '8px', overflow: 'hidden', marginBottom: '24px', border: '1px solid #ffd591' }}
+                  >
+                    <Table
+                      dataSource={worksheetData.itemized_deductions}
+                      rowKey="id"
+                      pagination={false}
+                      size="middle"
+                      columns={deductionColumns}
+                    />
+                    <div style={{ padding: '10px 16px', background: '#fffbe6', color: '#874d00', fontSize: '12px' }}>
+                      {t('vendorSettlements.deductionsAppliedNote')}
+                    </div>
+                  </Card>
+                )}
 
                 <Row gutter={24}>
                   <Col lg={16} xs={24}>

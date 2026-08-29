@@ -12,6 +12,7 @@
     "dateFinalized": "Date Finalized",
     "bankAccount": "Bank Account",
     "itemizedDeliveries": "Itemized Deliveries Settled",
+    "itemizedDeductions": "Poor Product Deductions Applied",
     "totalBatchCost": "Total Batch Cost",
     "cashHandedOver": "Cash Handed Over",
     "advanceUsedFromPast": "Advance Used From Past",

@@ -55,6 +55,23 @@ export interface VIPOrder {
   created_at: string;
 }
 
+export interface PoorProductReport {
+  id: string;
+  product: string;
+  product_name: string;
+  vendor_name: string;
+  branch: string;
+  branch_name: string;
+  quantity: number;
+  buying_price_unit: number;
+  total_amount: number;
+  report_date: string;
+  status: 'NOT_DEDUCT' | 'DEDUCT';
+  settlement: string | null;
+  is_settled: boolean;
+  created_at: string;
+}
+
 export interface VIPPayment {
   id: string;
   customer: string;
@@ -293,5 +310,21 @@ export const salesService = {
     }),
 
   createVipPayment: (data: { customer: string; amount: number; payment_date: string }) =>
-    salesApi.post<VIPPayment>('vip-payments/', data)
+    salesApi.post<VIPPayment>('vip-payments/', data),
+
+  // --- POOR PRODUCT REPORTS (feed vendor settlement deductions, Admin-only) ---
+
+  getPoorProductReports: (branchId?: string, vendorId?: string) =>
+    salesApi.get<PoorProductReport[]>('poor-product-reports/', {
+      params: { branch: branchId || undefined, vendor: vendorId || undefined }
+    }),
+
+  createPoorProductReport: (data: { product: string; branch: string; quantity: number; report_date: string; status: 'NOT_DEDUCT' | 'DEDUCT' }) =>
+    salesApi.post<PoorProductReport>('poor-product-reports/', data),
+
+  updatePoorProductReport: (id: string, data: { product: string; branch: string; quantity: number; report_date: string; status: 'NOT_DEDUCT' | 'DEDUCT' }) =>
+    salesApi.patch<PoorProductReport>(`poor-product-reports/${id}/`, data),
+
+  deletePoorProductReport: (id: string) =>
+    salesApi.delete(`poor-product-reports/${id}/`)
 };

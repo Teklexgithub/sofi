@@ -330,6 +330,8 @@
     "dateSelectionWindowLabel": "የቀን ክልል ምርጫ",
     "generateWorksheetBtn": "ሉህ አመንጭ",
     "unpaidDeliveriesTitle": "ያልተከፈሉ የአቅርቦት መዝገብ ረድፎች",
+    "deductionsAppliedTitle": "የተተገበሩ የጥራት ጉድለት ቅናሾች",
+    "deductionsAppliedNote": "እነዚህ መጠኖች ከላይ ካለው ጠቅላላ የስብስብ ወጪ ውስጥ አስቀድመው ተቀንሰዋል።",
     "reconciliationTitle": "የክፍያ ማስተካከያ",
     "actualCashHandedLabel": "ትክክለኛ የተላለፈ ገንዘብ ({{unit}}):",
     "advanceCreditNotice": "ተጨማሪ <b>{{amount}} {{unit}}</b> ለወደፊት አቅርቦት ዑደቶች እንደ ቅድሚያ ክፍያ ይመደባል።",
@@ -357,6 +359,7 @@
       "packsReceived": "የደረሱ ጥቅሎች",
       "convertedPieces": "የተለወጡ ቁርጥራጮች",
       "unitBuyPrice": "የግዢ አሃድ ዋጋ",
+      "reportDate": "የሪፖርት ቀን",
       "subtotalCost": "ንዑስ ድምር ወጪ"
     },
     "historyColumns": {
@@ -377,6 +380,7 @@
     "stats": {
       "grossBatchCost": "የተሰላ ጠቅላላ የስብስብ ወጪ",
       "pastAdvance": "የተተገበረ ያለፈ ቅድሚያ ክፍያ",
+      "qualityDeductions": "የጥራት ጉድለት ቅናሽ",
       "netBalanceDue": "አሁን የሚከፈል ተጣራ ቀሪ ሂሳብ"
     },
     "postedModal": {

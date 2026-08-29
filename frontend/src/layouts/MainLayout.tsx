@@ -6,7 +6,7 @@ import {
   AppstoreOutlined, EnvironmentOutlined,
   TeamOutlined,
   DollarOutlined, HistoryOutlined,
-  WalletOutlined, BankOutlined, FormOutlined
+  WalletOutlined, BankOutlined, FormOutlined, WarningOutlined
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -55,6 +55,13 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { key: '/inventory/products', label: t('inventory.products'), onClick: () => navigate('/inventory/products') },
         { key: '/inventory/vendors', label: t('inventory.vendors'), onClick: () => navigate('/inventory/vendors') },
       ]
+    }] : []),
+    // --- CONDITIONAL ADMIN-ONLY POOR PRODUCT REPORTS (feeds vendor settlement deductions) ---
+    ...(isAdmin ? [{
+      key: '/inventory/poor-product-reports',
+      label: t('inventory.poorProductReports'),
+      icon: <WarningOutlined />,
+      onClick: () => navigate('/inventory/poor-product-reports')
     }] : []),
     {
       key: 'operations',

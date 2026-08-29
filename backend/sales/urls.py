@@ -9,7 +9,8 @@ from .views import (
     VendorSettlementViewSet,
     VIPCustomerViewSet,
     VIPOrderViewSet,
-    VIPPaymentViewSet
+    VIPPaymentViewSet,
+    PoorProductReportViewSet
 )
 
 # Initialize standard REST framework automated routing engine
@@ -29,6 +30,9 @@ router.register(r'vendor-settlements', VendorSettlementViewSet, basename='vendor
 router.register(r'vip-customers', VIPCustomerViewSet, basename='vip-customer')
 router.register(r'vip-orders', VIPOrderViewSet, basename='vip-order')
 router.register(r'vip-payments', VIPPaymentViewSet, basename='vip-payment')
+
+# Poor/Rejected Product Reports (feed vendor settlement deductions)
+router.register(r'poor-product-reports', PoorProductReportViewSet, basename='poor-product-report')
 
 
 urlpatterns = [

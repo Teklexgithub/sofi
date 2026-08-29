@@ -13,6 +13,16 @@ interface DeliveryLine {
   calculated_row_subtotal: number;
 }
 
+interface DeductionLine {
+  id: string;
+  report_date: string;
+  product_name: string;
+  branch_name: string;
+  quantity: number;
+  buying_price_unit: number;
+  calculated_row_subtotal: number;
+}
+
 interface Installment {
   amount_handed_over: number;
   advance_amount_created: number;
@@ -29,6 +39,7 @@ interface Settlement {
   remaining_debt: number;
   payment_status: string;
   itemized_deliveries: DeliveryLine[];
+  itemized_deductions?: DeductionLine[];
   installments: Installment[];
 }
 
@@ -111,6 +122,36 @@ const VendorSettlementVoucher = forwardRef<HTMLDivElement, VendorSettlementVouch
             ))}
           </tbody>
         </table>
+
+        {(settlement.itemized_deductions || []).length > 0 && (
+          <>
+            <div style={{ fontWeight: 700, fontSize: '13px', color: '#d46b08', marginTop: '16px', marginBottom: '6px' }}>{t('vendorVoucher.itemizedDeductions')}</div>
+            <table style={printTableStyle}>
+              <thead>
+                <tr>
+                  <th style={printThStyle}>{t('common:fields.date')}</th>
+                  <th style={printThStyle}>{t('common:fields.product')}</th>
+                  <th style={printThStyle}>{t('common:fields.branch')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('common:fields.quantity')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('shared.unitPrice')}</th>
+                  <th style={{ ...printThStyle, textAlign: 'right' }}>{t('shared.subtotal')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(settlement.itemized_deductions || []).map((line) => (
+                  <tr key={line.id}>
+                    <td style={printTdStyle}>{dayjs(line.report_date).format('YYYY-MM-DD')}</td>
+                    <td style={printTdStyle}>{line.product_name}</td>
+                    <td style={printTdStyle}>{line.branch_name}</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{line.quantity}</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right' }}>{fmt(line.buying_price_unit)} {etb}</td>
+                    <td style={{ ...printTdStyle, textAlign: 'right', fontWeight: 600, color: '#d46b08' }}>-{fmt(line.calculated_row_subtotal)} {etb}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
 
         <table style={{ ...printTableStyle, width: '60%', marginLeft: 'auto' }}>
           <tbody>

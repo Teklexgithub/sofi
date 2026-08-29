@@ -224,5 +224,44 @@
     "packsToMove": "ከመጋዘን የሚንቀሳቀሱ ጥቅሎች",
     "enterQuantity": "ብዛት ያስገቡ",
     "totalPiecesToAdd": "ወደ ሱቅ የሚጨመሩ ጠቅላላ ቁርጥራጮች"
+  },
+  "poorProductReports": {
+    "title": "የጥራት ጉድለት ሪፖርቶች",
+    "subtitle": "ጥራት የጎደላቸው ወይም መስፈርት ያላሟሉ አቅርቦቶችን ይመዝግቡ። «ይቀነስ» የተባሉ ሪፖርቶች ሲከፈል ከአቅራቢው ዕዳ ላይ በራስ-ሰር ይቀነሳሉ።",
+    "searchPlaceholder": "በምርት፣ በአቅራቢ ወይም በቅርንጫፍ ይፈልጉ...",
+    "registerBtn": "ጉድለት ያለበት ምርት መዝግብ",
+    "loadFailed": "ውሂብ መጫን አልተቻለም።",
+    "deleteSuccess": "ሪፖርቱ በተሳካ ሁኔታ ተሰርዟል።",
+    "deleteFailed": "ሪፖርቱን መሰረዝ አልተቻለም።",
+    "settledTag": "በክፍያ ውስጥ ገብቷል",
+    "lockedNote": "ቀድሞ ተከፍሏል - ተቆልፏል",
+    "columns": {
+      "reportDate": "የሪፖርት ቀን",
+      "vendor": "አቅራቢ",
+      "buyingPrice": "የመግዣ ዋጋ"
+    },
+    "statusOptions": {
+      "NOT_DEDUCT": "አይቀነስም",
+      "DEDUCT": "ይቀነስ"
+    },
+    "deleteConfirm": {
+      "title": "ይህን ሪፖርት ሰርዝ?",
+      "desc": "ይህ ተመልሶ ሊቀር አይችልም።"
+    },
+    "modal": {
+      "createTitle": "ጉድለት ያለበት ምርት መዝግብ",
+      "editTitle": "የጥራት ጉድለት ሪፖርት አርትዕ",
+      "productPlaceholder": "ምርት ይምረጡ",
+      "productRequired": "እባክዎ ምርት ይምረጡ",
+      "branchPlaceholder": "ቅርንጫፍ ይምረጡ",
+      "branchRequired": "እባክዎ ቅርንጫፍ ይምረጡ",
+      "quantityRequired": "እባክዎ መጠን ያስገቡ",
+      "reportDateLabel": "የሪፖርት ቀን",
+      "reportDateRequired": "እባክዎ የሪፖርት ቀን ይምረጡ",
+      "createSuccess": "ሪፖርቱ በተሳካ ሁኔታ ተመዝግቧል።",
+      "createFailed": "ሪፖርቱን መመዝገብ አልተቻለም።",
+      "updateSuccess": "ሪፖርቱ በተሳካ ሁኔታ ተስተካክሏል።",
+      "updateFailed": "ሪፖርቱን ማስተካከል አልተቻለም።"
+    }
   }
 }

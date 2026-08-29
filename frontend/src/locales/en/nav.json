@@ -23,7 +23,8 @@
     "vendors": "Vendors",
     "operations": "Operations",
     "vendorDeliveries": "Vendor Deliveries",
-    "storeToShopRefills": "Store to Shop Refills"
+    "storeToShopRefills": "Store to Shop Refills",
+    "poorProductReports": "Poor Product Reports"
   },
   "sales": {
     "dailySessions": "Daily Sessions",

@@ -13,6 +13,7 @@ import StoreStock from './pages/inventory/StoreStock';
 import ShopStock from './pages/inventory/ShopStock';
 import InternalTransfers from './pages/inventory/InternalTransfers';
 import SupplyLogs from './pages/inventory/SupplyLogs';
+import PoorProductReports from './pages/inventory/PoorProductReports';
 
 // SALES APP - NEW IMPORTS
 import DailySessionWorksheet from './pages/sales/DailySessionWorksheet';
@@ -87,6 +88,7 @@ function App() {
 
                   <Route path="/inventory/transfers" element={<InternalTransfers />} />
                   <Route path="/inventory/supply-logs" element={<SupplyLogs />} />
+                  <Route path="/inventory/poor-product-reports" element={<RequireAdmin><PoorProductReports /></RequireAdmin>} />
 
                   {/* SALES APP - NEW ROUTES */}
                   <Route path="/sales" element={<Navigate to="/sales/daily-session" replace />} />
